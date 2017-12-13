@@ -1,0 +1,2 @@
+sem-tools:db.host: staging-ezrails.ma5hnm.us-east-1.rds.amazonaws.com
+sem-tools:db.pass: staging-pass

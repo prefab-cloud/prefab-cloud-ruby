@@ -1,0 +1,2 @@
+ezauth.api.url: https://api.ezcater-staging.com/ezauth
+db.port: 5432
