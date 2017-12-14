@@ -1,5 +1,0 @@
-ezauth.api.url: https://localhost:3002/ezauth
-sem-tools:db.host: localhost
-sem-tools:ezauth.api.url: https://localhost:3002/ezauth
-ez-rails:ezauth.api.url: https://api.prod.com:3002/ezauth
-ezauth.api.url: https://api.staging.com:3002/ezauth

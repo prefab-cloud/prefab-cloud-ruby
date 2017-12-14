@@ -6,18 +6,18 @@ require 'google/protobuf'
 require 'google/protobuf/wrappers_pb'
 require 'ratelimit_pb'
 Google::Protobuf::DescriptorPool.generated_pool.build do
-  add_message "cloud.prefab.domain.ConfigServicePointer" do
+  add_message "prefab.ConfigServicePointer" do
     optional :account_id, :int64, 1
     optional :start_at_id, :int64, 2
   end
-  add_message "cloud.prefab.domain.ConfigDelta" do
+  add_message "prefab.ConfigDelta" do
     optional :account_id, :int64, 1
     optional :id, :int64, 2
     optional :key, :string, 3
-    optional :value, :message, 4, "cloud.prefab.domain.ConfigValue"
+    optional :value, :message, 4, "prefab.ConfigValue"
   end
-  add_message "cloud.prefab.domain.ConfigValue" do
-    oneof :value do
+  add_message "prefab.ConfigValue" do
+    oneof :type do
       optional :int, :int64, 1
       optional :string, :string, 2
       optional :bytes, :bytes, 3
@@ -26,18 +26,14 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :feature_flag, :message, 6, "it.ratelim.data.FeatureFlag"
     end
   end
-  add_message "cloud.prefab.domain.ConfigDeltas" do
-    repeated :deltas, :message, 1, "cloud.prefab.domain.ConfigDelta"
+  add_message "prefab.ConfigDeltas" do
+    repeated :deltas, :message, 1, "prefab.ConfigDelta"
   end
 end
 
-module Cloud
-  module Prefab
-    module Domain
-      ConfigServicePointer = Google::Protobuf::DescriptorPool.generated_pool.lookup("cloud.prefab.domain.ConfigServicePointer").msgclass
-      ConfigDelta = Google::Protobuf::DescriptorPool.generated_pool.lookup("cloud.prefab.domain.ConfigDelta").msgclass
-      ConfigValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("cloud.prefab.domain.ConfigValue").msgclass
-      ConfigDeltas = Google::Protobuf::DescriptorPool.generated_pool.lookup("cloud.prefab.domain.ConfigDeltas").msgclass
-    end
-  end
+module Prefab
+  ConfigServicePointer = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
+  ConfigDelta = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDelta").msgclass
+  ConfigValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
+  ConfigDeltas = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDeltas").msgclass
 end

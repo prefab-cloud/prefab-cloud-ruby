@@ -1,17 +1,25 @@
 module EzConfig
   class ConfigResolver
 
-    def initialize(namespace)
+    def initialize(client)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @namespace = namespace
-      @config_loader = EzConfig::ConfigLoader.new
+      @namespace = client.namespace
+      @config_loader = EzConfig::ConfigLoader.new(client.logger)
       make_local
     end
 
     def get(property)
-      @lock.with_read_lock do
+      value = @lock.with_read_lock do
         @local_store[property][:value]
+      end
+      case value.type
+      when :string then
+        puts "SSString"
+        value.string
+      when :int then
+        puts "INT"
+        value.int
       end
     end
 
