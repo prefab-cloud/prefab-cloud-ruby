@@ -49,3 +49,5 @@ pkg
 #*.rbc
 
 lib/jtest.rb
+
+gen_protos.sh
