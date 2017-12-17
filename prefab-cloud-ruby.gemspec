@@ -31,12 +31,13 @@ Gem::Specification.new do |s|
     "lib/prefab/config_resolver.rb",
     "lib/prefab/noop_cache.rb",
     "lib/prefab/noop_stats.rb",
-    "lib/prefab/prefab_pb.rb",
-    "lib/prefab/prefab_services_pb.rb",
     "lib/prefab/ratelimit_client.rb",
-    "lib/prefab/ratelimit_pb.rb",
     "lib/prefab/store.rb",
-    "lib/prefab_client.rb"
+    "lib/prefab_client.rb",
+    "lib/prefab_pb.rb",
+    "lib/prefab_services_pb.rb",
+    "lib/ratelimit_pb.rb",
+    "prefab-cloud-ruby.gemspec"
   ]
   s.homepage = "http://github.com/prefab-cloud/prefab-cloud-ruby".freeze
   s.licenses = ["MIT".freeze]
