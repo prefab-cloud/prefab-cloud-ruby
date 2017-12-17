@@ -51,3 +51,4 @@ pkg
 lib/jtest.rb
 
 gen_protos.sh
+lib/test.rb
