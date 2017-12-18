@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2017-12-17"
+  s.date = "2017-12-18"
   s.description = "RateLimits & Config as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.extra_rdoc_files = [
@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "Rakefile",
     "VERSION",
+    "lib/prefab-cloud-ruby.rb",
     "lib/prefab/auth_interceptor.rb",
     "lib/prefab/client.rb",
     "lib/prefab/config_client.rb",
@@ -33,7 +34,6 @@ Gem::Specification.new do |s|
     "lib/prefab/noop_stats.rb",
     "lib/prefab/ratelimit_client.rb",
     "lib/prefab/store.rb",
-    "lib/prefab_client.rb",
     "lib/prefab_pb.rb",
     "lib/prefab_services_pb.rb",
     "lib/ratelimit_pb.rb",

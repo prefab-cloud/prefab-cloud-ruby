@@ -1,7 +1,3 @@
-
-require 'rubygems'
-require 'bundler'
-Bundler.require(:default, :development)
 require "concurrent/atomics"
 require 'concurrent'
 require 'prefab_pb'
