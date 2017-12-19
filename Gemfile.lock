@@ -33,11 +33,11 @@ GEM
       multi_json (~> 1.11)
       os (~> 0.9)
       signet (~> 0.7)
-    grpc (1.7.2)
+    grpc (1.7.3)
       google-protobuf (~> 3.1)
       googleapis-common-protos-types (~> 1.0.0)
       googleauth (>= 0.5.1, < 0.7)
-    grpc-tools (1.7.2)
+    grpc-tools (1.8.0)
     hashie (3.5.6)
     highline (1.7.10)
     i18n (0.9.1)
@@ -72,6 +72,7 @@ GEM
       multi_json (~> 1.3)
       multi_xml (~> 0.5)
       rack (>= 1.2, < 3)
+    openssl (2.1.0)
     os (0.9.6)
     public_suffix (3.0.1)
     rack (2.0.3)
@@ -104,10 +105,12 @@ PLATFORMS
 
 DEPENDENCIES
   bundler (~> 1.0)
-  concurrent-ruby
-  grpc
-  grpc-tools
+  concurrent-ruby (~> 1.0, >= 1.0.5)
+  grpc (~> 1.7.3)
+  grpc-tools (~> 1.8)
+  jruby-openssl (~> 0.9.4)
   juwelier (~> 2.1.0)
+  openssl (~> 2.1)
   rdoc (~> 3.12)
   shoulda
   simplecov

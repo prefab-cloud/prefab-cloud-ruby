@@ -1,10 +1,12 @@
 source "https://rubygems.org"
 
-gem "grpc"
-gem "concurrent-ruby"
+gem 'grpc', '~> 1.7.3'
+gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
+gem 'openssl', '~> 2.1'
+gem 'jruby-openssl', '~> 0.9.4', :platforms => :jruby
 
 group :development do
-  gem "grpc-tools"
+  gem 'grpc-tools', '~> 1.8'
   gem "shoulda", ">= 0"
   gem "rdoc", "~> 3.12"
   gem "bundler", "~> 1.0"

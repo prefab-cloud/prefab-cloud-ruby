@@ -1,10 +1,8 @@
 module Prefab
   class Client
-
     attr_reader :account_id, :shared_cache, :stats, :namespace, :logger
 
     def initialize(api_key:,
-                   ssl_certs: "/usr/local/etc/openssl/cert.pem",
                    logger: nil,
                    stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
@@ -20,29 +18,44 @@ module Prefab
       @namespace = namespace
 
       @interceptor = AuthInterceptor.new(api_key)
-      @creds = GRPC::Core::ChannelCredentials.new(File.open(ssl_certs).read)
 
+      @creds = GRPC::Core::ChannelCredentials.new(ssl_certs)
       @channel = GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, @creds)
       if local
         @channel = GRPC::Core::Channel.new('localhost:8443', nil, :this_channel_is_insecure)
       end
     end
 
-    def config_client
+    def config_client(timeout: 10.0)
       @config_client ||= Prefab::ConfigClient.new(Prefab::ConfigService::Stub.new(nil,
                                                                                   @creds,
                                                                                   channel_override: @channel,
+                                                                                  timeout: timeout,
                                                                                   interceptors: [@interceptor]),
                                                   self)
     end
 
-    def ratelimit_client
+    def ratelimit_client(timeout: 5.0)
       @ratelimit_client ||= Prefab::RateLimitClient.new(Prefab::RateLimitService::Stub.new(nil,
                                                                                            @creds,
                                                                                            channel_override: @channel,
+                                                                                           timeout: timeout,
                                                                                            interceptors: [@interceptor]),
                                                         self)
     end
+
+    private
+
+    def ssl_certs
+      ssl_certs = ""
+      Dir.foreach(OpenSSL::X509::DEFAULT_CERT_DIR) do |cert|
+        next if cert == '.' or cert == '..'
+        ssl_certs << File.open(cert).read
+      end
+      ssl_certs << File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
+      ssl_certs
+    end
+
   end
 end
 

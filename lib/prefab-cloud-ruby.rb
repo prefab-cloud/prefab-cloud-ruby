@@ -1,5 +1,6 @@
 require "concurrent/atomics"
 require 'concurrent'
+require 'openssl'
 require 'prefab_pb'
 require 'prefab_services_pb'
 require 'ratelimit_pb'
