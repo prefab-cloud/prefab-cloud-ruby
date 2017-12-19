@@ -48,11 +48,15 @@ module Prefab
 
     def ssl_certs
       ssl_certs = ""
-      Dir.foreach(OpenSSL::X509::DEFAULT_CERT_DIR) do |cert|
-        next if cert == '.' or cert == '..'
+      Dir["#{OpenSSL::X509::DEFAULT_CERT_DIR}/*.pem"].each do |cert|
         ssl_certs << File.open(cert).read
       end
-      ssl_certs << File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
+      if OpenSSL::X509::DEFAULT_CERT_FILE && File.exists?(OpenSSL::X509::DEFAULT_CERT_FILE)
+        ssl_certs << File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
+      end
+      ssl_certs
+    rescue => e
+      @logger.warn("Issue loading SSL certs #{e.message}")
       ssl_certs
     end
 

@@ -24,6 +24,7 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "Rakefile",
     "VERSION",
+    "compile_protos.sh",
     "lib/prefab-cloud-ruby.rb",
     "lib/prefab/auth_interceptor.rb",
     "lib/prefab/client.rb",
@@ -36,7 +37,6 @@ Gem::Specification.new do |s|
     "lib/prefab/store.rb",
     "lib/prefab_pb.rb",
     "lib/prefab_services_pb.rb",
-    "lib/ratelimit_pb.rb",
     "prefab-cloud-ruby.gemspec"
   ]
   s.homepage = "http://github.com/prefab-cloud/prefab-cloud-ruby".freeze
