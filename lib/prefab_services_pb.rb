@@ -14,7 +14,7 @@ module Prefab
       self.unmarshal_class_method = :decode
       self.service_name = 'prefab.RateLimitService'
 
-      rpc :LimitCheck, It::Ratelim::Data::LimitRequest, It::Ratelim::Data::LimitResponse
+      rpc :LimitCheck, LimitRequest, LimitResponse
     end
 
     Stub = Service.rpc_stub_class
