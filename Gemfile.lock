@@ -108,7 +108,6 @@ DEPENDENCIES
   concurrent-ruby (~> 1.0, >= 1.0.5)
   grpc (~> 1.7.3)
   grpc-tools (~> 1.8)
-  jruby-openssl (~> 0.9.4)
   juwelier (~> 2.1.0)
   openssl (~> 2.1)
   rdoc (~> 3.12)
