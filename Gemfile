@@ -3,7 +3,6 @@ source "https://rubygems.org"
 gem 'grpc', '~> 1.7.3'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
 gem 'openssl', '~> 2.1'
-gem 'jruby-openssl', '~> 0.9.4', :platforms => :jruby
 
 group :development do
   gem 'grpc-tools', '~> 1.8'
