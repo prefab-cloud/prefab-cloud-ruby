@@ -15,31 +15,22 @@ module EzConfig
       @lock.with_read_lock do
         @local_store.each do |k, v|
           value = v[:value]
-          case value.type
-          when :string then
-            str << "#{k} #{value.string}"
-          when :int then
-            str << "#{k} #{value.int}"
-          end
+          str << "|#{k}| |#{value_of(value)}|\n"
         end
       end
       str
     end
 
     def get(property)
-      value = @lock.with_read_lock do
-        @local_store[property][:value]
+      config = @lock.with_read_lock do
+        @local_store[property]
       end
-      case value.type
-      when :string then
-        value.string
-      when :int then
-        value.int
-      end
+      config ? value_of(config[:value]) : nil
     end
 
-    def set(delta)
+    def set(delta, do_update: true)
       @config_loader.set(delta)
+      update if do_update
     end
 
     def update
@@ -47,6 +38,21 @@ module EzConfig
     end
 
     private
+
+    def value_of(config_value)
+      case config_value.type
+      when :string
+        config_value.string
+      when :int
+        config_value.int
+      when :double
+        config_value.double
+      when :bool
+        config_value.bool
+      when :feature_flag
+        config_value.feature_flag
+      end
+    end
 
     def make_local
       store = {}
@@ -72,8 +78,6 @@ module EzConfig
       @lock.with_write_lock do
         @local_store = store
       end
-
-      @logger.info "Updated to #{to_s}"
     end
   end
 end

@@ -34,6 +34,10 @@ module Prefab
       @ratelimit_client ||= Prefab::RateLimitClient.new(self, timeout)
     end
 
+    def feature_flag_client
+      @feature_flag_client ||= Prefab::FeatureFlagClient.new(self)
+    end
+
     private
 
     def ssl_certs
