@@ -1,7 +1,8 @@
 module Prefab
   class RateLimitClient
-    def initialize(ratelimit_service, client)
-      @ratelimit_service = ratelimit_service
+
+    def initialize(client, timeout)
+      @timeout = timeout
       @client = client
     end
 
@@ -25,10 +26,10 @@ module Prefab
         allow_partial_response: allow_partial_response
       )
 
-      result = @ratelimit_service.limit_check(req)
+      result = Retry.it(method(:stub), :limit_check, req, @timeout)
 
       reset = result.limit_reset_at
-      @client.shared_cache.write(expiry_cache_key, reset) unless reset < 1
+      @client.shared_cache.write(expiry_cache_key, reset) unless reset < 1 # protobuf default int to 0
 
       @client.stats.increment("prefab.ratelimit.limitcheck", tags: ["policy_group:#{result.policy_group}", "pass:#{result.passed}"])
 
@@ -40,8 +41,17 @@ module Prefab
 
     private
 
+    def stub
+      Prefab::RateLimitService::Stub.new(nil,
+                                         nil,
+                                         channel_override: @client.channel,
+                                         timeout: @timeout,
+                                         interceptors: [@client.interceptor])
+    end
+
     def handle_error(e, on_error, groups)
       @client.stats.increment("prefab.ratelimit.error", tags: ["type:limit"])
+
       message = "ratelimit for #{groups} error: #{e.message}"
       case on_error
       when :log_and_pass

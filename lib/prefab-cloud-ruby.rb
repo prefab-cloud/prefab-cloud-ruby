@@ -11,4 +11,5 @@ require 'prefab/config_client'
 require 'prefab/auth_interceptor'
 require 'prefab/noop_cache'
 require 'prefab/noop_stats'
+require 'prefab/retry'
 

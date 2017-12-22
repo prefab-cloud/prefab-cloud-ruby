@@ -6,7 +6,24 @@ module EzConfig
       @local_store = {}
       @namespace = client.namespace
       @config_loader = EzConfig::ConfigLoader.new(client.logger)
+      @logger = client.logger
       make_local
+    end
+
+    def to_s
+      str = ""
+      @lock.with_read_lock do
+        @local_store.each do |k, v|
+          value = v[:value]
+          case value.type
+          when :string then
+            str << "#{k} #{value.string}"
+          when :int then
+            str << "#{k} #{value.int}"
+          end
+        end
+      end
+      str
     end
 
     def get(property)
@@ -15,10 +32,8 @@ module EzConfig
       end
       case value.type
       when :string then
-        puts "SSString"
         value.string
       when :int then
-        puts "INT"
         value.int
       end
     end
@@ -53,12 +68,12 @@ module EzConfig
             store[property] = { namespace: namespace, value: value }
           end
         end
-
-        puts "prop #{property} namespace #{namespace} value #{value}"
       end
       @lock.with_write_lock do
         @local_store = store
       end
+
+      @logger.info "Updated to #{to_s}"
     end
   end
 end

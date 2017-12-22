@@ -1,6 +1,6 @@
 module Prefab
   class Client
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :logger
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :logger, :creds, :channel, :interceptor
 
     def initialize(api_key:,
                    logger: nil,
@@ -26,22 +26,12 @@ module Prefab
       end
     end
 
-    def config_client(timeout: 10.0)
-      @config_client ||= Prefab::ConfigClient.new(Prefab::ConfigService::Stub.new(nil,
-                                                                                  @creds,
-                                                                                  channel_override: @channel,
-                                                                                  timeout: timeout,
-                                                                                  interceptors: [@interceptor]),
-                                                  self)
+    def config_client(timeout: 5.0)
+      @config_client ||= Prefab::ConfigClient.new(self, timeout)
     end
 
     def ratelimit_client(timeout: 5.0)
-      @ratelimit_client ||= Prefab::RateLimitClient.new(Prefab::RateLimitService::Stub.new(nil,
-                                                                                           @creds,
-                                                                                           channel_override: @channel,
-                                                                                           timeout: timeout,
-                                                                                           interceptors: [@interceptor]),
-                                                        self)
+      @ratelimit_client ||= Prefab::RateLimitClient.new(self, timeout)
     end
 
     private
