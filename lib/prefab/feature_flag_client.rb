@@ -7,10 +7,7 @@ module Prefab
     end
 
     def upsert(feature_obj)
-      delta = Prefab::ConfigDelta.new(account_id: @base_client.account_id,
-                                      key: feature_config_name(feature_obj.feature),
-                                      value: Prefab::ConfigValue.new(feature_flag: feature_obj))
-      @base_client.config_client.set(delta)
+      @base_client.config_client.set(feature_config_name(feature_obj.feature), Prefab::ConfigValue.new(feature_flag: feature_obj))
     end
 
     def feature_is_on?(feature_name)

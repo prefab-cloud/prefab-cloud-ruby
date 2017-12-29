@@ -2,7 +2,7 @@ module Prefab
   class Client
     attr_reader :account_id, :shared_cache, :stats, :namespace, :logger, :creds, :channel, :interceptor
 
-    def initialize(api_key:,
+    def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logger: nil,
                    stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached

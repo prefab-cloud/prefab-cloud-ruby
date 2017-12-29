@@ -15,7 +15,7 @@ module EzConfig
       @lock.with_read_lock do
         @local_store.each do |k, v|
           value = v[:value]
-          str << "|#{k}| |#{value_of(value)}|\n"
+          str << "|#{k}| |#{value_of(value)}|#{value_of(value).class}\n"
         end
       end
       str

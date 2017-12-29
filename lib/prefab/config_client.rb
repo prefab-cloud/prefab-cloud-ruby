@@ -13,7 +13,11 @@ module Prefab
       @config_resolver.get(prop)
     end
 
-    def set(config_delta)
+    def set(key, config_value, namespace = nil)
+      raise "key must not contain ':' set namespaces separately" if key.include? ":"
+      config_delta = Prefab::ConfigDelta.new(account_id: @base_client.account_id,
+                                             key: [namespace, key].compact.join(":"),
+                                             value: config_value)
       Retry.it method(:stub_with_timout), :upsert, config_delta, @timeout
       @config_resolver.set(config_delta)
     end
