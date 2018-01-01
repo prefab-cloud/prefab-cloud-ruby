@@ -5,7 +5,8 @@ module Prefab
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
-      @config_resolver = EzConfig::ConfigResolver.new(base_client)
+      @config_loader = Prefab::ConfigLoader.new(base_client)
+      @config_resolver = Prefab::ConfigResolver.new(base_client, @config_loader)
       boot_resolver
     end
 
@@ -15,15 +16,18 @@ module Prefab
 
     def set(key, config_value, namespace = nil)
       raise "key must not contain ':' set namespaces separately" if key.include? ":"
-      config_delta = Prefab::ConfigDelta.new(account_id: @base_client.account_id,
-                                             key: [namespace, key].compact.join(":"),
-                                             value: config_value)
+      config_delta = self.value_to_delta(key, config_value, namespace)
       Retry.it method(:stub_with_timout), :upsert, config_delta, @timeout
       @config_resolver.set(config_delta)
     end
 
     def to_s
       @config_resolver.to_s
+    end
+
+    def self.value_to_delta(key, config_value, namespace = nil)
+      Prefab::ConfigDelta.new(key: [namespace, key].compact.join(":"),
+                              value: config_value)
     end
 
     private
@@ -43,9 +47,15 @@ module Prefab
                                       interceptors: [@base_client.interceptor])
     end
 
+    def cache_key
+      "prefab:config:checkpoint"
+    end
+
     def boot_resolver
+      start_at_id = 0
+
       config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
-                                                    start_at_id: 0)
+                                                    start_at_id: start_at_id)
 
       Thread.new do
         while true do
@@ -56,6 +66,11 @@ module Prefab
                 @config_resolver.set(delta, do_update: false)
               end
               @config_resolver.update
+
+
+              puts "save #{@config_resolver.export_api_deltas}"
+              @base_client.write(cache_key, @config_resolver.export_api_deltas.encode)
+
             end
           rescue => e
             sleep(RECONNECT_WAIT)

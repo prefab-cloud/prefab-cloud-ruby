@@ -1,8 +1,8 @@
 require 'yaml'
-module EzConfig
+module Prefab
   class ConfigLoader
-    def initialize(logger)
-      @logger = logger
+    def initialize(base_client)
+      @base_client = base_client
       @classpath_config = load_classpath_config
       @local_overrides = load_local_overrides
       @api_config = Concurrent::Map.new
@@ -21,10 +21,19 @@ module EzConfig
       @api_config[delta.key] = delta.value
     end
 
+    def get_api_deltas
+      deltas = Prefab::ConfigDeltas.new
+      @api_config.each do |key, value|
+        deltas.deltas << Prefab::ConfigClient.value_to_delta(key, value)
+      end
+      deltas
+    end
+
     private
 
     def load_classpath_config
-      load_glob(".prefab*config.yaml")
+      classpath_dir = ENV['PREFAB_CONFIG_CLASSPATH_DIR'] || ""
+      load_glob(File.join(classpath_dir, ".prefab*config.yaml"))
     end
 
     def load_local_overrides
@@ -47,7 +56,7 @@ module EzConfig
       if File.exist? filename
         YAML.load_file(filename)
       else
-        @logger.info "No file #{filename}"
+        @base_client.logger.info "No file #{filename}"
         {}
       end
     end

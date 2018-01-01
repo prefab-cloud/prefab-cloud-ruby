@@ -1,12 +1,12 @@
-module EzConfig
+module Prefab
   class ConfigResolver
 
-    def initialize(client)
+    def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @namespace = client.namespace
-      @config_loader = EzConfig::ConfigLoader.new(client.logger)
-      @logger = client.logger
+      @namespace = base_client.namespace
+      @config_loader = config_loader
+      @logger = base_client.logger
       make_local
     end
 
@@ -35,6 +35,14 @@ module EzConfig
 
     def update
       make_local
+    end
+
+    def export_api_deltas
+      @config_loader.get_api_deltas
+    end
+
+    def cl
+      @config_loader
     end
 
     private
@@ -66,7 +74,7 @@ module EzConfig
           namespace = split[0]
         end
 
-        if (namespace == "") || namespace.start_with?(@namespace)
+        if (namespace == "") || @namespace.start_with?(namespace)
           existing = store[property]
           if existing.nil?
             store[property] = { namespace: namespace, value: value }

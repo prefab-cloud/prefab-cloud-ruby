@@ -9,7 +9,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :start_at_id, :int64, 2
   end
   add_message "prefab.ConfigDelta" do
-    optional :account_id, :int64, 1
     optional :id, :int64, 2
     optional :key, :string, 3
     optional :value, :message, 4, "prefab.ConfigValue"
@@ -62,11 +61,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     value :MAXIMUM, 2
   end
   add_message "prefab.FeatureFlag" do
-    optional :account_id, :int64, 1
     optional :feature, :string, 2
     optional :pct, :double, 3
     repeated :whitelisted, :string, 4
-    optional :prior_feature_name, :string, 5
   end
   add_message "prefab.LimitDefinition" do
     optional :group, :string, 1
