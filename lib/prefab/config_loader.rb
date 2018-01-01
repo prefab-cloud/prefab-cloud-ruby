@@ -11,20 +11,20 @@ module Prefab
     def calc_config
       rtn = @classpath_config.clone
       @api_config.each_key do |k|
-        rtn[k] = @api_config[k]
+        rtn[k] = @api_config[k].value
       end
       rtn = rtn.merge(@local_overrides)
       rtn
     end
 
     def set(delta)
-      @api_config[delta.key] = delta.value
+      @api_config[delta.key] = delta
     end
 
     def get_api_deltas
       deltas = Prefab::ConfigDeltas.new
-      @api_config.each do |key, value|
-        deltas.deltas << Prefab::ConfigClient.value_to_delta(key, value)
+      @api_config.each_value do |config_value|
+        deltas.deltas << config_value
       end
       deltas
     end

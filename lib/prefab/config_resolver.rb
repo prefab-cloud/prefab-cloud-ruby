@@ -28,21 +28,12 @@ module Prefab
       config ? value_of(config[:value]) : nil
     end
 
-    def set(delta, do_update: true)
-      @config_loader.set(delta)
-      update if do_update
-    end
-
     def update
       make_local
     end
 
     def export_api_deltas
       @config_loader.get_api_deltas
-    end
-
-    def cl
-      @config_loader
     end
 
     private
