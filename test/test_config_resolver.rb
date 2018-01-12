@@ -33,7 +33,7 @@ class TestConfigResolver < Minitest::Test
 
       @resolverBX = resolver_for_namespace("projectC", @loader)
       assert_equal "value_none", @resolverBX.get("key")
-      assert_equal nil, @resolverBX.get("key_that_doesnt_exist")
+      assert_nil @resolverBX.get("key_that_doesnt_exist")
     end
   end
 

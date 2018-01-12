@@ -1,6 +1,6 @@
 module Prefab
   class Client
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :logger, :creds, :channel, :interceptor
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :logger, :creds, :interceptor
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logger: nil,
@@ -12,6 +12,7 @@ module Prefab
       @logger = (logger || Logger.new($stdout)).tap do |log|
         log.progname = "Prefab" if log.respond_to? :progname=
       end
+      @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
       @account_id = api_key.split("|")[0].to_i
@@ -20,10 +21,17 @@ module Prefab
       @interceptor = AuthInterceptor.new(api_key)
 
       @creds = GRPC::Core::ChannelCredentials.new(ssl_certs)
-      @channel = GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, @creds)
-      if local
-        @channel = GRPC::Core::Channel.new('localhost:8443', nil, :this_channel_is_insecure)
-      end
+    end
+
+    def channel
+      @_channel ||= @local ?
+                      GRPC::Core::Channel.new('localhost:8443', nil, :this_channel_is_insecure)
+                      :
+                      GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, @creds)
+    end
+
+    def reset_channel!
+      @_channel = nil
     end
 
     def config_client(timeout: 5.0)
