@@ -29,7 +29,7 @@ module Prefab
       self.service_name = 'prefab.ConfigService'
 
       rpc :GetConfig, ConfigServicePointer, stream(ConfigDeltas)
-      rpc :Upsert, ConfigDelta, ConfigServicePointer
+      rpc :Upsert, UpsertRequest, ConfigServicePointer
     end
 
     Stub = Service.rpc_stub_class

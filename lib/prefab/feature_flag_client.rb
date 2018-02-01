@@ -7,7 +7,7 @@ module Prefab
     end
 
     def upsert(feature_obj)
-      @base_client.config_client.set(feature_config_name(feature_obj.feature), Prefab::ConfigValue.new(feature_flag: feature_obj))
+      @base_client.config_client.upsert(feature_config_name(feature_obj.feature), Prefab::ConfigValue.new(feature_flag: feature_obj))
     end
 
     def feature_is_on?(feature_name)
@@ -46,7 +46,7 @@ module Prefab
     end
 
     def feature_config_name(feature)
-      "Feature.#{feature}"
+      feature
     end
 
   end

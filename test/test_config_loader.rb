@@ -33,6 +33,18 @@ class TestConfigLoader < Minitest::Test
     assert_equal deltas, @loader.get_api_deltas
   end
 
+  def test_loading_tombstones_removes_entries
+    val = Prefab::ConfigValue.new(int: 456)
+    delta = Prefab::ConfigDelta.new(key: "sample_int", value: val)
+    @loader.set(delta)
+
+    delta = Prefab::ConfigDelta.new(key: "sample_int", value: nil)
+    @loader.set(delta)
+
+    deltas = Prefab::ConfigDeltas.new
+    assert_equal deltas, @loader.get_api_deltas
+  end
+
   private
 
   def should_be(type, value, key)

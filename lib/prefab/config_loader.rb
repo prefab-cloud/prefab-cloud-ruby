@@ -18,7 +18,15 @@ module Prefab
     end
 
     def set(delta)
-      @api_config[delta.key] = delta
+      if delta.value.nil?
+        @api_config.delete(delta.key)
+      else
+        @api_config[delta.key] = delta
+      end
+    end
+
+    def rm(key)
+      @api_config.delete key
     end
 
     def get_api_deltas
@@ -64,13 +72,13 @@ module Prefab
     def value_from(raw)
       case raw
       when String
-        {string: raw}
+        { string: raw }
       when Integer
-        {int: raw}
+        { int: raw }
       when TrueClass, FalseClass
-        {bool: raw}
+        { bool: raw }
       when Float
-        {double: raw}
+        { double: raw }
       end
     end
   end

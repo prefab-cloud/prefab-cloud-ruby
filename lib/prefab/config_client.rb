@@ -19,12 +19,16 @@ module Prefab
       @config_resolver.get(prop)
     end
 
-    def set(key, config_value, namespace = nil)
+    def upsert(key, config_value, namespace = nil, previous_key = nil)
       raise "key must not contain ':' set namespaces separately" if key.include? ":"
       raise "namespace must not contain ':'" if namespace&.include?(":")
       config_delta = Prefab::ConfigClient.value_to_delta(key, config_value, namespace)
-      Retry.it method(:stub_with_timeout), :upsert, config_delta, @timeout, method(:reset)
+      upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
+      upsert_req.previous_key = previous_key if previous_key&.present?
+
+      Retry.it method(:stub_with_timeout), :upsert, upsert_req, @timeout, method(:reset)
       @config_loader.set(config_delta)
+      @config_loader.rm(previous_key) if previous_key&.present?
     end
 
     def reset

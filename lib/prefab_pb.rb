@@ -26,6 +26,11 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
   add_message "prefab.ConfigDeltas" do
     repeated :deltas, :message, 1, "prefab.ConfigDelta"
   end
+  add_message "prefab.UpsertRequest" do
+    optional :account_id, :int64, 1
+    optional :config_delta, :message, 2, "prefab.ConfigDelta"
+    optional :previous_key, :string, 3
+  end
   add_message "prefab.LimitResponse" do
     optional :passed, :bool, 1
     optional :expires_at, :int64, 2
@@ -87,15 +92,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     repeated :flags, :message, 1, "prefab.FeatureFlag"
     optional :cache_expiry, :int64, 2
   end
-  add_message "prefab.BucketWrite" do
-    optional :tokenBucket, :message, 1, "prefab.TokenBucket"
-    optional :bucket, :string, 2
-  end
-  add_message "prefab.TokenBucket" do
-    optional :current_value, :int64, 1
-    optional :time_key, :int64, 2
-    repeated :expiries, :int64, 3
-  end
   add_message "prefab.BufferedRequest" do
     optional :account_id, :int64, 1
     optional :method, :string, 2
@@ -127,6 +123,7 @@ module Prefab
   ConfigDelta = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDelta").msgclass
   ConfigValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
   ConfigDeltas = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDeltas").msgclass
+  UpsertRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UpsertRequest").msgclass
   LimitResponse = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse").msgclass
   LimitResponse::LimitPolicyNames = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
   LimitRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
@@ -136,8 +133,6 @@ module Prefab
   LimitDefinition::SafetyLevel = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition.SafetyLevel").enummodule
   LimitDefinitions = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinitions").msgclass
   FeatureFlags = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlags").msgclass
-  BucketWrite = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BucketWrite").msgclass
-  TokenBucket = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.TokenBucket").msgclass
   BufferedRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BufferedRequest").msgclass
   BatchRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
   OnFailure = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
