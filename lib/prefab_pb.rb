@@ -66,7 +66,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     value :MAXIMUM, 2
   end
   add_message "prefab.FeatureFlag" do
-    optional :feature, :string, 2
     optional :pct, :double, 3
     repeated :whitelisted, :string, 4
   end
