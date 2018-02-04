@@ -9,6 +9,8 @@ module Prefab
                    local: false,
                    namespace: ""
     )
+      raise "No API key. Set PREFAB_API_KEY env var" if api_key.blank?
+
       @logger = (logger || Logger.new($stdout)).tap do |log|
         log.progname = "Prefab" if log.respond_to? :progname=
       end

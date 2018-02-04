@@ -95,13 +95,13 @@ module Prefab
         loop do
           begin
             started_at = Time.now
-            deltas = @config_resolver.export_api_deltas
-            @base_client.logger.debug "==CHECKPOINT==#{deltas.deltas.map {|d| d.id}.max}====="
-            @base_client.shared_cache.write(cache_key, Prefab::ConfigDeltas.encode(deltas))
             delta = CHECKPOINT_FREQ_SEC - (Time.now - started_at)
             if delta > 0
               sleep(delta)
             end
+            deltas = @config_resolver.export_api_deltas
+            @base_client.logger.debug "==CHECKPOINT==#{deltas.deltas.map {|d| d.id}.max}===#{Thread.current.object_id}=="
+            @base_client.shared_cache.write(cache_key, Prefab::ConfigDeltas.encode(deltas))
           rescue StandardError => exn
             @base_client.logger.info "Issue Checkpointing #{exn.message}"
           end
