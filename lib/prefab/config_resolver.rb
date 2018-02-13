@@ -6,7 +6,7 @@ module Prefab
       @local_store = {}
       @namespace = base_client.namespace
       @config_loader = config_loader
-      @logger = base_client.logger
+      @logger = base_client.log
       make_local
     end
 

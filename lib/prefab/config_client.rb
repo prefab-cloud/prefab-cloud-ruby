@@ -29,6 +29,7 @@ module Prefab
       Retry.it method(:stub_with_timeout), :upsert, upsert_req, @timeout, method(:reset)
       @config_loader.set(config_delta)
       @config_loader.rm(previous_key) if previous_key&.present?
+      @config_resolver.update
     end
 
     def reset
@@ -76,14 +77,14 @@ module Prefab
       if checkpoint
         deltas = Prefab::ConfigDeltas.decode(checkpoint)
         deltas.deltas.each do |delta|
-          @base_client.logger.debug "checkpoint set #{delta.key} #{delta.value.int} #{delta.value.string} #{delta.id} "
+          @base_client.log.debug "checkpoint set #{delta.key} #{delta.value.int} #{delta.value.string} #{delta.id} "
           @config_loader.set(delta)
           start_at_id = [delta.id, start_at_id].max
         end
-        @base_client.logger.info "Found checkpoint with highwater id #{start_at_id}"
+        @base_client.log.info "Found checkpoint with highwater id #{start_at_id}"
         @config_resolver.update
       else
-        @base_client.logger.info "No checkpoint"
+        @base_client.log.info "No checkpoint"
       end
 
       start_at_id
@@ -100,10 +101,10 @@ module Prefab
               sleep(delta)
             end
             deltas = @config_resolver.export_api_deltas
-            @base_client.logger.debug "==CHECKPOINT==#{deltas.deltas.map {|d| d.id}.max}===#{Thread.current.object_id}=="
+            @base_client.log.debug "==CHECKPOINT==#{deltas.deltas.map {|d| d.id}.max}===#{Thread.current.object_id}=="
             @base_client.shared_cache.write(cache_key, Prefab::ConfigDeltas.encode(deltas))
           rescue StandardError => exn
-            @base_client.logger.info "Issue Checkpointing #{exn.message}"
+            @base_client.log.info "Issue Checkpointing #{exn.message}"
           end
         end
       end
@@ -125,7 +126,7 @@ module Prefab
               @config_resolver.update
             end
           rescue => e
-            @base_client.logger.info("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
+            @base_client.log.info("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
             reset
             sleep(RECONNECT_WAIT)
           end
@@ -154,7 +155,7 @@ module Prefab
           rescue GRPC::DeadlineExceeded
             # Ignore. This is a streaming endpoint, but we only need a single response
           rescue => e
-            @base_client.logger.info "Suspenders encountered an issue #{e.message}"
+            @base_client.log.info "Suspenders encountered an issue #{e.message}"
           end
 
           delta = SUSPENDERS_FREQ_SEC - (Time.now - started_at)

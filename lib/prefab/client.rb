@@ -1,6 +1,6 @@
 module Prefab
   class Client
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :logger, :creds, :interceptor
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logger: nil,
@@ -9,7 +9,7 @@ module Prefab
                    local: false,
                    namespace: ""
     )
-      raise "No API key. Set PREFAB_API_KEY env var" if api_key.blank?
+      raise "No API key. Set PREFAB_API_KEY env var" if api_key.empty?
 
       @logger = (logger || Logger.new($stdout)).tap do |log|
         log.progname = "Prefab" if log.respond_to? :progname=
@@ -38,6 +38,8 @@ module Prefab
 
     def config_client(timeout: 5.0)
       @config_client ||= Prefab::ConfigClient.new(self, timeout)
+      @config_init = true
+      @config_client
     end
 
     def ratelimit_client(timeout: 5.0)
@@ -46,6 +48,11 @@ module Prefab
 
     def feature_flag_client
       @feature_flag_client ||= Prefab::FeatureFlagClient.new(self)
+    end
+
+    def log(base_logger = @logger)
+      return @logger if !@config_init
+      @logger_client || Prefab::LoggerClient.new(self, base_logger)
     end
 
     private
@@ -60,7 +67,7 @@ module Prefab
       end
       ssl_certs
     rescue => e
-      @logger.warn("Issue loading SSL certs #{e.message}")
+      log.warn("Issue loading SSL certs #{e.message}")
       ssl_certs
     end
 
