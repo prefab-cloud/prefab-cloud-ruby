@@ -1,5 +1,9 @@
 module Prefab
   class Client
+
+    MAX_SLEEP_SEC = 10
+    BASE_SLEEP_SEC = 0.5
+
     attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
@@ -21,8 +25,8 @@ module Prefab
       @namespace = namespace
 
       @interceptor = AuthInterceptor.new(api_key)
-
       @creds = GRPC::Core::ChannelCredentials.new(ssl_certs)
+      @stubs = {}
     end
 
     def channel
@@ -38,7 +42,7 @@ module Prefab
 
     def config_client(timeout: 5.0)
       @config_client ||= Prefab::ConfigClient.new(self, timeout)
-      @config_init = true
+      @config_client.init
       @config_client
     end
 
@@ -51,11 +55,52 @@ module Prefab
     end
 
     def log(base_logger = @logger)
-      return @logger if !@config_init
       @logger_client || Prefab::LoggerClient.new(self, base_logger)
     end
 
+    def log_internal(level, msg)
+      log.log_for level, msg, "prefab"
+    end
+
+    def request(service, method, req_options: {}, params: {})
+      opts = { timeout: 10 }.merge(req_options)
+
+      attempts = 0
+      start_time = Time.now
+
+      begin
+        attempts += 1
+        return stub_for(service).send(method, *params)
+      rescue => exception
+
+        log_internal :warn, exception
+
+        if Time.now - start_time > opts[:timeout]
+          raise exception
+        end
+        sleep_seconds = [BASE_SLEEP_SEC * (2 ** (attempts - 1)), MAX_SLEEP_SEC].min
+        sleep_seconds = sleep_seconds * (0.5 * (1 + rand()))
+        sleep_seconds = [BASE_SLEEP_SEC, sleep_seconds].max
+        log_internal :info, "Sleep #{sleep_seconds} and Reset #{service} #{method}"
+        sleep sleep_seconds
+        reset!
+        retry
+      end
+    end
+
     private
+
+    def reset!
+      @stubs.clear
+      reset_channel!
+    end
+
+    def stub_for(service)
+      @stubs[service] ||= service::Stub.new(nil,
+                                            nil,
+                                            channel_override: channel,
+                                            interceptors: [@interceptor])
+    end
 
     def ssl_certs
       ssl_certs = ""

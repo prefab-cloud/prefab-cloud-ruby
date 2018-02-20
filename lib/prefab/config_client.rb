@@ -7,16 +7,23 @@ module Prefab
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
-      @config_loader = Prefab::ConfigLoader.new(base_client)
-      @config_resolver = Prefab::ConfigResolver.new(base_client, @config_loader)
-      start_at_id = load_checkpoint
-      start_api_connection_thread(start_at_id)
-      start_checkpointing_thread
-      start_suspenders_thread
+      @initialized = false
+    end
+
+    def init
+      if !@initialized
+        @initialized = true
+        @config_loader = Prefab::ConfigLoader.new(@base_client)
+        @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
+        start_at_id = load_checkpoint
+        start_api_connection_thread(start_at_id)
+        start_checkpointing_thread
+        start_suspenders_thread
+      end
     end
 
     def get(prop)
-      @config_resolver.get(prop)
+      @config_resolver.get(prop) if @config_resolver
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
@@ -26,7 +33,8 @@ module Prefab
       upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
       upsert_req.previous_key = previous_key if previous_key&.present?
 
-      Retry.it method(:stub_with_timeout), :upsert, upsert_req, @timeout, method(:reset)
+      @base_client.request Prefab::ConfigService, :upsert, req_options: {timeout: @timeout}, params: upsert_req
+
       @config_loader.set(config_delta)
       @config_loader.rm(previous_key) if previous_key&.present?
       @config_resolver.update
@@ -35,7 +43,6 @@ module Prefab
     def reset
       @base_client.reset_channel!
       @_stub = nil
-      @_stub_with_timeout = nil
     end
 
     def to_s
@@ -56,14 +63,6 @@ module Prefab
                                                interceptors: [@base_client.interceptor])
     end
 
-    def stub_with_timeout
-      @_stub_with_timeout = Prefab::ConfigService::Stub.new(nil,
-                                                            nil,
-                                                            channel_override: @base_client.channel,
-                                                            timeout: @timeout,
-                                                            interceptors: [@base_client.interceptor])
-    end
-
     def cache_key
       "prefab:config:checkpoint"
     end
@@ -77,14 +76,14 @@ module Prefab
       if checkpoint
         deltas = Prefab::ConfigDeltas.decode(checkpoint)
         deltas.deltas.each do |delta|
-          @base_client.log.debug "checkpoint set #{delta.key} #{delta.value.int} #{delta.value.string} #{delta.id} "
+          @base_client.log_internal :debug, "checkpoint set #{delta.key} #{delta.value.int} #{delta.value.string} #{delta.id} "
           @config_loader.set(delta)
           start_at_id = [delta.id, start_at_id].max
         end
-        @base_client.log.info "Found checkpoint with highwater id #{start_at_id}"
+        @base_client.log_internal :info, "Found checkpoint with highwater id #{start_at_id}"
         @config_resolver.update
       else
-        @base_client.log.info "No checkpoint"
+        @base_client.log_internal :info, "No checkpoint"
       end
 
       start_at_id
@@ -101,10 +100,10 @@ module Prefab
               sleep(delta)
             end
             deltas = @config_resolver.export_api_deltas
-            @base_client.log.debug "==CHECKPOINT==#{deltas.deltas.map {|d| d.id}.max}===#{Thread.current.object_id}=="
+            @base_client.log_internal :debug, "Save Checkpoint #{deltas.deltas.map {|d| d.id}.max} Thread #{Thread.current.object_id}"
             @base_client.shared_cache.write(cache_key, Prefab::ConfigDeltas.encode(deltas))
           rescue StandardError => exn
-            @base_client.log.info "Issue Checkpointing #{exn.message}"
+            @base_client.log_internal :info, "Issue Checkpointing #{exn.message}"
           end
         end
       end
@@ -126,7 +125,7 @@ module Prefab
               @config_resolver.update
             end
           rescue => e
-            @base_client.log.info("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
+            @base_client.log_internal :info, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
             reset
             sleep(RECONNECT_WAIT)
           end
@@ -145,7 +144,9 @@ module Prefab
             started_at = Time.now
             config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                           start_at_id: start_at_suspenders)
-            resp = stub_with_timeout.get_config(config_req)
+
+            resp = @base_client.request Prefab::ConfigService, :get_config, req_options: {timeout: @timeout}, params: config_req
+
             resp.each do |r|
               r.deltas.each do |delta|
                 @config_loader.set(delta)
@@ -155,7 +156,7 @@ module Prefab
           rescue GRPC::DeadlineExceeded
             # Ignore. This is a streaming endpoint, but we only need a single response
           rescue => e
-            @base_client.log.info "Suspenders encountered an issue #{e.message}"
+            @base_client.log_internal :info, "Suspenders encountered an issue #{e.message}"
           end
 
           delta = SUSPENDERS_FREQ_SEC - (Time.now - started_at)

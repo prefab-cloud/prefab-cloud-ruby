@@ -13,6 +13,5 @@ require 'prefab/logger_client'
 require 'prefab/auth_interceptor'
 require 'prefab/noop_cache'
 require 'prefab/noop_stats'
-require 'prefab/retry'
 require 'prefab/murmer3'
 

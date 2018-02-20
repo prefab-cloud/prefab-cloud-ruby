@@ -26,7 +26,7 @@ module Prefab
         allow_partial_response: allow_partial_response
       )
 
-      result = Retry.it(method(:stub), :limit_check, req, @timeout, method(:reset))
+      result = @base_client.request Prefab::RateLimitService, :limit_check, req_options: {timeout: @timeout}, params: req
 
       reset = result.limit_reset_at
       @base_client.shared_cache.write(expiry_cache_key, reset) unless reset < 1 # protobuf default int to 0
@@ -40,19 +40,6 @@ module Prefab
     end
 
     private
-
-    def reset
-      @base_client.reset_channel!
-      @_stub = nil
-    end
-
-    def stub
-      @_stub ||= Prefab::RateLimitService::Stub.new(nil,
-                                                    nil,
-                                                    channel_override: @base_client.channel,
-                                                    timeout: @timeout,
-                                                    interceptors: [@base_client.interceptor])
-    end
 
     def handle_error(e, on_error, groups)
       @base_client.stats.increment("prefab.ratelimit.error", tags: ["type:limit"])
