@@ -109,6 +109,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :batch_template, :string, 6
     optional :batch_separator, :string, 7
   end
+  add_message "prefab.BasicResponse" do
+    optional :message, :string, 1
+  end
   add_enum "prefab.OnFailure" do
     value :NOT_SET, 0
     value :LOG_AND_PASS, 1
@@ -134,5 +137,6 @@ module Prefab
   FeatureFlags = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlags").msgclass
   BufferedRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BufferedRequest").msgclass
   BatchRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
+  BasicResponse = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BasicResponse").msgclass
   OnFailure = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
 end

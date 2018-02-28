@@ -15,6 +15,7 @@ module Prefab
       self.service_name = 'prefab.RateLimitService'
 
       rpc :LimitCheck, LimitRequest, LimitResponse
+      rpc :UpsertLimitDefinition, LimitDefinition, BasicResponse
     end
 
     Stub = Service.rpc_stub_class
