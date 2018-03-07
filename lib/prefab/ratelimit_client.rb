@@ -39,11 +39,12 @@ module Prefab
       handle_error(e, on_error, groups)
     end
 
-    def upsert(group, policy_name, limit, burst)
+    def upsert(group, policy_name, limit, burst: nil)
+      burst = limit if burst.nil?
       limit_defintion = Prefab::LimitDefinition.new(
         account_id: @base_client.account_id,
         group: group,
-        policy_name: policy_name,
+        policy_name: Object.const_get("Prefab::LimitResponse::LimitPolicyNames::#{policy_name}"),
         limit: limit,
         burst: burst
       )
