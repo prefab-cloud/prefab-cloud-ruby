@@ -59,10 +59,10 @@ module Prefab
       message = "ratelimit for #{groups} error: #{e.message}"
       case on_error
       when :log_and_pass
-        @base_client.logger.warn(message)
+        @base_client.log.warn(message)
         Prefab::LimitResponse.new(passed: true, amount: 0)
       when :log_and_hit
-        @base_client.logger.warn(message)
+        @base_client.log.warn(message)
         Prefab::LimitResponse.new(passed: false, amount: 0)
       when :throw
         raise e
