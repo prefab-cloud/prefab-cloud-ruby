@@ -7,23 +7,17 @@ module Prefab
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
-      @initialized = false
-    end
-
-    def init
-      if !@initialized
-        @initialized = true
-        @config_loader = Prefab::ConfigLoader.new(@base_client)
-        @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
-        start_at_id = load_checkpoint
-        start_api_connection_thread(start_at_id)
-        start_checkpointing_thread
-        start_suspenders_thread
-      end
+      @config_loader = Prefab::ConfigLoader.new(@base_client)
+      @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
+      start_at_id = load_checkpoint
+      start_api_connection_thread(start_at_id)
+      start_checkpointing_thread
+      start_suspenders_thread
+      @base_client.log.set_config_client(self)
     end
 
     def get(prop)
-      @config_resolver.get(prop) if @config_resolver
+      @config_resolver.get(prop)
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
@@ -33,7 +27,7 @@ module Prefab
       upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
       upsert_req.previous_key = previous_key if previous_key&.present?
 
-      @base_client.request Prefab::ConfigService, :upsert, req_options: {timeout: @timeout}, params: upsert_req
+      @base_client.request Prefab::ConfigService, :upsert, req_options: { timeout: @timeout }, params: upsert_req
 
       @config_loader.set(config_delta)
       @config_loader.rm(previous_key) if previous_key&.present?
@@ -76,7 +70,6 @@ module Prefab
       if checkpoint
         deltas = Prefab::ConfigDeltas.decode(checkpoint)
         deltas.deltas.each do |delta|
-          @base_client.log_internal :debug, "checkpoint set #{delta.key} #{delta.value.int} #{delta.value.string} #{delta.id} "
           @config_loader.set(delta)
           start_at_id = [delta.id, start_at_id].max
         end
@@ -145,7 +138,7 @@ module Prefab
             config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                           start_at_id: start_at_suspenders)
 
-            resp = @base_client.request Prefab::ConfigService, :get_config, req_options: {timeout: @timeout}, params: config_req
+            resp = @base_client.request Prefab::ConfigService, :get_config, req_options: { timeout: @timeout }, params: config_req
 
             resp.each do |r|
               r.deltas.each do |delta|

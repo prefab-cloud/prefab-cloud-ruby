@@ -4,9 +4,9 @@ module Prefab
     SEP = ".".freeze
     BASE = "log_level".freeze
 
-    def initialize(base_client, base_logger)
-      @base_client = base_client
+    def initialize(base_logger)
       @base_logger = base_logger
+      @config_client = BootstrappingConfigClient.new
     end
 
     def debug msg
@@ -29,6 +29,30 @@ module Prefab
       pf_log_internal level, msg, "", loc
     end
 
+    def level= lvl
+      #noop
+    end
+
+    def formatter
+      @formatter ||= ActiveSupport::Logger::SimpleFormatter.new
+    end
+
+    def level
+      :debug
+    end
+
+    def debug?
+      true
+    end
+
+    def info?
+      true
+    end
+
+    def set_config_client(config_client)
+      @config_client = config_client
+    end
+
     private
 
     def pf_log(level, msg, loc)
@@ -43,10 +67,10 @@ module Prefab
       path = "#{path.gsub("/", SEP).gsub(".rb", "")}#{SEP}#{base_label}"
       path.slice! SEP
 
-      closest_log_level_match = @base_client.config_client.get(BASE) || :warn
+      closest_log_level_match = @config_client.get(BASE) || :warn
       path.split(SEP).inject([BASE]) do |memo, n|
         memo << n
-        val = @base_client.config_client.get memo.join(SEP)
+        val = @config_client.get(memo.join(SEP))
         unless val.nil?
           closest_log_level_match = val
         end
@@ -69,6 +93,14 @@ module Prefab
       when :error then
         4
       end
+    end
+  end
+
+  # StubConfigClient to be used while config client initializes
+  # since it may log
+  class BootstrappingConfigClient
+    def get(key)
+      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] || :info
     end
   end
 end

@@ -42,8 +42,6 @@ module Prefab
 
     def config_client(timeout: 5.0)
       @config_client ||= Prefab::ConfigClient.new(self, timeout)
-      @config_client.init
-      @config_client
     end
 
     def ratelimit_client(timeout: 5.0)
@@ -55,7 +53,7 @@ module Prefab
     end
 
     def log(base_logger = @logger)
-      @logger_client || Prefab::LoggerClient.new(self, base_logger)
+      @logger_client ||= Prefab::LoggerClient.new(base_logger)
     end
 
     def log_internal(level, msg)

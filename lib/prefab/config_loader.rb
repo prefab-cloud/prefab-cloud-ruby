@@ -62,10 +62,10 @@ module Prefab
 
     def load(filename)
       if File.exist? filename
-        @base_client.log_internal :warn, "Load #{filename}"
+        @base_client.log_internal :info, "Load #{filename}"
         YAML.load_file(filename)
       else
-        @base_client.log_internal :warn, "No file #{filename}"
+        @base_client.log_internal :info, "No file #{filename}"
         {}
       end
     end
