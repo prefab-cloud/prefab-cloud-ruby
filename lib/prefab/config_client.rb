@@ -8,19 +8,24 @@ module Prefab
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
-      @config_loader = Prefab::ConfigLoader.new(@base_client)
-      @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
-      load_checkpoint
-      start_api_connection_thread(@config_loader.highwater_mark)
-      start_checkpointing_thread
-      @base_client.log.set_config_client(self)
+      @initialization_lock = Concurrent::ReadWriteLock.new
+
       @checkpoint_max_age_secs = (ENV["PREFAB_CHECKPOINT_MAX_AGE_SEC"] || DEFAULT_MAX_CHECKPOINT_AGE_SEC)
       @checkpoint_max_age = @checkpoint_max_age_secs * 1000 * 10000
       @checkpoint_freq_secs = (ENV["PREFAB_DEFAULT_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
+
+      @config_loader = Prefab::ConfigLoader.new(@base_client)
+      @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
+
+      @initialization_lock.acquire_write_lock
+
+      start_checkpointing_thread
     end
 
     def get(prop)
-      @config_resolver.get(prop)
+      @initialization_lock.with_read_lock do
+        @config_resolver.get(prop)
+      end
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
@@ -72,6 +77,7 @@ module Prefab
         end
         @base_client.log_internal :info, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
         @config_resolver.update
+        finish_init!
       else
         @base_client.log_internal :info, "No checkpoint"
       end
@@ -95,13 +101,13 @@ module Prefab
       Thread.new do
         loop do
           begin
+            checkpoint_if_needed
+
             started_at = Time.now
             delta = @checkpoint_freq_secs - (Time.now - started_at)
             if delta > 0
               sleep(delta)
             end
-
-            checkpoint_if_needed
           rescue StandardError => exn
             @base_client.log_internal :info, "Issue Checkpointing #{exn.message}"
           end
@@ -159,8 +165,15 @@ module Prefab
     end
 
     def reset_api_connection
-      @api_connection_thread.exit
+      @api_connection_thread&.exit
       start_api_connection_thread(@config_loader.highwater_mark)
+    end
+
+    def finish_init!
+      if @initialization_lock.write_locked?
+        @initialization_lock.release_write_lock
+        @base_client.log.set_config_client(self)
+      end
     end
 
     # Setup a streaming connection to the API
@@ -168,7 +181,7 @@ module Prefab
     def start_api_connection_thread(start_at_id)
       config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                     start_at_id: start_at_id)
-      @base_client.log_internal :info, "start api connection thread #{start_at_id}"
+      @base_client.log_internal :debug, "start api connection thread #{start_at_id}"
       @api_connection_thread = Thread.new do
         while true do
           begin
@@ -178,6 +191,7 @@ module Prefab
                 @config_loader.set(delta)
               end
               @config_resolver.update
+              finish_init!
             end
           rescue => e
             @base_client.log_internal :info, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
