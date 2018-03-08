@@ -1,8 +1,11 @@
 require 'yaml'
 module Prefab
   class ConfigLoader
+    attr_reader :highwater_mark
+
     def initialize(base_client)
       @base_client = base_client
+      @highwater_mark = 0
       @classpath_config = load_classpath_config
       @local_overrides = load_local_overrides
       @api_config = Concurrent::Map.new
@@ -23,6 +26,7 @@ module Prefab
       else
         @api_config[delta.key] = delta
       end
+      @highwater_mark = [delta.id, @highwater_mark].max
     end
 
     def rm(key)

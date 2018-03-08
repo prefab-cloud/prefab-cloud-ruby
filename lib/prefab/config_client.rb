@@ -1,19 +1,22 @@
 module Prefab
   class ConfigClient
     RECONNECT_WAIT = 5
-    CHECKPOINT_FREQ_SEC = 10
-    SUSPENDERS_FREQ_SEC = 60
+    CHECKPOINT_LOCK = 20
+    DEFAULT_CHECKPOINT_FREQ_SEC = 10
+    DEFAULT_MAX_CHECKPOINT_AGE_SEC = 60
 
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
-      start_at_id = load_checkpoint
-      start_api_connection_thread(start_at_id)
+      load_checkpoint
+      start_api_connection_thread(@config_loader.highwater_mark)
       start_checkpointing_thread
-      start_suspenders_thread
       @base_client.log.set_config_client(self)
+      @checkpoint_max_age_secs = (ENV["PREFAB_CHECKPOINT_MAX_AGE_SEC"] || DEFAULT_MAX_CHECKPOINT_AGE_SEC)
+      @checkpoint_max_age = @checkpoint_max_age_secs * 1000 * 10000
+      @checkpoint_freq_secs = (ENV["PREFAB_DEFAULT_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
     end
 
     def get(prop)
@@ -35,7 +38,7 @@ module Prefab
     end
 
     def reset
-      @base_client.reset_channel!
+      @base_client.reset!
       @_stub = nil
     end
 
@@ -57,29 +60,34 @@ module Prefab
                                                interceptors: [@base_client.interceptor])
     end
 
-    def cache_key
-      "prefab:config:checkpoint"
-    end
-
     # Bootstrap out of the cache
     # returns the high-watermark of what was in the cache
     def load_checkpoint
-      checkpoint = @base_client.shared_cache.read(cache_key)
-      start_at_id = 0
+      checkpoint = @base_client.shared_cache.read(checkpoint_cache_key)
 
       if checkpoint
         deltas = Prefab::ConfigDeltas.decode(checkpoint)
         deltas.deltas.each do |delta|
           @config_loader.set(delta)
-          start_at_id = [delta.id, start_at_id].max
         end
-        @base_client.log_internal :info, "Found checkpoint with highwater id #{start_at_id}"
+        @base_client.log_internal :info, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
         @config_resolver.update
       else
         @base_client.log_internal :info, "No checkpoint"
       end
+    end
 
-      start_at_id
+    # Save off the config to a local cache as a backup
+    #
+    def save_checkpoint
+      begin
+        deltas = @config_resolver.export_api_deltas
+        @base_client.log_internal :debug, "Save Checkpoint #{@config_loader.highwater_mark} Thread #{Thread.current.object_id}"
+        @base_client.shared_cache.write(checkpoint_cache_key, Prefab::ConfigDeltas.encode(deltas))
+        @base_client.shared_cache.write(checkpoint_highwater_cache_key, @config_loader.highwater_mark)
+      rescue StandardError => exn
+        @base_client.log_internal :info, "Issue Saving Checkpoint #{exn.message}"
+      end
     end
 
     # A thread that saves current state to the cache, "checkpointing" it
@@ -88,13 +96,12 @@ module Prefab
         loop do
           begin
             started_at = Time.now
-            delta = CHECKPOINT_FREQ_SEC - (Time.now - started_at)
+            delta = @checkpoint_freq_secs - (Time.now - started_at)
             if delta > 0
               sleep(delta)
             end
-            deltas = @config_resolver.export_api_deltas
-            @base_client.log_internal :debug, "Save Checkpoint #{deltas.deltas.map {|d| d.id}.max} Thread #{Thread.current.object_id}"
-            @base_client.shared_cache.write(cache_key, Prefab::ConfigDeltas.encode(deltas))
+
+            checkpoint_if_needed
           rescue StandardError => exn
             @base_client.log_internal :info, "Issue Checkpointing #{exn.message}"
           end
@@ -102,12 +109,67 @@ module Prefab
       end
     end
 
+    # check what our shared highwater mark is
+    # if it is higher than our own highwater mark, we must have missed something, so load the checkpoint
+    # if it is lower than our own highwater mark, save a checkpoint
+    # if everything is up to date, but the shared highwater mark is old, coordinate amongst other processes to have
+    #    one process "double check" by restarting the API thread
+    def checkpoint_if_needed
+      shared_highwater_mark = get_shared_highwater_mark
+      @base_client.log_internal :debug, "Checkpoint_if_needed apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
+
+      if shared_highwater_mark > @config_loader.highwater_mark
+        @base_client.log_internal :debug, "We were behind, loading checkpoint"
+        load_checkpoint
+      elsif shared_highwater_mark < @config_loader.highwater_mark
+        @base_client.log_internal :debug, "Saving off checkpoint"
+        save_checkpoint
+      elsif shared_highwater_is_old?
+        if get_shared_lock?
+          @base_client.log_internal :debug, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. We have been chosen to run suspenders"
+          reset_api_connection
+        else
+          @base_client.log_internal :debug, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. Other process is running suspenders"
+        end
+      end
+    end
+
+    def current_time_as_id
+      Time.now.to_f * 1000 * 10000
+    end
+
+    def shared_highwater_is_old?
+      age = current_time_as_id - get_shared_highwater_mark
+      @base_client.log_internal :debug, "shared_highwater_is_old? apx #{age / (1000 * 10000)}" if age > @checkpoint_max_age
+      age > @checkpoint_max_age_secs
+    end
+
+    def get_shared_highwater_mark
+      (@base_client.shared_cache.read(checkpoint_highwater_cache_key) || 0).to_i
+    end
+
+    def get_shared_lock?
+      in_progess = @base_client.shared_cache.read(checkpoint_update_in_progress_cache_key)
+      if in_progess.nil?
+        @base_client.shared_cache.write(checkpoint_update_in_progress_cache_key, "true", { expires_in: CHECKPOINT_LOCK })
+        true
+      else
+        false
+      end
+    end
+
+    def reset_api_connection
+      @api_connection_thread.exit
+      start_api_connection_thread(@config_loader.highwater_mark)
+    end
+
     # Setup a streaming connection to the API
     # Save new config values into the loader
     def start_api_connection_thread(start_at_id)
       config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                     start_at_id: start_at_id)
-      Thread.new do
+      @base_client.log_internal :info, "start api connection thread #{start_at_id}"
+      @api_connection_thread = Thread.new do
         while true do
           begin
             resp = stub.get_config(config_req)
@@ -126,38 +188,16 @@ module Prefab
       end
     end
 
-    # Streaming connections don't guarantee all items have been seen
-    #
-    def start_suspenders_thread
-      start_at_suspenders = 0
+    def checkpoint_cache_key
+      "prefab:config:checkpoint"
+    end
 
-      Thread.new do
-        loop do
-          begin
-            started_at = Time.now
-            config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
-                                                          start_at_id: start_at_suspenders)
+    def checkpoint_update_in_progress_cache_key
+      "prefab:config:checkpoint:updating"
+    end
 
-            resp = @base_client.request Prefab::ConfigService, :get_config, req_options: { timeout: @timeout }, params: config_req
-
-            resp.each do |r|
-              r.deltas.each do |delta|
-                @config_loader.set(delta)
-                start_at_suspenders = [start_at_suspenders, delta.id].max
-              end
-            end
-          rescue GRPC::DeadlineExceeded
-            # Ignore. This is a streaming endpoint, but we only need a single response
-          rescue => e
-            @base_client.log_internal :info, "Suspenders encountered an issue #{e.message}"
-          end
-
-          delta = SUSPENDERS_FREQ_SEC - (Time.now - started_at)
-          if delta > 0
-            sleep(delta)
-          end
-        end
-      end
+    def checkpoint_highwater_cache_key
+      "prefab:config:checkpoint:highwater"
     end
   end
 end

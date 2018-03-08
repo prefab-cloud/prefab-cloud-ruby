@@ -9,5 +9,8 @@ module Prefab
 
     def read(name)
     end
+
+    def delete(name)
+    end
   end
 end

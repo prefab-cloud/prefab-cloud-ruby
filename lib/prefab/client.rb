@@ -36,10 +36,6 @@ module Prefab
                       GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, @creds)
     end
 
-    def reset_channel!
-      @_channel = nil
-    end
-
     def config_client(timeout: 5.0)
       @config_client ||= Prefab::ConfigClient.new(self, timeout)
     end
@@ -68,7 +64,7 @@ module Prefab
 
       begin
         attempts += 1
-        return stub_for(service).send(method, *params)
+        return stub_for(service, opts[:timeout]).send(method, *params)
       rescue => exception
 
         log_internal :warn, exception
@@ -93,11 +89,12 @@ module Prefab
       reset_channel!
     end
 
-    def stub_for(service)
-      @stubs[service] ||= service::Stub.new(nil,
-                                            nil,
-                                            channel_override: channel,
-                                            interceptors: [@interceptor])
+    def stub_for(service, timeout)
+      @stubs["#{service}_#{timeout}"] ||= service::Stub.new(nil,
+                                                            nil,
+                                                            timeout: timeout,
+                                                            channel_override: channel,
+                                                            interceptors: [@interceptor])
     end
 
     def ssl_certs

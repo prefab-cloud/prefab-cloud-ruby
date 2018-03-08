@@ -14,13 +14,22 @@ class TestConfigLoader < Minitest::Test
     should_be :double, 12.12, "sample_double"
   end
 
+  def test_highwater
+    assert_equal 0, @loader.highwater_mark
+    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    assert_equal 1, @loader.highwater_mark
+
+    @loader.set(Prefab::ConfigDelta.new(id: 5, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    assert_equal 5, @loader.highwater_mark
+    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    assert_equal 5, @loader.highwater_mark
+  end
 
   def test_api_precedence
     should_be :int, 123, "sample_int"
 
     @loader.set(Prefab::ConfigDelta.new(key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
     should_be :int, 456, "sample_int"
-
   end
 
   def test_api_deltas

@@ -12,10 +12,12 @@ class MockBaseClient
   def account_id
     1
   end
+
+  def log_internal level, message
+  end
 end
 
 class MockConfigLoader
   def calc_config
-
   end
 end
