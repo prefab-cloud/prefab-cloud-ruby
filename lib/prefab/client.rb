@@ -7,7 +7,7 @@ module Prefab
     attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
-                   logger: nil,
+                   logdev: nil,
                    stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
                    local: false,
@@ -15,9 +15,7 @@ module Prefab
     )
       raise "No API key. Set PREFAB_API_KEY env var" if api_key.empty?
 
-      @logger = (logger || Logger.new($stdout)).tap do |log|
-        log.progname = "Prefab" if log.respond_to? :progname=
-      end
+      @logdev = (logdev || $stdout)
       @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
@@ -48,12 +46,12 @@ module Prefab
       @feature_flag_client ||= Prefab::FeatureFlagClient.new(self)
     end
 
-    def log(base_logger = @logger)
-      @logger_client ||= Prefab::LoggerClient.new(base_logger)
+    def log
+      @logger_client ||= Prefab::LoggerClient.new(@logdev)
     end
 
     def log_internal(level, msg)
-      log.log_for level, msg, "prefab"
+      log.log_internal msg, "prefab", nil, level
     end
 
     def request(service, method, req_options: {}, params: {})
@@ -67,7 +65,7 @@ module Prefab
         return stub_for(service, opts[:timeout]).send(method, *params)
       rescue => exception
 
-        log_internal :warn, exception
+        log_internal Logger::WARN, exception
 
         if Time.now - start_time > opts[:timeout]
           raise exception
@@ -75,7 +73,7 @@ module Prefab
         sleep_seconds = [BASE_SLEEP_SEC * (2 ** (attempts - 1)), MAX_SLEEP_SEC].min
         sleep_seconds = sleep_seconds * (0.5 * (1 + rand()))
         sleep_seconds = [BASE_SLEEP_SEC, sleep_seconds].max
-        log_internal :info, "Sleep #{sleep_seconds} and Reset #{service} #{method}"
+        log_internal Logger::INFO, "Sleep #{sleep_seconds} and Reset #{service} #{method}"
         sleep sleep_seconds
         reset!
         retry

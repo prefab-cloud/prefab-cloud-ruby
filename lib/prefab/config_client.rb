@@ -75,11 +75,11 @@ module Prefab
         deltas.deltas.each do |delta|
           @config_loader.set(delta)
         end
-        @base_client.log_internal :info, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
+        @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
         @config_resolver.update
         finish_init!
       else
-        @base_client.log_internal :info, "No checkpoint"
+        @base_client.log_internal Logger::INFO, "No checkpoint"
       end
     end
 
@@ -88,11 +88,11 @@ module Prefab
     def save_checkpoint
       begin
         deltas = @config_resolver.export_api_deltas
-        @base_client.log_internal :debug, "Save Checkpoint #{@config_loader.highwater_mark} Thread #{Thread.current.object_id}"
+        @base_client.log_internal Logger::DEBUG, "Save Checkpoint #{@config_loader.highwater_mark} Thread #{Thread.current.object_id}"
         @base_client.shared_cache.write(checkpoint_cache_key, Prefab::ConfigDeltas.encode(deltas))
         @base_client.shared_cache.write(checkpoint_highwater_cache_key, @config_loader.highwater_mark)
       rescue StandardError => exn
-        @base_client.log_internal :info, "Issue Saving Checkpoint #{exn.message}"
+        @base_client.log_internal Logger::INFO, "Issue Saving Checkpoint #{exn.message}"
       end
     end
 
@@ -109,7 +109,7 @@ module Prefab
               sleep(delta)
             end
           rescue StandardError => exn
-            @base_client.log_internal :info, "Issue Checkpointing #{exn.message}"
+            @base_client.log_internal Logger::INFO, "Issue Checkpointing #{exn.message}"
           end
         end
       end
@@ -122,20 +122,20 @@ module Prefab
     #    one process "double check" by restarting the API thread
     def checkpoint_if_needed
       shared_highwater_mark = get_shared_highwater_mark
-      @base_client.log_internal :debug, "Checkpoint_if_needed apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
+      @base_client.log_internal Logger::DEBUG, "Checkpoint_if_needed apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
 
       if shared_highwater_mark > @config_loader.highwater_mark
-        @base_client.log_internal :debug, "We were behind, loading checkpoint"
+        @base_client.log_internal Logger::DEBUG, "We were behind, loading checkpoint"
         load_checkpoint
       elsif shared_highwater_mark < @config_loader.highwater_mark
-        @base_client.log_internal :debug, "Saving off checkpoint"
+        @base_client.log_internal Logger::DEBUG, "Saving off checkpoint"
         save_checkpoint
       elsif shared_highwater_is_old?
         if get_shared_lock?
-          @base_client.log_internal :debug, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. We have been chosen to run suspenders"
+          @base_client.log_internal Logger::DEBUG, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. We have been chosen to run suspenders"
           reset_api_connection
         else
-          @base_client.log_internal :debug, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. Other process is running suspenders"
+          @base_client.log_internal Logger::DEBUG, "Shared highwater mark > PREFAB_CHECKPOINT_MAX_AGE #{@checkpoint_max_age_secs}. Other process is running suspenders"
         end
       end
     end
@@ -146,7 +146,7 @@ module Prefab
 
     def shared_highwater_is_old?
       age = current_time_as_id - get_shared_highwater_mark
-      @base_client.log_internal :debug, "shared_highwater_is_old? apx #{age / (1000 * 10000)}" if age > @checkpoint_max_age
+      @base_client.log_internal Logger::DEBUG, "shared_highwater_is_old? apx #{age / (1000 * 10000)}" if age > @checkpoint_max_age
       age > @checkpoint_max_age_secs
     end
 
@@ -181,7 +181,7 @@ module Prefab
     def start_api_connection_thread(start_at_id)
       config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                     start_at_id: start_at_id)
-      @base_client.log_internal :debug, "start api connection thread #{start_at_id}"
+      @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
       @api_connection_thread = Thread.new do
         while true do
           begin
@@ -194,7 +194,7 @@ module Prefab
               finish_init!
             end
           rescue => e
-            @base_client.log_internal :info, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
+            @base_client.log_internal Logger::INFO, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
             reset
             sleep(RECONNECT_WAIT)
           end

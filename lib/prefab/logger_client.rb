@@ -1,52 +1,73 @@
 module Prefab
-  class LoggerClient
+  class LoggerClient < Logger
 
     SEP = ".".freeze
     BASE = "log_level".freeze
 
-    def initialize(base_logger)
-      @base_logger = base_logger
+    def initialize(logdev, shift_age = 0, shift_size = 1048576, level: DEBUG,
+                   progname: nil, formatter: nil, datetime_format: nil,
+                   shift_period_suffix: '%Y%m%d')
+      super(logdev, shift_age, shift_size, { level: level,
+                                             progname: progname, formatter: formatter, datetime_format: datetime_format,
+                                             shift_period_suffix: shift_period_suffix })
       @config_client = BootstrappingConfigClient.new
     end
 
-    def debug msg
-      pf_log :debug, msg, caller_locations(1, 1)[0]
+    def add(severity, message = nil, progname = nil)
+
+      loc = caller_locations(2, 1)[0]
+      path = get_path(loc.absolute_path, loc.base_label)
+
+      return log_internal(message, path, progname, severity)
     end
 
-    def info msg
-      pf_log :info, msg, caller_locations(1, 1)[0]
-    end
+    def log_internal(message, path, progname, severity)
+      level = level_of(path)
+      progname = "#{path}: #{progname}"
 
-    def warn msg
-      pf_log :warn, msg, caller_locations(1, 1)[0]
-    end
 
-    def error msg
-      pf_log :error, msg, caller_locations(1, 1)[0]
-    end
-
-    def log_for level, msg, loc
-      pf_log_internal level, msg, "", loc
-    end
-
-    def level= lvl
-      #noop
-    end
-
-    def formatter
-      @formatter ||= ActiveSupport::Logger::SimpleFormatter.new
-    end
-
-    def level
-      :debug
+      severity ||= UNKNOWN
+      if @logdev.nil? or severity < level
+        return true
+      end
+      if progname.nil?
+        progname = @progname
+      end
+      if message.nil?
+        if block_given?
+          message = yield
+        else
+          message = progname
+          progname = @progname
+        end
+      end
+      @logdev.write(
+        format_message(format_severity(severity), Time.now, progname, message))
+      true
     end
 
     def debug?
-      true
+      true;
     end
 
     def info?
-      true
+      true;
+    end
+
+    def warn?
+      true;
+    end
+
+    def error?
+      true;
+    end
+
+    def fatal?
+      true;
+    end
+
+    def level
+      DEBUG
     end
 
     def set_config_client(config_client)
@@ -55,18 +76,8 @@ module Prefab
 
     private
 
-    def pf_log(level, msg, loc)
-      pf_log_internal level, msg, loc.absolute_path, loc.base_label
-    end
-
-    def pf_log_internal(level, msg, absolute_path, base_label)
-
-      path = absolute_path + ""
-      path.slice! Dir.pwd
-
-      path = "#{path.gsub("/", SEP).gsub(".rb", "")}#{SEP}#{base_label}"
-      path.slice! SEP
-
+    # Find the closest match to 'log_level.path' in config
+    def level_of(path)
       closest_log_level_match = @config_client.get(BASE) || :warn
       path.split(SEP).inject([BASE]) do |memo, n|
         memo << n
@@ -76,23 +87,22 @@ module Prefab
         end
         memo
       end
+      val(closest_log_level_match)
+    end
 
-      if val(closest_log_level_match) <= val(level)
-        @base_logger.unknown "#{level.to_s.upcase.ljust(5)} #{path} #{msg}"
-      end
+    # sanitize & clean the path of the caller so the key
+    # looks like log_level.app.models.user
+    def get_path(absolute_path, base_label)
+      path = absolute_path + ""
+      path.slice! Dir.pwd
+
+      path = "#{path.gsub("/", SEP).gsub(".rb", "")}#{SEP}#{base_label}"
+      path.slice! SEP
+      path
     end
 
     def val level
-      case level.to_sym
-      when :debug then
-        1
-      when :info then
-        2
-      when :warn then
-        3
-      when :error then
-        4
-      end
+      return Object.const_get("Logger::#{level.upcase}")
     end
   end
 
