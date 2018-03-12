@@ -10,17 +10,18 @@ module Prefab
     end
 
     def add(severity, message = nil, progname = nil)
+      loc = caller_locations(1, 1)[0]
+      add_internal(severity, message, progname, loc)
+    end
 
-      loc = caller_locations(2, 1)[0]
+    def add_internal(severity, message = nil, progname = nil, loc)
       path = get_path(loc.absolute_path, loc.base_label)
-
-      return log_internal(message, path, progname, severity)
+      log_internal(message, path, progname, severity)
     end
 
     def log_internal(message, path, progname, severity)
       level = level_of(path)
       progname = "#{path}: #{progname}"
-
 
       severity ||= UNKNOWN
       if @logdev.nil? or severity < level
@@ -40,6 +41,26 @@ module Prefab
       @logdev.write(
         format_message(format_severity(severity), Time.now, progname, message))
       true
+    end
+
+    def debug(progname = nil, &block)
+      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
+    end
+
+    def info(progname = nil, &block)
+      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], &block)
+    end
+
+    def warn(progname = nil, &block)
+      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], &block)
+    end
+
+    def error(progname = nil, &block)
+      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
+    end
+
+    def fatal(progname = nil, &block)
+      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def debug?
@@ -92,7 +113,10 @@ module Prefab
       path = absolute_path + ""
       path.slice! Dir.pwd
 
+      path.gsub!(/.*?(?=\/lib\/)/im, "")
+
       path = "#{path.gsub("/", SEP).gsub(".rb", "")}#{SEP}#{base_label}"
+      path.slice! ".lib"
       path.slice! SEP
       path
     end

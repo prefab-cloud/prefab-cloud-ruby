@@ -8,9 +8,13 @@ class TestCLogger < Minitest::Test
   end
 
   def test_get_path
-    assert_equal "lib.test_l.foo_warn",
-                 @logger.get_path("/Users/jeffdwyer/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb",
+    assert_equal "test_l.foo_warn",
+                 @logger.get_path("/Users/jdwyah/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb",
                                   "foo_warn")
+
+    assert_equal "active_support.log_subscriber.info",
+                 @logger.get_path("/Users/jdwyah/.rvm/gems/ruby-2.3.3@forcerank/gems/activesupport-4.1.16/lib/active_support/log_subscriber.rb",
+                                  "info")
   end
 
   def test_level_of
