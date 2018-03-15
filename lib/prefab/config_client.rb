@@ -18,7 +18,11 @@ module Prefab
 
       @initialization_lock.acquire_write_lock
 
-      start_checkpointing_thread
+      if has_real_cache?
+        start_checkpointing_thread
+      else
+        ensure_api_connection_started
+      end
     end
 
     def get(prop)
@@ -216,6 +220,10 @@ module Prefab
           end
         end
       end
+    end
+
+    def has_real_cache?
+      @base_client.shared_cache.class != NoopCache
     end
 
     def checkpoint_cache_key
