@@ -80,6 +80,10 @@ module Prefab
       end
     end
 
+    def cache_key(post_fix)
+      "prefab:#{account_id}:#{post_fix}"
+    end
+
     private
 
     def reset!

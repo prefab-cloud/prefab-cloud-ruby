@@ -219,19 +219,19 @@ module Prefab
     end
 
     def checkpoint_cache_key
-      "prefab:config:checkpoint".freeze
+      @base_client.cache_key "config:checkpoint"
     end
 
     def checkpoint_update_in_progress_cache_key
-      "prefab:config:checkpoint:updating".freeze
+      @base_client.cache_key "config:checkpoint:updating"
     end
 
     def checkpoint_highwater_cache_key
-      "prefab:config:checkpoint:highwater".freeze
+      @base_client.cache_key "config:checkpoint:highwater"
     end
 
     def checkpoint_suspenders_cache_key
-      "prefab:config:checkpoint:suspenders".freeze
+      @base_client.cache_key "config:checkpoint:suspenders"
     end
   end
 end
