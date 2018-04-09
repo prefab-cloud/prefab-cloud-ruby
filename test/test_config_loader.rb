@@ -25,6 +25,23 @@ class TestConfigLoader < Minitest::Test
     assert_equal 5, @loader.highwater_mark
   end
 
+
+
+  def test_keeps_most_recent
+    assert_equal 0, @loader.highwater_mark
+    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", value: Prefab::ConfigValue.new(int: 1)))
+    assert_equal 1, @loader.highwater_mark
+    should_be :int, 1, "sample_int"
+
+    @loader.set(Prefab::ConfigDelta.new(id: 4, key: "sample_int", value: Prefab::ConfigValue.new(int: 4)))
+    assert_equal 4, @loader.highwater_mark
+    should_be :int, 4, "sample_int"
+
+    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", value: Prefab::ConfigValue.new(int: 2)))
+    assert_equal 4, @loader.highwater_mark
+    should_be :int, 4, "sample_int"
+  end
+
   def test_api_precedence
     should_be :int, 123, "sample_int"
 

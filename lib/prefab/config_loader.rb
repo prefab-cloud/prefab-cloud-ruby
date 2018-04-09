@@ -21,6 +21,11 @@ module Prefab
     end
 
     def set(delta)
+      # don't overwrite newer values
+      if @api_config[delta.key] && @api_config[delta.key].id > delta.id
+        return
+      end
+
       if delta.value.nil?
         @api_config.delete(delta.key)
       else
