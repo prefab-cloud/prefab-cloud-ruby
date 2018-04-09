@@ -130,7 +130,6 @@ module Prefab
       @base_client.log_internal Logger::DEBUG, "Checkpoint_if_needed highwater apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
 
       if shared_highwater_mark > @config_loader.highwater_mark
-        puts "Shared #{shared_highwater_mark} our #{@config_loader.highwater_mark}"
         @base_client.log_internal Logger::DEBUG, "We were behind, loading checkpoint"
         load_checkpoint
       elsif shared_highwater_mark < @config_loader.highwater_mark
