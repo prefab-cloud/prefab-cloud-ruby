@@ -88,7 +88,7 @@ module Prefab
 
     def reset!
       @stubs.clear
-      reset_channel!
+      @_channel = nil
     end
 
     def stub_for(service, timeout)

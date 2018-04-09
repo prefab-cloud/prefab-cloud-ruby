@@ -1,7 +1,7 @@
 module Prefab
   class ConfigClient
     RECONNECT_WAIT = 5
-    CHECKPOINT_LOCK = 20
+    SUSPENDERS_RESET_LOCK_SEC = 20
     DEFAULT_CHECKPOINT_FREQ_SEC = 10
     DEFAULT_MAX_SUSPENDERS_AGE_SEC = 60
 
@@ -18,11 +18,9 @@ module Prefab
 
       @initialization_lock.acquire_write_lock
 
-      if has_real_cache?
-        start_checkpointing_thread
-      else
-        ensure_api_connection_started
-      end
+      load_or_save_checkpoint
+      ensure_api_connection_started
+      start_checkpointing_thread if has_real_cache?
     end
 
     def get(prop)
@@ -106,7 +104,9 @@ module Prefab
       Thread.new do
         loop do
           begin
-            checkpoint_if_needed
+            load_or_save_checkpoint
+
+            suspenders_if_needed
 
             started_at = Time.now
             delta = @checkpoint_freq_secs - (Time.now - started_at)
@@ -125,7 +125,7 @@ module Prefab
     # if it is lower than our own highwater mark, save a checkpoint
     # if everything is up to date, but the shared highwater mark is old, coordinate amongst other processes to have
     #    one process "double check" by restarting the API thread
-    def checkpoint_if_needed
+    def load_or_save_checkpoint
       shared_highwater_mark = get_shared_highwater_mark
       @base_client.log_internal Logger::DEBUG, "Checkpoint_if_needed highwater apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
 
@@ -137,7 +137,9 @@ module Prefab
         @base_client.log_internal Logger::DEBUG, "Saving off checkpoint"
         save_checkpoint
       end
+    end
 
+    def suspenders_if_needed
       if suspenders_age_is_old?
         if get_shared_lock?
           @base_client.log_internal Logger::DEBUG, "Suspenders > PREFAB_SUSPENDERS_MAX_AGE_SEC #{@suspenders_max_age_secs}. We have been chosen to run suspenders"
@@ -146,8 +148,6 @@ module Prefab
           @base_client.log_internal Logger::DEBUG, "Suspenders > PREFAB_SUSPENDERS_MAX_AGE_SEC #{@suspenders_max_age_secs}. Other process is running suspenders"
         end
       end
-
-      ensure_api_connection_started
     end
 
     def suspenders_age_is_old?
@@ -161,17 +161,17 @@ module Prefab
     end
 
     def get_checkpoint_suspenders
-      (@base_client.shared_cache.read(checkpoint_suspenders_cache_key) || 0).to_i
+      (@base_client.shared_cache.read(suspenders_last_run_cache_key) || 0).to_i
     end
 
-    def set_checkpoint_suspenders
-      @base_client.shared_cache.write(checkpoint_suspenders_cache_key, Time.now.to_i)
+    def set_suspenders
+      @base_client.shared_cache.write(suspenders_last_run_cache_key, Time.now.to_i)
     end
 
     def get_shared_lock?
-      in_progess = @base_client.shared_cache.read(checkpoint_update_in_progress_cache_key)
+      in_progess = @base_client.shared_cache.read(suspenders_reset_in_progress_cache_key)
       if in_progess.nil?
-        @base_client.shared_cache.write(checkpoint_update_in_progress_cache_key, "true", { expires_in: CHECKPOINT_LOCK })
+        @base_client.shared_cache.write(suspenders_reset_in_progress_cache_key, "true", { expires_in: SUSPENDERS_RESET_LOCK_SEC })
         true
       else
         false
@@ -201,7 +201,7 @@ module Prefab
                                                     start_at_id: start_at_id)
       @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
       @base_client.stats.increment("prefab.config.api.start")
-      set_checkpoint_suspenders
+      set_suspenders
       @api_connection_thread = Thread.new do
         while true do
           begin
@@ -230,7 +230,7 @@ module Prefab
       @base_client.cache_key "config:checkpoint"
     end
 
-    def checkpoint_update_in_progress_cache_key
+    def suspenders_reset_in_progress_cache_key
       @base_client.cache_key "config:checkpoint:updating"
     end
 
@@ -238,7 +238,7 @@ module Prefab
       @base_client.cache_key "config:checkpoint:highwater"
     end
 
-    def checkpoint_suspenders_cache_key
+    def suspenders_last_run_cache_key
       @base_client.cache_key "config:checkpoint:suspenders"
     end
   end
