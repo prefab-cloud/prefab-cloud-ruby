@@ -39,7 +39,7 @@ module Prefab
       handle_error(e, on_error, groups)
     end
 
-    def upsert(group, policy_name, limit, burst: nil)
+    def upsert(group, policy_name, limit, burst: nil, safety_level: nil)
       burst = limit if burst.nil?
       limit_defintion = Prefab::LimitDefinition.new(
         account_id: @base_client.account_id,
@@ -48,6 +48,10 @@ module Prefab
         limit: limit,
         burst: burst
       )
+      unless safety_level.nil?
+        limit_defintion.safety_level = safety_level
+      end
+
       @base_client.request Prefab::RateLimitService, :upsert_limit_definition, params: limit_defintion
     end
 
