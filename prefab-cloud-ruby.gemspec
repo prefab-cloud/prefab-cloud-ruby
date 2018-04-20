@@ -15,13 +15,15 @@ Gem::Specification.new do |s|
   s.description = "RateLimits & Config as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.extra_rdoc_files = [
-    "LICENSE.txt"
+    "LICENSE.txt",
+    "README.md"
   ]
   s.files = [
     ".ruby-version",
     "Gemfile",
     "Gemfile.lock",
     "LICENSE.txt",
+    "README.md",
     "Rakefile",
     "VERSION",
     "compile_protos.sh",
