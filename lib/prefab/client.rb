@@ -11,11 +11,12 @@ module Prefab
                    stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
                    local: false,
-                   namespace: ""
+                   namespace: "",
+                   log_formatter: nil
     )
       raise "No API key. Set PREFAB_API_KEY env var" if api_key.empty?
-
       @logdev = (logdev || $stdout)
+      @log_formatter = log_formatter
       @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
@@ -47,7 +48,7 @@ module Prefab
     end
 
     def log
-      @logger_client ||= Prefab::LoggerClient.new(@logdev)
+      @logger_client ||= Prefab::LoggerClient.new(@logdev, formatter: @log_formatter)
     end
 
     def log_internal(level, msg)
