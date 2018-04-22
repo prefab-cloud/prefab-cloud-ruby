@@ -1,13 +1,13 @@
 source "https://rubygems.org"
 
-gem 'grpc', '~> 1.10.0'
+gem 'grpc', '~> 1.11.0'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
 
 group :development do
-  gem 'grpc-tools', '~> 1.10.0'
+  gem 'grpc-tools', '~> 1.11.0'
   gem "shoulda", ">= 0"
   gem "rdoc", "~> 3.12"
   gem "bundler", "~> 1.0"
-  gem "juwelier", "~> 2.1.0"
+  gem "juwelier", "~> 2.4.9"
   gem "simplecov", ">= 0"
 end
