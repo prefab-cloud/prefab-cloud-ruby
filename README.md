@@ -25,6 +25,21 @@ See full documentation https://www.prefab.cloud/documentation/installation
 * Infinite retention for [deduplication workflows](https://www.prefab.cloud/documentation/once_and_only_once)
 * [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
 
+## Important note about Forking
+
+Many ruby web servers fork. GRPC does not like to be forked. You should instantiate your prefab clients in the on_worker_boot or after_fork hook of your server. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
+
+```ruby
+#puma.rb
+on_worker_boot do
+  $prefab = Prefab::Client.new(shared_cache: Rails.cache,
+                               logdev: $stdout,
+                               log_formatter: proc {|severity, datetime, progname, msg|
+                                 "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
+                               })
+  Rails.logger = $prefab.log
+end
+```
 
 ## Contributing to ratelimit-ruby
  
