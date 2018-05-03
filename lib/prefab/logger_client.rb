@@ -4,8 +4,9 @@ module Prefab
     SEP = ".".freeze
     BASE = "log_level".freeze
 
-    def initialize(logdev, shift_age = 0, shift_size = 1048576, formatter: nil)
-      super(logdev, shift_age, shift_size, formatter: formatter)
+    def initialize(logdev, formatter: nil)
+      super(logdev)
+      self.formatter= formatter
       @config_client = BootstrappingConfigClient.new
     end
 
