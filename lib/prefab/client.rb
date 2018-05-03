@@ -14,7 +14,7 @@ module Prefab
                    namespace: "",
                    log_formatter: nil
     )
-      raise "No API key. Set PREFAB_API_KEY env var" if api_key.empty?
+      raise "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
       @local = local

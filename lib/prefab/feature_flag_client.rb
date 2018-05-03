@@ -41,7 +41,8 @@ module Prefab
     end
 
     def get_user_pct(feature, lookup_key)
-      int_value = Murmur3.murmur3_32("#{@base_client.account_id}#{feature}#{lookup_key}")
+      to_hash = "#{@base_client.account_id}#{feature}#{lookup_key}"
+      int_value = Murmur3.murmur3_32(to_hash)
       int_value / MAX_32_FLOAT
     end
 
