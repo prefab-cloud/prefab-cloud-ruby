@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 gem 'grpc', '~> 1.11.0'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
+gem 'aws-sdk-s3', '~> 1'
 
 group :development do
   gem 'grpc-tools', '~> 1.11.0'

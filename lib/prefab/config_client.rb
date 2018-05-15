@@ -1,26 +1,24 @@
 module Prefab
   class ConfigClient
     RECONNECT_WAIT = 5
-    SUSPENDERS_RESET_LOCK_SEC = 20
-    DEFAULT_CHECKPOINT_FREQ_SEC = 10
-    DEFAULT_MAX_SUSPENDERS_AGE_SEC = 60
+    DEFAULT_CHECKPOINT_FREQ_SEC = 60
 
     def initialize(base_client, timeout)
       @base_client = base_client
       @timeout = timeout
       @initialization_lock = Concurrent::ReadWriteLock.new
 
-      @suspenders_max_age_secs = (ENV["PREFAB_SUSPENDERS_MAX_AGE_SEC"] || DEFAULT_MAX_SUSPENDERS_AGE_SEC)
       @checkpoint_freq_secs = (ENV["PREFAB_DEFAULT_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
 
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
       @initialization_lock.acquire_write_lock
+      @s3 = Aws::S3::Resource.new(region: 'us-east-1')
 
-      load_or_save_checkpoint
-      ensure_api_connection_started
-      start_checkpointing_thread if has_real_cache?
+      load_checkpoint
+      start_api_connection_thread(@config_loader.highwater_mark)
+      start_checkpointing_thread
     end
 
     def get(prop)
@@ -69,10 +67,9 @@ module Prefab
     # Bootstrap out of the cache
     # returns the high-watermark of what was in the cache
     def load_checkpoint
-      checkpoint = @base_client.shared_cache.read(checkpoint_cache_key)
-
-      if checkpoint
-        deltas = Prefab::ConfigDeltas.decode(checkpoint)
+      obj = @s3.bucket('prefab-cloud-checkpoints-prod').object(@base_client.api_key.gsub("|", "/"))
+      obj.get do |f|
+        deltas = Prefab::ConfigDeltas.decode(f)
         deltas.deltas.each do |delta|
           @config_loader.set(delta)
         end
@@ -80,33 +77,18 @@ module Prefab
         @base_client.stats.increment("prefab.config.checkpoint.load")
         @config_resolver.update
         finish_init!
-      else
-        @base_client.log_internal Logger::INFO, "No checkpoint"
       end
+
+    rescue Aws::S3::Errors::NoSuchKey
+      @base_client.log_internal Logger::INFO, "No checkpoint"
     end
 
-    # Save off the config to a local cache as a backup
-    #
-    def save_checkpoint
-      begin
-        deltas = @config_resolver.export_api_deltas
-        @base_client.log_internal Logger::DEBUG, "Save Checkpoint #{@config_loader.highwater_mark} Thread #{Thread.current.object_id}"
-        @base_client.shared_cache.write(checkpoint_cache_key, Prefab::ConfigDeltas.encode(deltas))
-        @base_client.shared_cache.write(checkpoint_highwater_cache_key, @config_loader.highwater_mark)
-        @base_client.stats.increment("prefab.config.checkpoint.save")
-      rescue StandardError => exn
-        @base_client.log_internal Logger::INFO, "Issue Saving Checkpoint #{exn.message}"
-      end
-    end
-
-    # A thread that saves current state to the cache, "checkpointing" it
+    # A thread that checks for a checkpoint
     def start_checkpointing_thread
       Thread.new do
         loop do
           begin
-            load_or_save_checkpoint
-
-            suspenders_if_needed
+            load_checkpoint
 
             started_at = Time.now
             delta = @checkpoint_freq_secs - (Time.now - started_at)
@@ -118,72 +100,6 @@ module Prefab
           end
         end
       end
-    end
-
-    # check what our shared highwater mark is
-    # if it is higher than our own highwater mark, we must have missed something, so load the checkpoint
-    # if it is lower than our own highwater mark, save a checkpoint
-    # if everything is up to date, but the shared highwater mark is old, coordinate amongst other processes to have
-    #    one process "double check" by restarting the API thread
-    def load_or_save_checkpoint
-      shared_highwater_mark = get_shared_highwater_mark
-      @base_client.log_internal Logger::DEBUG, "Checkpoint_if_needed highwater apx ahead/behind #{(@config_loader.highwater_mark - shared_highwater_mark) / (1000 * 10000)}"
-
-      if shared_highwater_mark > @config_loader.highwater_mark
-        @base_client.log_internal Logger::DEBUG, "We were behind, loading checkpoint"
-        load_checkpoint
-      elsif shared_highwater_mark < @config_loader.highwater_mark
-        @base_client.log_internal Logger::DEBUG, "Saving off checkpoint"
-        save_checkpoint
-      end
-    end
-
-    def suspenders_if_needed
-      if suspenders_age_is_old?
-        if get_shared_lock?
-          @base_client.log_internal Logger::DEBUG, "Suspenders > PREFAB_SUSPENDERS_MAX_AGE_SEC #{@suspenders_max_age_secs}. We have been chosen to run suspenders"
-          reset_api_connection
-        else
-          @base_client.log_internal Logger::DEBUG, "Suspenders > PREFAB_SUSPENDERS_MAX_AGE_SEC #{@suspenders_max_age_secs}. Other process is running suspenders"
-        end
-      end
-    end
-
-    def suspenders_age_is_old?
-      age = Time.now.to_i - get_checkpoint_suspenders
-      @base_client.log_internal Logger::DEBUG, "checkpoint_suspenders_is_old? apx #{age}" if age > @suspenders_max_age_secs
-      age > @suspenders_max_age_secs
-    end
-
-    def get_shared_highwater_mark
-      (@base_client.shared_cache.read(checkpoint_highwater_cache_key) || 0).to_i
-    end
-
-    def get_checkpoint_suspenders
-      (@base_client.shared_cache.read(suspenders_last_run_cache_key) || 0).to_i
-    end
-
-    def set_suspenders
-      @base_client.shared_cache.write(suspenders_last_run_cache_key, Time.now.to_i)
-    end
-
-    def get_shared_lock?
-      in_progess = @base_client.shared_cache.read(suspenders_reset_in_progress_cache_key)
-      if in_progess.nil?
-        @base_client.shared_cache.write(suspenders_reset_in_progress_cache_key, "true", { expires_in: SUSPENDERS_RESET_LOCK_SEC })
-        true
-      else
-        false
-      end
-    end
-
-    def ensure_api_connection_started
-      reset_api_connection if @api_connection_thread.nil?
-    end
-
-    def reset_api_connection
-      @api_connection_thread&.exit
-      start_api_connection_thread(@config_loader.highwater_mark)
     end
 
     def finish_init!
@@ -200,7 +116,6 @@ module Prefab
                                                     start_at_id: start_at_id)
       @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
       @base_client.stats.increment("prefab.config.api.start")
-      set_suspenders
       @api_connection_thread = Thread.new do
         while true do
           begin
@@ -219,26 +134,6 @@ module Prefab
           end
         end
       end
-    end
-
-    def has_real_cache?
-      @base_client.shared_cache.class != NoopCache
-    end
-
-    def checkpoint_cache_key
-      @base_client.cache_key "config:checkpoint"
-    end
-
-    def suspenders_reset_in_progress_cache_key
-      @base_client.cache_key "config:checkpoint:updating"
-    end
-
-    def checkpoint_highwater_cache_key
-      @base_client.cache_key "config:checkpoint:highwater"
-    end
-
-    def suspenders_last_run_cache_key
-      @base_client.cache_key "config:checkpoint:suspenders"
     end
   end
 end

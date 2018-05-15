@@ -4,7 +4,7 @@ module Prefab
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
 
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor, :api_key
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -20,6 +20,7 @@ module Prefab
       @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
+      @api_key = api_key
       @account_id = api_key.split("|")[0].to_i
       @namespace = namespace
 

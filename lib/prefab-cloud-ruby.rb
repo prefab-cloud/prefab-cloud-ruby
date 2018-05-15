@@ -14,4 +14,4 @@ require 'prefab/auth_interceptor'
 require 'prefab/noop_cache'
 require 'prefab/noop_stats'
 require 'prefab/murmer3'
-
+require 'aws-sdk-s3'
