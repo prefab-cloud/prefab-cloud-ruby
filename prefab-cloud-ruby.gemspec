@@ -25,6 +25,7 @@ Gem::Specification.new do |s|
     "LICENSE.txt",
     "README.md",
     "Rakefile",
+
     "VERSION",
     "compile_protos.sh",
     "lib/prefab-cloud-ruby.rb",

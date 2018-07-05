@@ -8,7 +8,7 @@ module Prefab
       @timeout = timeout
       @initialization_lock = Concurrent::ReadWriteLock.new
 
-      @checkpoint_freq_secs = (ENV["PREFAB_DEFAULT_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
+      @checkpoint_freq_secs = (ENV["PREFAB_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
 
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)

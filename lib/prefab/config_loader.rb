@@ -55,7 +55,7 @@ module Prefab
 
     def load_local_overrides
       override_dir = ENV['PREFAB_CONFIG_OVERRIDE_DIR'] || Dir.home
-      load_glob(File.join(override_dir, ".prefab*config.yaml"))
+      load_glob(File.join(override_dir, ".prefab*config-overrides.yaml"))
     end
 
     def load_glob(glob)
