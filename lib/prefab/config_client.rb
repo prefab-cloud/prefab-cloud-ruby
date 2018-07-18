@@ -81,6 +81,8 @@ module Prefab
 
     rescue Aws::S3::Errors::NoSuchKey
       @base_client.log_internal Logger::INFO, "No checkpoint"
+    rescue => e
+      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
     end
 
     # A thread that checks for a checkpoint
