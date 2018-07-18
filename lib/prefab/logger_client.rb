@@ -15,12 +15,12 @@ module Prefab
       add_internal(severity, message, progname, loc)
     end
 
-    def add_internal(severity, message = nil, progname = nil, loc)
+    def add_internal(severity, message = nil, progname = nil, loc, &block)
       path = get_path(loc.absolute_path, loc.base_label)
-      log_internal(message, path, progname, severity)
+      log_internal(message, path, progname, severity, &block)
     end
 
-    def log_internal(message, path, progname, severity)
+    def log_internal(message, path, progname, severity, &block)
       level = level_of(path)
       progname = "#{path}: #{progname}"
       severity ||= UNKNOWN
