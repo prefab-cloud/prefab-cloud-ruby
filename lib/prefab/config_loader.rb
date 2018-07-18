@@ -49,7 +49,7 @@ module Prefab
     private
 
     def load_classpath_config
-      classpath_dir = ENV['PREFAB_CONFIG_CLASSPATH_DIR'] || ""
+      classpath_dir = ENV['PREFAB_CONFIG_CLASSPATH_DIR'] || "."
       load_glob(File.join(classpath_dir, ".prefab*config.yaml"))
     end
 
