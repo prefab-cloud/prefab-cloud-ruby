@@ -19,25 +19,27 @@ See full documentation https://www.prefab.cloud/documentation/installation
 
 ## Supports
 
+* [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
 * [RateLimits](https://www.prefab.cloud/documentation/basic_rate_limits)
 * Millions of individual limits sharing the same policies
 * WebUI for tweaking limits & feature flags
 * Infinite retention for [deduplication workflows](https://www.prefab.cloud/documentation/once_and_only_once)
-* [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
 
-## Important note about Forking
+## Important note about Forking and realtime updates
+Many ruby web servers fork. GRPC does not like to be forked. You should manually start gRPC streaming in the on_worker_boot or after_fork hook of your server. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
 
-Many ruby web servers fork. GRPC does not like to be forked. You should instantiate your prefab clients in the on_worker_boot or after_fork hook of your server. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
+```ruby
+
+#config/initializers/prefab.rb
+$prefab = Prefab::Client.new(shared_cache: Rails.cache,
+                             logdev: $stdout)
+Rails.logger = $prefab.log
+```
 
 ```ruby
 #puma.rb
 on_worker_boot do
-  $prefab = Prefab::Client.new(shared_cache: Rails.cache,
-                               logdev: $stdout,
-                               log_formatter: proc {|severity, datetime, progname, msg|
-                                 "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
-                               })
-  Rails.logger = $prefab.log
+  $prefab.start_streaming 
 end
 ```
 

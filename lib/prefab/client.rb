@@ -3,6 +3,10 @@ module Prefab
 
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
+    DEFAULT_LOG_FORMATTER = proc {|severity, datetime, progname, msg|
+      "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
+    }
+
 
     attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor, :api_key
 
@@ -12,7 +16,7 @@ module Prefab
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
                    local: false,
                    namespace: "",
-                   log_formatter: nil
+                   log_formatter: DEFAULT_LOG_FORMATTER
     )
       raise "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
       @logdev = (logdev || $stdout)

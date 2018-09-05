@@ -17,8 +17,11 @@ module Prefab
       @s3 = Aws::S3::Resource.new(region: 'us-east-1')
 
       load_checkpoint
-      start_api_connection_thread(@config_loader.highwater_mark)
       start_checkpointing_thread
+    end
+
+    def start_streaming
+      start_api_connection_thread(@config_loader.highwater_mark)
     end
 
     def get(prop)
