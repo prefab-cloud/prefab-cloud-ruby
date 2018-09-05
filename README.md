@@ -39,7 +39,7 @@ Rails.logger = $prefab.log
 ```ruby
 #puma.rb
 on_worker_boot do
-  $prefab.start_streaming 
+  $prefab.config_client.start_streaming
 end
 ```
 
