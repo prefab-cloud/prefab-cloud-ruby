@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-gem 'grpc', '~> 1.14.1'
+gem 'grpc', '~> 1.15.0'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
 gem 'aws-sdk-s3', '~> 1'
 
