@@ -8,7 +8,7 @@ module Prefab
     }
 
 
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :creds, :interceptor, :api_key
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :interceptor, :api_key
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -27,9 +27,7 @@ module Prefab
       @api_key = api_key
       @account_id = api_key.split("|")[0].to_i
       @namespace = namespace
-
       @interceptor = AuthInterceptor.new(api_key)
-      @creds = GRPC::Core::ChannelCredentials.new(ssl_certs)
       @stubs = {}
     end
 
@@ -37,7 +35,7 @@ module Prefab
       @_channel ||= @local ?
                       GRPC::Core::Channel.new('localhost:8443', nil, :this_channel_is_insecure)
                       :
-                      GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, @creds)
+                      GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, creds)
     end
 
     def config_client(timeout: 5.0)
@@ -103,6 +101,10 @@ module Prefab
                                                             timeout: timeout,
                                                             channel_override: channel,
                                                             interceptors: [@interceptor])
+    end
+
+    def creds
+      GRPC::Core::ChannelCredentials.new(ssl_certs)
     end
 
     def ssl_certs
