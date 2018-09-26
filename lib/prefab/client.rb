@@ -29,6 +29,10 @@ module Prefab
       @namespace = namespace
       @interceptor = AuthInterceptor.new(api_key)
       @stubs = {}
+
+      at_exit do
+        channel.destroy
+      end
     end
 
     def channel
