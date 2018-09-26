@@ -8,6 +8,7 @@ module Prefab
       super(logdev)
       self.formatter= formatter
       @config_client = BootstrappingConfigClient.new
+      @silences = Concurrent::Map.new(:initial_capacity => 2)
     end
 
     def add(severity, message = nil, progname = nil)
@@ -24,7 +25,7 @@ module Prefab
       level = level_of(path)
       progname = "#{path}: #{progname}"
       severity ||= UNKNOWN
-      if @logdev.nil? or severity < level
+      if @logdev.nil? || severity < level || @silences[local_log_id]
         return true
       end
       if progname.nil?
@@ -89,6 +90,17 @@ module Prefab
 
     def set_config_client(config_client)
       @config_client = config_client
+    end
+
+    def local_log_id
+      Thread.current.__id__
+    end
+
+    def silence
+      @silences[local_log_id] = true
+      yield self
+    ensure
+      @silences[local_log_id] = false
     end
 
     private
