@@ -36,10 +36,9 @@ module Prefab
     end
 
     def channel
-      @_channel ||= @local ?
-                      GRPC::Core::Channel.new('localhost:8443', nil, :this_channel_is_insecure)
-                      :
-                      GRPC::Core::Channel.new('api.prefab.cloud:8443', nil, creds)
+      credentials = ENV["PREFAB_CLOUD_HTTP"] == "true" ? :this_channel_is_insecure : creds
+      url = ENV["PREFAB_API_URL"] || 'api.prefab.cloud:443'
+      @_channel ||= GRPC::Core::Channel.new(url, nil, credentials)
     end
 
     def config_client(timeout: 5.0)

@@ -12,6 +12,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :id, :int64, 2
     optional :key, :string, 3
     optional :value, :message, 4, "prefab.ConfigValue"
+    optional :created_by, :string, 5
   end
   add_message "prefab.ConfigValue" do
     oneof :type do
@@ -21,6 +22,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :double, :double, 4
       optional :bool, :bool, 5
       optional :feature_flag, :message, 6, "prefab.FeatureFlag"
+      optional :limit_definition, :message, 7, "prefab.LimitDefinition"
     end
   end
   add_message "prefab.ConfigDeltas" do
@@ -29,7 +31,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
   add_message "prefab.UpsertRequest" do
     optional :account_id, :int64, 1
     optional :config_delta, :message, 2, "prefab.ConfigDelta"
-    optional :previous_key, :string, 3
+    optional :changed_by, :string, 4
   end
   add_message "prefab.LimitResponse" do
     optional :passed, :bool, 1
@@ -59,6 +61,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     repeated :groups, :string, 3
     optional :limit_combiner, :enum, 4, "prefab.LimitRequest.LimitCombiner"
     optional :allow_partial_response, :bool, 5
+    optional :safety_level, :enum, 6, "prefab.LimitDefinition.SafetyLevel"
   end
   add_enum "prefab.LimitRequest.LimitCombiner" do
     value :NOT_SET, 0
@@ -70,7 +73,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     repeated :whitelisted, :string, 4
   end
   add_message "prefab.LimitDefinition" do
-    optional :group, :string, 1
     optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
     optional :limit, :int32, 3
     optional :burst, :int32, 4

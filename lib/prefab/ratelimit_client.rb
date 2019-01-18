@@ -39,20 +39,22 @@ module Prefab
       handle_error(e, on_error, groups)
     end
 
-    def upsert(group, policy_name, limit, burst: nil, safety_level: nil)
+    def upsert(key, policy_name, limit, burst: nil, safety_level: nil)
       burst = limit if burst.nil?
-      limit_defintion = Prefab::LimitDefinition.new(
+      limit_definition = Prefab::LimitDefinition.new(
         account_id: @base_client.account_id,
-        group: group,
         policy_name: Object.const_get("Prefab::LimitResponse::LimitPolicyNames::#{policy_name}"),
         limit: limit,
         burst: burst
       )
       unless safety_level.nil?
-        limit_defintion.safety_level = safety_level
+        limit_definition.safety_level = safety_level
       end
+      config_value = Prefab::ConfigValue.new(limit_definition: limit_definition)
+      config_delta = Prefab::ConfigClient.value_to_delta(key, config_value)
+      upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
 
-      @base_client.request Prefab::RateLimitService, :upsert_limit_definition, params: limit_defintion
+      @base_client.request Prefab::ConfigService, :upsert, req_options: { timeout: @timeout }, params: upsert_req
     end
 
     private
