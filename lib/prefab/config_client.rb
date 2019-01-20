@@ -70,21 +70,51 @@ module Prefab
     # Bootstrap out of the cache
     # returns the high-watermark of what was in the cache
     def load_checkpoint
+
+      success = load_checkpoint_from_config
+
+      if !success
+        @base_client.log_internal Logger::INFO, "Fallback to S3"
+        load_checkpoint_from_s3
+      end
+
+    rescue => e
+      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+    end
+
+    def load_checkpoint_from_config
+      config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
+                                                    start_at_id: @config_loader.highwater_mark)
+      resp = stub.get_all_config(config_req)
+      load_deltas(resp, :api)
+      resp.deltas.each do |delta|
+        @config_loader.set(delta)
+      end
+      @config_resolver.update
+      finish_init!(:api)
+      true
+    rescue => e
+      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+      false
+    end
+
+    def load_checkpoint_from_s3
       resp = @s3.bucket('prefab-cloud-checkpoints-prod').object(@base_client.api_key.gsub("|", "/")).get
       deltas = Prefab::ConfigDeltas.decode(resp.body.read)
+      load_deltas(deltas, :s3)
+    rescue Aws::S3::Errors::NoSuchKey
+      @base_client.log_internal Logger::INFO, "No S3 checkpoint. Plan may not support this."
+    end
 
+
+    def load_deltas(deltas, source)
       deltas.deltas.each do |delta|
         @config_loader.set(delta)
       end
-      @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
+      @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}"
       @base_client.stats.increment("prefab.config.checkpoint.load")
       @config_resolver.update
-      finish_init!
-
-    rescue Aws::S3::Errors::NoSuchKey
-      @base_client.log_internal Logger::INFO, "No checkpoint"
-    rescue => e
-      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+      finish_init!(source)
     end
 
     # A thread that checks for a checkpoint
@@ -106,8 +136,9 @@ module Prefab
       end
     end
 
-    def finish_init!
+    def finish_init!(source)
       if @initialization_lock.write_locked?
+        @base_client.log_internal Logger::DEBUG, "Unlocked Config via #{source}"
         @initialization_lock.release_write_lock
         @base_client.log.set_config_client(self)
       end
@@ -129,7 +160,7 @@ module Prefab
                 @config_loader.set(delta)
               end
               @config_resolver.update
-              finish_init!
+              finish_init!(:streaming)
             end
           rescue => e
             @base_client.log_internal Logger::INFO, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")

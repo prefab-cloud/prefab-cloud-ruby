@@ -105,6 +105,7 @@ DEPENDENCIES
   aws-sdk-s3 (~> 1)
   bundler (~> 1.0)
   concurrent-ruby (~> 1.0, >= 1.0.5)
+  faraday
   grpc (~> 1.17.1)
   grpc-tools (~> 1.17.1)
   juwelier (~> 2.4.9)
