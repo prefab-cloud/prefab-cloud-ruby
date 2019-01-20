@@ -8,7 +8,7 @@ module Prefab
       @timeout = timeout
       @initialization_lock = Concurrent::ReadWriteLock.new
 
-      @checkpoint_freq_secs = (ENV["PREFAB_CHECKPOINT_FREQ_SEC"] || DEFAULT_CHECKPOINT_FREQ_SEC)
+      @checkpoint_freq_secs = DEFAULT_CHECKPOINT_FREQ_SEC
 
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
@@ -70,17 +70,16 @@ module Prefab
     # Bootstrap out of the cache
     # returns the high-watermark of what was in the cache
     def load_checkpoint
-      obj = @s3.bucket('prefab-cloud-checkpoints-prod').object(@base_client.api_key.gsub("|", "/"))
-      obj.get do |f|
-        deltas = Prefab::ConfigDeltas.decode(f)
-        deltas.deltas.each do |delta|
-          @config_loader.set(delta)
-        end
-        @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
-        @base_client.stats.increment("prefab.config.checkpoint.load")
-        @config_resolver.update
-        finish_init!
+      resp = @s3.bucket('prefab-cloud-checkpoints-prod').object(@base_client.api_key.gsub("|", "/")).get
+      deltas = Prefab::ConfigDeltas.decode(resp.body.read)
+
+      deltas.deltas.each do |delta|
+        @config_loader.set(delta)
       end
+      @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark}"
+      @base_client.stats.increment("prefab.config.checkpoint.load")
+      @config_resolver.update
+      finish_init!
 
     rescue Aws::S3::Errors::NoSuchKey
       @base_client.log_internal Logger::INFO, "No checkpoint"
