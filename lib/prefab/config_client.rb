@@ -2,6 +2,7 @@ module Prefab
   class ConfigClient
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
+    DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -14,8 +15,8 @@ module Prefab
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
       @initialization_lock.acquire_write_lock
-      @s3 = Aws::S3::Resource.new(region: 'us-east-1')
 
+      @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
       load_checkpoint
       start_checkpointing_thread
     end
@@ -70,7 +71,6 @@ module Prefab
     # Bootstrap out of the cache
     # returns the high-watermark of what was in the cache
     def load_checkpoint
-
       success = load_checkpoint_from_config
 
       if !success
@@ -99,11 +99,15 @@ module Prefab
     end
 
     def load_checkpoint_from_s3
-      resp = @s3.bucket('prefab-cloud-checkpoints-prod').object(@base_client.api_key.gsub("|", "/")).get
-      deltas = Prefab::ConfigDeltas.decode(resp.body.read)
-      load_deltas(deltas, :s3)
-    rescue Aws::S3::Errors::NoSuchKey
-      @base_client.log_internal Logger::INFO, "No S3 checkpoint. Plan may not support this."
+      url = "#{@s3_cloud_front}/#{@base_client.api_key.gsub("|", "/")}"
+      puts url
+      resp = Faraday.get url
+      if resp.status == 200
+        deltas = Prefab::ConfigDeltas.decode(resp.body)
+        load_deltas(deltas, :s3)
+      else
+        @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status} Plan may not support this."
+      end
     end
 
 
