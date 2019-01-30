@@ -1,5 +1,6 @@
 require "concurrent/atomics"
 require 'concurrent'
+require 'faraday'
 require 'openssl'
 require 'prefab_pb'
 require 'prefab_services_pb'
@@ -14,4 +15,3 @@ require 'prefab/auth_interceptor'
 require 'prefab/noop_cache'
 require 'prefab/noop_stats'
 require 'prefab/murmer3'
-require 'aws-sdk-s3'

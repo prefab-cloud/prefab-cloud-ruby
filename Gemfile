@@ -1,8 +1,8 @@
 source "https://rubygems.org"
 
-gem 'grpc', '~> 1.17.1'
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
-gem 'aws-sdk-s3', '~> 1'
+gem 'faraday'
+gem 'grpc', '~> 1.17.1'
 
 group :development do
   gem 'grpc-tools', '~> 1.17.1'

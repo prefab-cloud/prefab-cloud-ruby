@@ -47,8 +47,9 @@ pkg
 
 # For rubinius:
 #*.rbc
-
+README_INTERNAL.md
 lib/jtest.rb
 
 gen_protos.sh
 lib/tes*
+.envrc

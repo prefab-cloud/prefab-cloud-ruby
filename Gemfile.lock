@@ -8,19 +8,6 @@ GEM
       tzinfo (~> 1.1)
     addressable (2.6.0)
       public_suffix (>= 2.0.2, < 4.0)
-    aws-partitions (1.86.0)
-    aws-sdk-core (3.20.2)
-      aws-partitions (~> 1.0)
-      aws-sigv4 (~> 1.0)
-      jmespath (~> 1.0)
-    aws-sdk-kms (1.5.0)
-      aws-sdk-core (~> 3)
-      aws-sigv4 (~> 1.0)
-    aws-sdk-s3 (1.10.0)
-      aws-sdk-core (~> 3)
-      aws-sdk-kms (~> 1)
-      aws-sigv4 (~> 1.0)
-    aws-sigv4 (1.0.2)
     builder (3.2.3)
     concurrent-ruby (1.0.5)
     descendants_tracker (0.0.4)
@@ -46,7 +33,6 @@ GEM
     highline (2.0.1)
     i18n (1.0.1)
       concurrent-ruby (~> 1.0)
-    jmespath (1.4.0)
     json (1.8.6)
     juwelier (2.4.9)
       builder
@@ -102,9 +88,9 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aws-sdk-s3 (~> 1)
   bundler (~> 1.0)
   concurrent-ruby (~> 1.0, >= 1.0.5)
+  faraday
   grpc (~> 1.17.1)
   grpc-tools (~> 1.17.1)
   juwelier (~> 2.4.9)
