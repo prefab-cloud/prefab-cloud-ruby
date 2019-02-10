@@ -100,7 +100,6 @@ module Prefab
 
     def load_checkpoint_from_s3
       url = "#{@s3_cloud_front}/#{@base_client.api_key.gsub("|", "/")}"
-      puts url
       resp = Faraday.get url
       if resp.status == 200
         deltas = Prefab::ConfigDeltas.decode(resp.body)
