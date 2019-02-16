@@ -1,5 +1,7 @@
 module Prefab
   class ConfigResolver
+    NAMESPACE_DELIMITER = ".".freeze
+    NAME_KEY_DELIMITER = ":".freeze
 
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
@@ -14,7 +16,7 @@ module Prefab
       @lock.with_read_lock do
         @local_store.each do |k, v|
           value = v[:value]
-          str << "|#{k}| |#{value_of(value)}|#{value_of(value).class}\n"
+          str << "|#{k}| in #{v[:namespace]} |#{value_of(value)}|#{value_of(value).class}\n"
         end
       end
       str
@@ -52,24 +54,37 @@ module Prefab
       end
     end
 
+    # Should client a.b.c see key in namespace a.b? yes
+    # Should client a.b.c see key in namespace a.b.c? yes
+    # Should client a.b.c see key in namespace a.b.d? no
+    # Should client a.b.c see key in namespace ""? yes
+    #
+    def starts_with_ns?(key_namespace, client_namespace)
+      zipped = key_namespace.split(NAMESPACE_DELIMITER).zip(client_namespace.split(NAMESPACE_DELIMITER))
+      zipped.map do |k, c|
+        (k.nil? || k.empty?) || c == k
+      end.all?
+    end
+
     def make_local
       store = {}
       @config_loader.calc_config.each do |prop, value|
         property = prop
-        namespace = ""
-        split = prop.split(":")
+        key_namespace = ""
+
+        split = prop.split(NAME_KEY_DELIMITER)
 
         if split.size > 1
-          property = split[1..-1].join
-          namespace = split[0]
+          property = split[1..-1].join(NAME_KEY_DELIMITER)
+          key_namespace = split[0]
         end
 
-        if (namespace == "") || @namespace.start_with?(namespace)
+        if starts_with_ns?(key_namespace, @namespace)
           existing = store[property]
           if existing.nil?
-            store[property] = { namespace: namespace, value: value }
-          elsif existing[:namespace].split(".").size < namespace.split(".").size
-            store[property] = { namespace: namespace, value: value }
+            store[property] = { namespace: key_namespace, value: value }
+          elsif existing[:namespace].split(NAMESPACE_DELIMITER).size < key_namespace.split(NAMESPACE_DELIMITER).size
+            store[property] = { namespace: key_namespace, value: value }
           end
         end
       end

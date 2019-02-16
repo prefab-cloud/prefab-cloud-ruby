@@ -25,8 +25,6 @@ class TestConfigLoader < Minitest::Test
     assert_equal 5, @loader.highwater_mark
   end
 
-
-
   def test_keeps_most_recent
     assert_equal 0, @loader.highwater_mark
     @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", value: Prefab::ConfigValue.new(int: 1)))
