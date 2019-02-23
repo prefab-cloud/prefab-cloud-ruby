@@ -16,12 +16,18 @@ module Prefab
 
       @initialization_lock.acquire_write_lock
 
+      @cancellable_interceptor = Prefab::CancellableInterceptor.new
+
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
       load_checkpoint
       start_checkpointing_thread
     end
 
     def start_streaming
+      at_exit do
+        @cancellable_interceptor.cancel
+      end
+
       start_api_connection_thread(@config_loader.highwater_mark)
     end
 
@@ -65,7 +71,7 @@ module Prefab
       @_stub = Prefab::ConfigService::Stub.new(nil,
                                                nil,
                                                channel_override: @base_client.channel,
-                                               interceptors: [@base_client.interceptor])
+                                               interceptors: [@base_client.interceptor, @cancellable_interceptor])
     end
 
     # Bootstrap out of the cache
@@ -166,7 +172,8 @@ module Prefab
               finish_init!(:streaming)
             end
           rescue => e
-            @base_client.log_internal Logger::INFO, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
+            level = e.code == 1 ? Logger::DEBUG : Logger::INFO
+            @base_client.log_internal level, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
             reset
             sleep(RECONNECT_WAIT)
           end

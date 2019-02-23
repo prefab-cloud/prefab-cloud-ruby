@@ -27,7 +27,7 @@ module Prefab
       @api_key = api_key
       @account_id = api_key.split("|")[0].to_i
       @namespace = namespace
-      @interceptor = AuthInterceptor.new(api_key)
+      @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
 
       at_exit do
@@ -91,12 +91,12 @@ module Prefab
       "prefab:#{account_id}:#{post_fix}"
     end
 
-    private
-
     def reset!
       @stubs.clear
       @_channel = nil
     end
+
+    private
 
     def stub_for(service, timeout)
       @stubs["#{service}_#{timeout}"] ||= service::Stub.new(nil,
