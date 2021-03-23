@@ -2,7 +2,7 @@ source "https://rubygems.org"
 
 gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
 gem 'faraday'
-gem 'grpc', '~> 1.18.0'
+gem 'grpc'
 
 group :development do
   gem 'grpc-tools', '~> 1.17.1'
