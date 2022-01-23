@@ -53,13 +53,14 @@ GEM
     jwt (2.2.2)
     kamelcase (0.0.2)
       semver2 (~> 3)
-    mini_portile2 (2.4.0)
+    mini_portile2 (2.7.1)
     minitest (5.14.4)
     multi_json (1.15.0)
     multi_xml (0.6.0)
     multipart-post (2.1.1)
-    nokogiri (1.10.10)
-      mini_portile2 (~> 2.4.0)
+    nokogiri (1.13.1)
+      mini_portile2 (~> 2.7.0)
+      racc (~> 1.4)
     oauth2 (1.4.7)
       faraday (>= 0.8, < 2.0)
       jwt (>= 1.0, < 3.0)
@@ -68,6 +69,7 @@ GEM
       rack (>= 1.2, < 3)
     psych (3.3.1)
     public_suffix (4.0.6)
+    racc (1.6.0)
     rack (2.2.3)
     rake (13.0.3)
     rchardet (1.8.0)
@@ -93,9 +95,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.0)
+  bundler
   concurrent-ruby (~> 1.0, >= 1.0.5)
   faraday
+  google-protobuf
+  googleapis-common-protos-types
   grpc
   grpc-tools
   juwelier (~> 2.4.9)
@@ -104,4 +108,4 @@ DEPENDENCIES
   simplecov
 
 BUNDLED WITH
-   1.17.2
+   2.3.5
