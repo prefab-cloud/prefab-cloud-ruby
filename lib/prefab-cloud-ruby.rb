@@ -1,6 +1,7 @@
 require "concurrent/atomics"
 require 'concurrent'
 require 'faraday'
+require 'ld-eventsource'
 require 'openssl'
 require 'prefab_pb'
 require 'prefab_services_pb'
