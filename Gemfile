@@ -5,7 +5,7 @@ gem 'faraday'
 gem 'grpc'
 
 group :development do
-  gem 'grpc-tools', '~> 1.17.1'
+  gem 'grpc-tools'
   gem "shoulda", ">= 0"
   gem "rdoc", "~> 3.12"
   gem "bundler", "~> 1.0"

@@ -8,13 +8,13 @@ module Prefab
   module RateLimitService
     class Service
 
-      include GRPC::GenericService
+      include ::GRPC::GenericService
 
       self.marshal_class_method = :encode
       self.unmarshal_class_method = :decode
       self.service_name = 'prefab.RateLimitService'
 
-      rpc :LimitCheck, LimitRequest, LimitResponse
+      rpc :LimitCheck, ::Prefab::LimitRequest, ::Prefab::LimitResponse
     end
 
     Stub = Service.rpc_stub_class
@@ -22,15 +22,15 @@ module Prefab
   module ConfigService
     class Service
 
-      include GRPC::GenericService
+      include ::GRPC::GenericService
 
       self.marshal_class_method = :encode
       self.unmarshal_class_method = :decode
       self.service_name = 'prefab.ConfigService'
 
-      rpc :GetConfig, ConfigServicePointer, stream(ConfigDeltas)
-      rpc :GetAllConfig, ConfigServicePointer, ConfigDeltas
-      rpc :Upsert, UpsertRequest, ConfigServicePointer
+      rpc :GetConfig, ::Prefab::ConfigServicePointer, stream(::Prefab::ConfigDeltas)
+      rpc :GetAllConfig, ::Prefab::ConfigServicePointer, ::Prefab::ConfigDeltas
+      rpc :Upsert, ::Prefab::UpsertRequest, ::Prefab::ConfigServicePointer
     end
 
     Stub = Service.rpc_stub_class
