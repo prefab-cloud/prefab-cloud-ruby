@@ -26,7 +26,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "prefab.EnvironmentValues" do
       optional :environment, :string, 1
-      repeated :namespace_value, :message, 2, "prefab.NamespaceValue"
+      repeated :namespace_values, :message, 2, "prefab.NamespaceValue"
       optional :default, :message, 3, "prefab.ConfigValue"
     end
     add_message "prefab.ConfigDelta" do
@@ -116,7 +116,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :variant, :message, 2, "prefab.FeatureFlagVariant"
     end
     add_message "prefab.VariantWeights" do
-      repeated :variant_weight, :message, 1, "prefab.VariantWeight"
+      repeated :weights, :message, 1, "prefab.VariantWeight"
     end
     add_message "prefab.VariantDistribution" do
       oneof :type do

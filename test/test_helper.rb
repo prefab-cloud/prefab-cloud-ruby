@@ -2,9 +2,10 @@ require 'minitest/autorun'
 require 'prefab-cloud-ruby'
 
 class MockBaseClient
-  attr_reader :namespace, :logger
+  attr_reader :namespace, :logger, :environment
 
-  def initialize(namespace: "")
+  def initialize(environment: "test", namespace: "")
+    @environment = environment
     @namespace = namespace
     @logger = Logger.new($stdout)
   end
