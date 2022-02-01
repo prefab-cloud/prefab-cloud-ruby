@@ -16,7 +16,7 @@ module Prefab
       @lock.with_read_lock do
         @local_store.each do |k, v|
           value = v[:value]
-          str << "|#{k}| in #{v[:namespace]} |#{value_of(value)}|#{value_of(value).class}\n"
+          str << "|#{k}| from #{v[:match]} |#{value_of(value)}|#{value_of(value).class}\n"
         end
       end
       str
@@ -70,7 +70,6 @@ module Prefab
     def make_local
       store = {}
       @config_loader.calc_config.each do |key, delta|
-
         # start with the top level default
         to_store = { match: "default", value: delta.default }
         if delta.envs.any?

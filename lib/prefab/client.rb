@@ -8,7 +8,7 @@ module Prefab
     }
 
 
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :interceptor, :api_key
+    attr_reader :account_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -19,13 +19,15 @@ module Prefab
                    log_formatter: DEFAULT_LOG_FORMATTER
     )
       raise "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
+      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey" unless api_key.count("-") == 2
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
       @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
       @api_key = api_key
-      @account_id = api_key.split("|")[0].to_i
+      @account_id = api_key.split("-")[0].to_i
+      @environment = api_key.split("-")[1]
       @namespace = namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
