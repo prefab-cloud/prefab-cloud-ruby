@@ -2,63 +2,76 @@ require 'test_helper'
 
 class TestFeatureFlagClient < Minitest::Test
 
+  def setup
+    super
+    @client = Prefab::FeatureFlagClient.new(MockBaseClient.new)
+    Prefab::FeatureFlagClient.send(:public, :is_on?) #publicize for testing
+  end
+
   def test_pct
-    client = Prefab::FeatureFlagClient.new(MockBaseClient.new)
-    Prefab::FeatureFlagClient.send(:public, :is_on?)
     feature = "FlagName"
-    flag = Prefab::FeatureFlag.new( pct: 0.5)
+
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
+      default: Prefab::VariantDistribution.new(variant_weights:
+                                                 Prefab::VariantWeights.new(weights: [
+                                                   Prefab::VariantWeight.new(weight: 500,
+                                                                             variant: Prefab::FeatureFlagVariant.new(bool: true)),
+                                                   Prefab::VariantWeight.new(weight: 500,
+                                                                             variant: Prefab::FeatureFlagVariant.new(bool: false)),
+                                                 ]
+                                                 )
+      )
+    )
 
     assert_equal false,
-                 client.is_on?(feature, "hashes high", [], flag)
-
+                 @client.is_on?(feature, "hashes high", [], flag)
     assert_equal true,
-                 client.is_on?(feature, "hashes low", [], flag)
+                 @client.is_on?(feature, "hashes low", [], flag)
   end
 
-
-  def test_off
-    client = Prefab::FeatureFlagClient.new(MockBaseClient.new)
-    Prefab::FeatureFlagClient.send(:public, :is_on?)
+  def test_basic_active_inactive
     feature = "FlagName"
-    flag = Prefab::FeatureFlag.new(pct: 0)
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
+      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(bool: true))
+    )
+    assert_equal true,
+                 @client.is_on?(feature, "hashes high", [], flag)
+    assert_equal true,
+                 @client.is_on?(feature, "hashes low", [], flag)
 
+    flag = Prefab::FeatureFlag.new(
+      active: false,
+      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
+      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(bool: true))
+    )
     assert_equal false,
-                 client.is_on?(feature, "hashes high", [], flag)
-
+                 @client.is_on?(feature, "hashes high", [], flag)
     assert_equal false,
-                 client.is_on?(feature, "hashes low", [], flag)
+                 @client.is_on?(feature, "hashes low", [], flag)
   end
 
+  def test_user_targets
 
-  def test_on
-    client = Prefab::FeatureFlagClient.new(MockBaseClient.new)
-    Prefab::FeatureFlagClient.send(:public, :is_on?)
     feature = "FlagName"
-    flag = Prefab::FeatureFlag.new(pct: 1)
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_value: Prefab::FeatureFlagVariant.new(string: "inactive"),
+      user_targets: [
+        variant: Prefab::FeatureFlagVariant.new(string: "user target"),
+        identifiers: ["user:1", "user:3"]
+      ],
+      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(string: "default"))
+    )
 
-    assert_equal true,
-                 client.is_on?(feature, "hashes high", [], flag)
-
-    assert_equal true,
-                 client.is_on?(feature, "hashes low", [], flag)
-  end
-
-  def test_whitelist
-    client = Prefab::FeatureFlagClient.new(MockBaseClient.new)
-    Prefab::FeatureFlagClient.send(:public, :is_on?)
-    feature = "FlagName"
-    flag = Prefab::FeatureFlag.new(pct: 0, whitelisted: ["beta", "user:1", "user:3"])
-
-    assert_equal false,
-                 client.is_on?(feature, "anything", [], flag)
-    assert_equal true,
-                 client.is_on?(feature, "anything", ["beta"], flag)
-    assert_equal true,
-                 client.is_on?(feature, "anything", ["alpha", "beta"], flag)
-    assert_equal true,
-                 client.is_on?(feature, "anything", ["alpha", "user:1"], flag)
-    assert_equal false,
-                 client.is_on?(feature, "anything", ["alpha", "user:2"], flag)
-
+    assert_equal "user target",
+                 @client.get(feature, "user:1", [], flag)
+    assert_equal "default",
+                 @client.get(feature, "user:2", [], flag)
+    assert_equal "user target",
+                 @client.get(feature, "user:3", [], flag)
   end
 end

@@ -1,6 +1,8 @@
 module Prefab
   class FeatureFlagClient
+    include Prefab::ConfigHelper
     MAX_32_FLOAT = 4294967294.0
+    DISTRIBUTION_SPACE = 1000
 
     def initialize(base_client)
       @base_client = base_client
@@ -21,6 +23,10 @@ module Prefab
       return is_on?(feature_name, lookup_key, attributes, feature_obj)
     end
 
+    def get(feature_name, lookup_key, attributes, feature_obj)
+      value_of(get_variant(feature_name, lookup_key, attributes, feature_obj))
+    end
+
     private
 
     def is_on?(feature_name, lookup_key, attributes, feature_obj)
@@ -28,16 +34,51 @@ module Prefab
         return false
       end
 
-      attributes << lookup_key if lookup_key
-      if (attributes & feature_obj.whitelisted).size > 0
-        return true
+      get_variant(feature_name, lookup_key, attributes, feature_obj).bool
+    end
+
+
+    def get_variant(feature_name, lookup_key, attributes, feature_obj)
+      if !feature_obj.active
+        return feature_obj.inactive_value
       end
 
-      if lookup_key
-        return get_user_pct(feature_name, lookup_key) < feature_obj.pct
+      variant_distribution = feature_obj.default
+
+      # if user_targets.match
+      feature_obj.user_targets.each do |target|
+        if(target.identifiers.include? lookup_key)
+          return target.variant
+        end
       end
 
-      return feature_obj.pct > rand()
+      # if rules.match
+      # variant_distribution = rules...
+
+      if variant_distribution.variant != nil
+        return variant_distribution.variant
+      else
+        percent_through_distribution = rand()
+        if lookup_key
+          percent_through_distribution = get_user_pct(feature_name, lookup_key)
+        end
+        distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
+
+        return get_variant_from_weights(variant_distribution.variant_weights.weights, distribution_bucket)
+      end
+    end
+
+    def get_variant_from_weights(variant_weights, bucket)
+      sum = 0
+      variant_weights.each do |variant_weight|
+        if bucket < sum + variant_weight.weight
+          return variant_weight.variant
+        else
+          sum += variant_weight.weight
+        end
+      end
+      # variants didn't add up to 100%
+      return variant_weights.last.variant
     end
 
     def get_user_pct(feature, lookup_key)
@@ -45,7 +86,6 @@ module Prefab
       int_value = Murmur3.murmur3_32(to_hash)
       int_value / MAX_32_FLOAT
     end
-
   end
 end
 

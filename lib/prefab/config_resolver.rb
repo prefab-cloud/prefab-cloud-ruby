@@ -1,5 +1,6 @@
 module Prefab
   class ConfigResolver
+    include Prefab::ConfigHelper
     NAMESPACE_DELIMITER = ".".freeze
 
     def initialize(base_client, config_loader)
@@ -38,21 +39,6 @@ module Prefab
     end
 
     private
-
-    def value_of(config_value)
-      case config_value.type
-      when :string
-        config_value.string
-      when :int
-        config_value.int
-      when :double
-        config_value.double
-      when :bool
-        config_value.bool
-      when :feature_flag
-        config_value.feature_flag
-      end
-    end
 
     # Should client a.b.c see key in namespace a.b? yes
     # Should client a.b.c see key in namespace a.b.c? yes
