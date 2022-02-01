@@ -14,7 +14,7 @@ module Prefab
     def calc_config
       rtn = @classpath_config.clone
       @api_config.each_key do |k|
-        rtn[k] = @api_config[k].value
+        rtn[k] = @api_config[k].default
       end
       rtn = rtn.merge(@local_overrides)
       rtn
@@ -26,7 +26,7 @@ module Prefab
         return
       end
 
-      if delta.value.nil?
+      if delta.default.nil?
         @api_config.delete(delta.key)
       else
         @api_config[delta.key] = delta

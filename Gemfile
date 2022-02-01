@@ -13,4 +13,5 @@ group :development do
   gem "bundler"
   gem "juwelier", "~> 2.4.9"
   gem "simplecov", ">= 0"
+  gem 'thin'
 end
