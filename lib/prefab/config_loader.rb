@@ -14,7 +14,7 @@ module Prefab
     def calc_config
       rtn = @classpath_config.clone
       @api_config.each_key do |k|
-        rtn[k] = @api_config[k].default
+        rtn[k] = @api_config[k]
       end
       rtn = rtn.merge(@local_overrides)
       rtn
@@ -63,7 +63,7 @@ module Prefab
       Dir.glob(glob).each do |file|
         yaml = load(file)
         yaml.each do |k, v|
-          rtn[k] = Prefab::ConfigValue.new(value_from(v))
+          rtn[k] = Prefab::ConfigDelta.new(key: k, default: Prefab::ConfigValue.new(value_from(v)))
         end
       end
       rtn

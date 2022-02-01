@@ -72,8 +72,8 @@ class TestConfigLoader < Minitest::Test
   private
 
   def should_be(type, value, key)
-    assert_equal type, @loader.calc_config[key].type
-    assert_equal value, @loader.calc_config[key].send(type)
+    assert_equal type, @loader.calc_config[key].default.type
+    assert_equal value, @loader.calc_config[key].default.send(type)
   end
 
 end
