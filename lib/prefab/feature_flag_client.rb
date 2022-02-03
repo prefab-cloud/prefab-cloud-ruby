@@ -54,6 +54,7 @@ module Prefab
 
       # if rules.match
       # variant_distribution = rules...
+      # TODO
 
       if variant_distribution.variant != nil
         return variant_distribution.variant
@@ -64,11 +65,11 @@ module Prefab
         end
         distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
 
-        return get_variant_from_weights(variant_distribution.variant_weights.weights, distribution_bucket)
+        return get_variant_from_weights(variant_distribution.variant_weights.weights, distribution_bucket, feature_name)
       end
     end
 
-    def get_variant_from_weights(variant_weights, bucket)
+    def get_variant_from_weights(variant_weights, bucket, feature_name)
       sum = 0
       variant_weights.each do |variant_weight|
         if bucket < sum + variant_weight.weight
@@ -78,6 +79,7 @@ module Prefab
         end
       end
       # variants didn't add up to 100%
+      @base_client.log.info("Variants of #{feature_name} did not add to 100%")
       return variant_weights.last.variant
     end
 
