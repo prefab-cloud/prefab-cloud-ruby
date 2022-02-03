@@ -16,26 +16,26 @@ class TestConfigLoader < Minitest::Test
 
   def test_highwater
     assert_equal 0, @loader.highwater_mark
-    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", default: Prefab::ConfigValue.new(int: 456)))
     assert_equal 1, @loader.highwater_mark
 
-    @loader.set(Prefab::ConfigDelta.new(id: 5, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    @loader.set(Prefab::ConfigDelta.new(id: 5, key: "sample_int", default: Prefab::ConfigValue.new(int: 456)))
     assert_equal 5, @loader.highwater_mark
-    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", default: Prefab::ConfigValue.new(int: 456)))
     assert_equal 5, @loader.highwater_mark
   end
 
   def test_keeps_most_recent
     assert_equal 0, @loader.highwater_mark
-    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", value: Prefab::ConfigValue.new(int: 1)))
+    @loader.set(Prefab::ConfigDelta.new(id: 1, key: "sample_int", default: Prefab::ConfigValue.new(int: 1)))
     assert_equal 1, @loader.highwater_mark
     should_be :int, 1, "sample_int"
 
-    @loader.set(Prefab::ConfigDelta.new(id: 4, key: "sample_int", value: Prefab::ConfigValue.new(int: 4)))
+    @loader.set(Prefab::ConfigDelta.new(id: 4, key: "sample_int", default: Prefab::ConfigValue.new(int: 4)))
     assert_equal 4, @loader.highwater_mark
     should_be :int, 4, "sample_int"
 
-    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", value: Prefab::ConfigValue.new(int: 2)))
+    @loader.set(Prefab::ConfigDelta.new(id: 2, key: "sample_int", default: Prefab::ConfigValue.new(int: 2)))
     assert_equal 4, @loader.highwater_mark
     should_be :int, 4, "sample_int"
   end
@@ -43,13 +43,13 @@ class TestConfigLoader < Minitest::Test
   def test_api_precedence
     should_be :int, 123, "sample_int"
 
-    @loader.set(Prefab::ConfigDelta.new(key: "sample_int", value: Prefab::ConfigValue.new(int: 456)))
+    @loader.set(Prefab::ConfigDelta.new(key: "sample_int", default: Prefab::ConfigValue.new(int: 456)))
     should_be :int, 456, "sample_int"
   end
 
   def test_api_deltas
     val = Prefab::ConfigValue.new(int: 456)
-    delta = Prefab::ConfigDelta.new(key: "sample_int", value: val)
+    delta = Prefab::ConfigDelta.new(key: "sample_int", default: val)
     @loader.set(delta)
 
     deltas = Prefab::ConfigDeltas.new
@@ -59,10 +59,10 @@ class TestConfigLoader < Minitest::Test
 
   def test_loading_tombstones_removes_entries
     val = Prefab::ConfigValue.new(int: 456)
-    delta = Prefab::ConfigDelta.new(key: "sample_int", value: val)
+    delta = Prefab::ConfigDelta.new(key: "sample_int", default: val)
     @loader.set(delta)
 
-    delta = Prefab::ConfigDelta.new(key: "sample_int", value: nil)
+    delta = Prefab::ConfigDelta.new(key: "sample_int", default: nil)
     @loader.set(delta)
 
     deltas = Prefab::ConfigDeltas.new
@@ -72,8 +72,8 @@ class TestConfigLoader < Minitest::Test
   private
 
   def should_be(type, value, key)
-    assert_equal type, @loader.calc_config[key].type
-    assert_equal value, @loader.calc_config[key].send(type)
+    assert_equal type, @loader.calc_config[key].default.type
+    assert_equal value, @loader.calc_config[key].default.send(type)
   end
 
 end

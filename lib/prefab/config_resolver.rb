@@ -1,11 +1,12 @@
 module Prefab
   class ConfigResolver
+    include Prefab::ConfigHelper
     NAMESPACE_DELIMITER = ".".freeze
-    NAME_KEY_DELIMITER = ":".freeze
 
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
+      @environment = base_client.environment
       @namespace = base_client.namespace
       @config_loader = config_loader
       make_local
@@ -16,7 +17,7 @@ module Prefab
       @lock.with_read_lock do
         @local_store.each do |k, v|
           value = v[:value]
-          str << "|#{k}| in #{v[:namespace]} |#{value_of(value)}|#{value_of(value).class}\n"
+          str << "|#{k}| from #{v[:match]} |#{value_of(value)}|#{value_of(value).class}\n"
         end
       end
       str
@@ -39,21 +40,6 @@ module Prefab
 
     private
 
-    def value_of(config_value)
-      case config_value.type
-      when :string
-        config_value.string
-      when :int
-        config_value.int
-      when :double
-        config_value.double
-      when :bool
-        config_value.bool
-      when :feature_flag
-        config_value.feature_flag
-      end
-    end
-
     # Should client a.b.c see key in namespace a.b? yes
     # Should client a.b.c see key in namespace a.b.c? yes
     # Should client a.b.c see key in namespace a.b.d? no
@@ -61,32 +47,42 @@ module Prefab
     #
     def starts_with_ns?(key_namespace, client_namespace)
       zipped = key_namespace.split(NAMESPACE_DELIMITER).zip(client_namespace.split(NAMESPACE_DELIMITER))
-      zipped.map do |k, c|
-        (k.nil? || k.empty?) || c == k
-      end.all?
+      mapped = zipped.map do |k, c|
+        (k.nil? || k.empty?) || k == c
+      end
+      [mapped.all?, mapped.size]
     end
 
     def make_local
       store = {}
-      @config_loader.calc_config.each do |prop, value|
-        property = prop
-        key_namespace = ""
+      @config_loader.calc_config.each do |key, delta|
+        # start with the top level default
+        to_store = { match: "default", value: delta.default }
+        if delta.envs.any?
+          env_values = delta.envs.select { |e| e.environment == @environment }
 
-        split = prop.split(NAME_KEY_DELIMITER)
+          # do we have and env_values that match our env?
+          if env_values.any?
+            env_value = env_values.first
 
-        if split.size > 1
-          property = split[1..-1].join(NAME_KEY_DELIMITER)
-          key_namespace = split[0]
-        end
+            # override the top level defautl with env default
+            to_store = { match: "env_default", env: env_value.environment, value: env_value.default }
 
-        if starts_with_ns?(key_namespace, @namespace)
-          existing = store[property]
-          if existing.nil?
-            store[property] = { namespace: key_namespace, value: value }
-          elsif existing[:namespace].split(NAMESPACE_DELIMITER).size < key_namespace.split(NAMESPACE_DELIMITER).size
-            store[property] = { namespace: key_namespace, value: value }
+            if env_value.namespace_values.any?
+              # check all namespace_values for match
+              env_value.namespace_values.each do |namespace_value|
+                (starts_with, count) = starts_with_ns?(namespace_value.namespace, @namespace)
+                if starts_with
+                  # is this match the best match?
+                  if count > (to_store[:match_depth_count] || 0)
+                    to_store = { match: namespace_value.namespace, count: count, value: namespace_value.config_value }
+                  end
+                end
+              end
+            end
           end
         end
+        store[key] = to_store
       end
       @lock.with_write_lock do
         @local_store = store

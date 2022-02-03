@@ -4,141 +4,207 @@
 require 'google/protobuf'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
-  add_message "prefab.ConfigServicePointer" do
-    optional :account_id, :int64, 1
-    optional :start_at_id, :int64, 2
-  end
-  add_message "prefab.ConfigDelta" do
-    optional :id, :int64, 2
-    optional :key, :string, 3
-    optional :value, :message, 4, "prefab.ConfigValue"
-    optional :created_by, :string, 5
-  end
-  add_message "prefab.ConfigValue" do
-    oneof :type do
-      optional :int, :int64, 1
-      optional :string, :string, 2
-      optional :bytes, :bytes, 3
-      optional :double, :double, 4
-      optional :bool, :bool, 5
-      optional :feature_flag, :message, 6, "prefab.FeatureFlag"
-      optional :limit_definition, :message, 7, "prefab.LimitDefinition"
+  add_file("prefab.proto", :syntax => :proto3) do
+    add_message "prefab.ConfigServicePointer" do
+      optional :account_id, :int64, 1
+      optional :start_at_id, :int64, 2
     end
-  end
-  add_message "prefab.ConfigDeltas" do
-    repeated :deltas, :message, 1, "prefab.ConfigDelta"
-  end
-  add_message "prefab.UpsertRequest" do
-    optional :account_id, :int64, 1
-    optional :config_delta, :message, 2, "prefab.ConfigDelta"
-    optional :changed_by, :string, 4
-  end
-  add_message "prefab.LimitResponse" do
-    optional :passed, :bool, 1
-    optional :expires_at, :int64, 2
-    optional :enforced_group, :string, 3
-    optional :current_bucket, :int64, 4
-    optional :policy_group, :string, 5
-    optional :policy_name, :enum, 6, "prefab.LimitResponse.LimitPolicyNames"
-    optional :policy_limit, :int32, 7
-    optional :amount, :int64, 8
-    optional :limit_reset_at, :int64, 9
-    optional :safety_level, :enum, 10, "prefab.LimitDefinition.SafetyLevel"
-  end
-  add_enum "prefab.LimitResponse.LimitPolicyNames" do
-    value :NOT_SET, 0
-    value :SECONDLY_ROLLING, 1
-    value :MINUTELY_ROLLING, 3
-    value :HOURLY_ROLLING, 5
-    value :DAILY_ROLLING, 7
-    value :MONTHLY_ROLLING, 8
-    value :INFINITE, 9
-    value :YEARLY_ROLLING, 10
-  end
-  add_message "prefab.LimitRequest" do
-    optional :account_id, :int64, 1
-    optional :acquire_amount, :int32, 2
-    repeated :groups, :string, 3
-    optional :limit_combiner, :enum, 4, "prefab.LimitRequest.LimitCombiner"
-    optional :allow_partial_response, :bool, 5
-    optional :safety_level, :enum, 6, "prefab.LimitDefinition.SafetyLevel"
-  end
-  add_enum "prefab.LimitRequest.LimitCombiner" do
-    value :NOT_SET, 0
-    value :MINIMUM, 1
-    value :MAXIMUM, 2
-  end
-  add_message "prefab.FeatureFlag" do
-    optional :pct, :double, 3
-    repeated :whitelisted, :string, 4
-  end
-  add_message "prefab.LimitDefinition" do
-    optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
-    optional :limit, :int32, 3
-    optional :burst, :int32, 4
-    optional :account_id, :int64, 5
-    optional :last_modified, :int64, 6
-    optional :returnable, :bool, 7
-    optional :safety_level, :enum, 8, "prefab.LimitDefinition.SafetyLevel"
-  end
-  add_enum "prefab.LimitDefinition.SafetyLevel" do
-    value :NOT_SET, 0
-    value :L4_BEST_EFFORT, 4
-    value :L5_BOMBPROOF, 5
-  end
-  add_message "prefab.LimitDefinitions" do
-    repeated :definitions, :message, 1, "prefab.LimitDefinition"
-  end
-  add_message "prefab.FeatureFlags" do
-    repeated :flags, :message, 1, "prefab.FeatureFlag"
-    optional :cache_expiry, :int64, 2
-  end
-  add_message "prefab.BufferedRequest" do
-    optional :account_id, :int64, 1
-    optional :method, :string, 2
-    optional :uri, :string, 3
-    optional :body, :string, 4
-    repeated :limit_groups, :string, 5
-    optional :content_type, :string, 6
-    optional :fifo, :bool, 7
-  end
-  add_message "prefab.BatchRequest" do
-    optional :account_id, :int64, 1
-    optional :method, :string, 2
-    optional :uri, :string, 3
-    optional :body, :string, 4
-    repeated :limit_groups, :string, 5
-    optional :batch_template, :string, 6
-    optional :batch_separator, :string, 7
-  end
-  add_message "prefab.BasicResponse" do
-    optional :message, :string, 1
-  end
-  add_enum "prefab.OnFailure" do
-    value :NOT_SET, 0
-    value :LOG_AND_PASS, 1
-    value :LOG_AND_FAIL, 2
-    value :THROW, 3
+    add_message "prefab.ConfigValue" do
+      oneof :type do
+        optional :int, :int64, 1
+        optional :string, :string, 2
+        optional :bytes, :bytes, 3
+        optional :double, :double, 4
+        optional :bool, :bool, 5
+        optional :feature_flag, :message, 6, "prefab.FeatureFlag"
+        optional :limit_definition, :message, 7, "prefab.LimitDefinition"
+      end
+    end
+    add_message "prefab.NamespaceValue" do
+      optional :namespace, :string, 1
+      optional :config_value, :message, 2, "prefab.ConfigValue"
+    end
+    add_message "prefab.EnvironmentValues" do
+      optional :environment, :string, 1
+      repeated :namespace_values, :message, 2, "prefab.NamespaceValue"
+      optional :default, :message, 3, "prefab.ConfigValue"
+    end
+    add_message "prefab.ConfigDelta" do
+      optional :id, :int64, 1
+      optional :key, :string, 2
+      optional :default, :message, 3, "prefab.ConfigValue"
+      repeated :envs, :message, 4, "prefab.EnvironmentValues"
+    end
+    add_message "prefab.ConfigDeltas" do
+      repeated :deltas, :message, 1, "prefab.ConfigDelta"
+    end
+    add_message "prefab.UpsertRequest" do
+      optional :project_id, :int64, 1
+      optional :config_delta, :message, 2, "prefab.ConfigDelta"
+      optional :changed_by, :string, 4
+    end
+    add_message "prefab.LimitResponse" do
+      optional :passed, :bool, 1
+      optional :expires_at, :int64, 2
+      optional :enforced_group, :string, 3
+      optional :current_bucket, :int64, 4
+      optional :policy_group, :string, 5
+      optional :policy_name, :enum, 6, "prefab.LimitResponse.LimitPolicyNames"
+      optional :policy_limit, :int32, 7
+      optional :amount, :int64, 8
+      optional :limit_reset_at, :int64, 9
+      optional :safety_level, :enum, 10, "prefab.LimitDefinition.SafetyLevel"
+    end
+    add_enum "prefab.LimitResponse.LimitPolicyNames" do
+      value :NOT_SET, 0
+      value :SECONDLY_ROLLING, 1
+      value :MINUTELY_ROLLING, 3
+      value :HOURLY_ROLLING, 5
+      value :DAILY_ROLLING, 7
+      value :MONTHLY_ROLLING, 8
+      value :INFINITE, 9
+      value :YEARLY_ROLLING, 10
+    end
+    add_message "prefab.LimitRequest" do
+      optional :account_id, :int64, 1
+      optional :acquire_amount, :int32, 2
+      repeated :groups, :string, 3
+      optional :limit_combiner, :enum, 4, "prefab.LimitRequest.LimitCombiner"
+      optional :allow_partial_response, :bool, 5
+      optional :safety_level, :enum, 6, "prefab.LimitDefinition.SafetyLevel"
+    end
+    add_enum "prefab.LimitRequest.LimitCombiner" do
+      value :NOT_SET, 0
+      value :MINIMUM, 1
+      value :MAXIMUM, 2
+    end
+    add_message "prefab.FeatureFlagVariant" do
+      oneof :type do
+        optional :int, :int64, 1
+        optional :string, :string, 2
+        optional :double, :double, 3
+        optional :bool, :bool, 4
+      end
+    end
+    add_message "prefab.Criteria" do
+      optional :property, :string, 1
+      optional :operator, :enum, 2, "prefab.Criteria.CriteriaOperator"
+      repeated :values, :string, 3
+    end
+    add_enum "prefab.Criteria.CriteriaOperator" do
+      value :NOT_SET, 0
+      value :IN, 1
+      value :NOT_IN, 2
+      value :EQ, 3
+    end
+    add_message "prefab.Rule" do
+      optional :criteria, :message, 1, "prefab.Criteria"
+      optional :distribution, :message, 2, "prefab.VariantDistribution"
+    end
+    add_message "prefab.Segment" do
+      optional :key, :string, 1
+      repeated :includes, :string, 2
+      repeated :excludes, :string, 3
+      repeated :criterion, :message, 4, "prefab.Criteria"
+    end
+    add_message "prefab.UserTarget" do
+      optional :variant, :message, 1, "prefab.FeatureFlagVariant"
+      repeated :identifiers, :string, 2
+    end
+    add_message "prefab.VariantWeight" do
+      optional :weight, :int32, 1
+      optional :variant, :message, 2, "prefab.FeatureFlagVariant"
+    end
+    add_message "prefab.VariantWeights" do
+      repeated :weights, :message, 1, "prefab.VariantWeight"
+    end
+    add_message "prefab.VariantDistribution" do
+      oneof :type do
+        optional :variant, :message, 1, "prefab.FeatureFlagVariant"
+        optional :variant_weights, :message, 2, "prefab.VariantWeights"
+      end
+    end
+    add_message "prefab.FeatureFlag" do
+      optional :active, :bool, 1
+      optional :inactive_value, :message, 2, "prefab.FeatureFlagVariant"
+      optional :default, :message, 3, "prefab.VariantDistribution"
+      repeated :user_targets, :message, 4, "prefab.UserTarget"
+      repeated :rules, :message, 5, "prefab.Rule"
+    end
+    add_message "prefab.LimitDefinition" do
+      optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
+      optional :limit, :int32, 3
+      optional :burst, :int32, 4
+      optional :account_id, :int64, 5
+      optional :last_modified, :int64, 6
+      optional :returnable, :bool, 7
+      optional :safety_level, :enum, 8, "prefab.LimitDefinition.SafetyLevel"
+    end
+    add_enum "prefab.LimitDefinition.SafetyLevel" do
+      value :NOT_SET, 0
+      value :L4_BEST_EFFORT, 4
+      value :L5_BOMBPROOF, 5
+    end
+    add_message "prefab.LimitDefinitions" do
+      repeated :definitions, :message, 1, "prefab.LimitDefinition"
+    end
+    add_message "prefab.BufferedRequest" do
+      optional :account_id, :int64, 1
+      optional :method, :string, 2
+      optional :uri, :string, 3
+      optional :body, :string, 4
+      repeated :limit_groups, :string, 5
+      optional :content_type, :string, 6
+      optional :fifo, :bool, 7
+    end
+    add_message "prefab.BatchRequest" do
+      optional :account_id, :int64, 1
+      optional :method, :string, 2
+      optional :uri, :string, 3
+      optional :body, :string, 4
+      repeated :limit_groups, :string, 5
+      optional :batch_template, :string, 6
+      optional :batch_separator, :string, 7
+    end
+    add_message "prefab.BasicResponse" do
+      optional :message, :string, 1
+    end
+    add_enum "prefab.OnFailure" do
+      value :NOT_SET, 0
+      value :LOG_AND_PASS, 1
+      value :LOG_AND_FAIL, 2
+      value :THROW, 3
+    end
   end
 end
 
 module Prefab
-  ConfigServicePointer = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
-  ConfigDelta = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDelta").msgclass
-  ConfigValue = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
-  ConfigDeltas = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDeltas").msgclass
-  UpsertRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UpsertRequest").msgclass
-  LimitResponse = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse").msgclass
-  LimitResponse::LimitPolicyNames = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
-  LimitRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
-  LimitRequest::LimitCombiner = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest.LimitCombiner").enummodule
-  FeatureFlag = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlag").msgclass
-  LimitDefinition = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition").msgclass
-  LimitDefinition::SafetyLevel = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition.SafetyLevel").enummodule
-  LimitDefinitions = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinitions").msgclass
-  FeatureFlags = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlags").msgclass
-  BufferedRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BufferedRequest").msgclass
-  BatchRequest = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
-  BasicResponse = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BasicResponse").msgclass
-  OnFailure = Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
+  ConfigServicePointer = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
+  ConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
+  NamespaceValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.NamespaceValue").msgclass
+  EnvironmentValues = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.EnvironmentValues").msgclass
+  ConfigDelta = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDelta").msgclass
+  ConfigDeltas = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDeltas").msgclass
+  UpsertRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UpsertRequest").msgclass
+  LimitResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse").msgclass
+  LimitResponse::LimitPolicyNames = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
+  LimitRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
+  LimitRequest::LimitCombiner = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest.LimitCombiner").enummodule
+  FeatureFlagVariant = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlagVariant").msgclass
+  Criteria = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criteria").msgclass
+  Criteria::CriteriaOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criteria.CriteriaOperator").enummodule
+  Rule = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Rule").msgclass
+  Segment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Segment").msgclass
+  UserTarget = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UserTarget").msgclass
+  VariantWeight = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeight").msgclass
+  VariantWeights = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeights").msgclass
+  VariantDistribution = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantDistribution").msgclass
+  FeatureFlag = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlag").msgclass
+  LimitDefinition = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition").msgclass
+  LimitDefinition::SafetyLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition.SafetyLevel").enummodule
+  LimitDefinitions = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinitions").msgclass
+  BufferedRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BufferedRequest").msgclass
+  BatchRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
+  BasicResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BasicResponse").msgclass
+  OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
 end
