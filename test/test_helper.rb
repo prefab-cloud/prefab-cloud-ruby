@@ -8,6 +8,7 @@ class MockBaseClient
     @environment = environment
     @namespace = namespace
     @logger = Logger.new($stdout)
+    @config_values = {}
   end
 
   def account_id
@@ -15,6 +16,14 @@ class MockBaseClient
   end
 
   def log_internal level, message
+  end
+
+  def mock_this_config key, config_value
+    @config_values[key] = config_value
+  end
+
+  def get(key)
+    @config_values[key]
   end
 end
 

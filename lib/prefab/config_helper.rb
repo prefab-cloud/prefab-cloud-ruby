@@ -12,6 +12,8 @@ module Prefab
         config_value.bool
       when :feature_flag
         config_value.feature_flag
+      when :segment
+        config_value.segment
       end
     end
   end
