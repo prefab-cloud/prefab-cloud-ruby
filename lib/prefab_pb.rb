@@ -79,6 +79,8 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :MAXIMUM, 2
     end
     add_message "prefab.FeatureFlagVariant" do
+      optional :name, :string, 5
+      optional :description, :string, 6
       oneof :type do
         optional :int, :int64, 1
         optional :string, :string, 2
@@ -108,28 +110,29 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       repeated :criterion, :message, 4, "prefab.Criteria"
     end
     add_message "prefab.UserTarget" do
-      optional :variant, :message, 1, "prefab.FeatureFlagVariant"
+      optional :variant_idx, :int32, 1
       repeated :identifiers, :string, 2
     end
     add_message "prefab.VariantWeight" do
       optional :weight, :int32, 1
-      optional :variant, :message, 2, "prefab.FeatureFlagVariant"
+      optional :variant_idx, :int32, 2
     end
     add_message "prefab.VariantWeights" do
       repeated :weights, :message, 1, "prefab.VariantWeight"
     end
     add_message "prefab.VariantDistribution" do
       oneof :type do
-        optional :variant, :message, 1, "prefab.FeatureFlagVariant"
+        optional :variant_idx, :int32, 1
         optional :variant_weights, :message, 2, "prefab.VariantWeights"
       end
     end
     add_message "prefab.FeatureFlag" do
       optional :active, :bool, 1
-      optional :inactive_value, :message, 2, "prefab.FeatureFlagVariant"
+      optional :inactive_variant_idx, :int32, 2
       optional :default, :message, 3, "prefab.VariantDistribution"
       repeated :user_targets, :message, 4, "prefab.UserTarget"
       repeated :rules, :message, 5, "prefab.Rule"
+      repeated :variants, :message, 6, "prefab.FeatureFlagVariant"
     end
     add_message "prefab.LimitDefinition" do
       optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
