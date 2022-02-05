@@ -40,7 +40,7 @@ module Prefab
 
     def get_variant(feature_name, lookup_key, attributes, feature_obj)
       if !feature_obj.active
-        return feature_obj.inactive_value
+        return get_variant_obj(feature_obj, feature_obj.inactive_variant_idx)
       end
 
       variant_distribution = feature_obj.default
@@ -48,7 +48,7 @@ module Prefab
       # if user_targets.match
       feature_obj.user_targets.each do |target|
         if(target.identifiers.include? lookup_key)
-          return target.variant
+          return get_variant_obj(feature_obj, target.variant_idx)
         end
       end
 
@@ -56,8 +56,8 @@ module Prefab
       # variant_distribution = rules...
       # TODO
 
-      if variant_distribution.variant != nil
-        return variant_distribution.variant
+      if variant_distribution.type == :variant_idx
+        variant_idx =  variant_distribution.variant_idx
       else
         percent_through_distribution = rand()
         if lookup_key
@@ -65,15 +65,22 @@ module Prefab
         end
         distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
 
-        return get_variant_from_weights(variant_distribution.variant_weights.weights, distribution_bucket, feature_name)
+        variant_idx = get_variant_idx_from_weights(variant_distribution.variant_weights.weights, distribution_bucket, feature_name)
       end
+
+      return get_variant_obj(feature_obj, variant_idx)
     end
 
-    def get_variant_from_weights(variant_weights, bucket, feature_name)
+    def get_variant_obj(feature_obj, idx)
+      return feature_obj.variants[idx] if feature_obj.variants.length >= idx
+      nil
+    end
+
+    def get_variant_idx_from_weights(variant_weights, bucket, feature_name)
       sum = 0
       variant_weights.each do |variant_weight|
         if bucket < sum + variant_weight.weight
-          return variant_weight.variant
+          return variant_weight.variant_idx
         else
           sum += variant_weight.weight
         end

@@ -13,13 +13,17 @@ class TestFeatureFlagClient < Minitest::Test
 
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
+      variants: [
+        Prefab::FeatureFlagVariant.new(bool: false),
+        Prefab::FeatureFlagVariant.new(bool: true)
+      ],
+      inactive_variant_idx: 0,
       default: Prefab::VariantDistribution.new(variant_weights:
                                                  Prefab::VariantWeights.new(weights: [
                                                    Prefab::VariantWeight.new(weight: 500,
-                                                                             variant: Prefab::FeatureFlagVariant.new(bool: true)),
+                                                                             variant_idx: 1),
                                                    Prefab::VariantWeight.new(weight: 500,
-                                                                             variant: Prefab::FeatureFlagVariant.new(bool: false)),
+                                                                             variant_idx: 0),
                                                  ]
                                                  )
       )
@@ -35,8 +39,12 @@ class TestFeatureFlagClient < Minitest::Test
     feature = "FlagName"
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
-      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(bool: true))
+      variants: [
+        Prefab::FeatureFlagVariant.new(bool: false),
+        Prefab::FeatureFlagVariant.new(bool: true)
+      ],
+      inactive_variant_idx: 0,
+      default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal true,
                  @client.is_on?(feature, "hashes high", [], flag)
@@ -45,8 +53,12 @@ class TestFeatureFlagClient < Minitest::Test
 
     flag = Prefab::FeatureFlag.new(
       active: false,
-      inactive_value: Prefab::FeatureFlagVariant.new(bool: false),
-      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(bool: true))
+      variants: [
+        Prefab::FeatureFlagVariant.new(bool: false),
+        Prefab::FeatureFlagVariant.new(bool: true)
+      ],
+      inactive_variant_idx: 0,
+      default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal false,
                  @client.is_on?(feature, "hashes high", [], flag)
@@ -59,12 +71,17 @@ class TestFeatureFlagClient < Minitest::Test
     feature = "FlagName"
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_value: Prefab::FeatureFlagVariant.new(string: "inactive"),
+      variants: [
+        Prefab::FeatureFlagVariant.new(string: "inactive"),
+        Prefab::FeatureFlagVariant.new(string: "user target"),
+        Prefab::FeatureFlagVariant.new(string: "default"),
+      ],
+      inactive_variant_idx: 0,
       user_targets: [
-        variant: Prefab::FeatureFlagVariant.new(string: "user target"),
+        variant_idx: 1,
         identifiers: ["user:1", "user:3"]
       ],
-      default: Prefab::VariantDistribution.new(variant: Prefab::FeatureFlagVariant.new(string: "default"))
+      default: Prefab::VariantDistribution.new(variant_idx: 2)
     )
 
     assert_equal "user target",
