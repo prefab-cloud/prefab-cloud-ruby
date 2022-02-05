@@ -18,6 +18,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :bool, :bool, 5
         optional :feature_flag, :message, 6, "prefab.FeatureFlag"
         optional :limit_definition, :message, 7, "prefab.LimitDefinition"
+        optional :segment, :message, 8, "prefab.Segment"
       end
     end
     add_message "prefab.NamespaceValue" do
@@ -98,16 +99,19 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :IN, 1
       value :NOT_IN, 2
       value :EQ, 3
+      value :IN_SEG, 4
+      value :NOT_IN_SEG, 5
     end
     add_message "prefab.Rule" do
       optional :criteria, :message, 1, "prefab.Criteria"
       optional :distribution, :message, 2, "prefab.VariantDistribution"
     end
     add_message "prefab.Segment" do
-      optional :key, :string, 1
-      repeated :includes, :string, 2
-      repeated :excludes, :string, 3
-      repeated :criterion, :message, 4, "prefab.Criteria"
+      optional :name, :string, 1
+      optional :description, :string, 2
+      repeated :includes, :string, 3
+      repeated :excludes, :string, 4
+      repeated :criterion, :message, 5, "prefab.Criteria"
     end
     add_message "prefab.UserTarget" do
       optional :variant_idx, :int32, 1

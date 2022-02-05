@@ -28,9 +28,9 @@ module Prefab
       start_api_connection_thread(@config_loader.highwater_mark)
     end
 
-    def get(prop)
+    def get(key)
       @initialization_lock.with_read_lock do
-        @config_resolver.get(prop)
+        @config_resolver.get(key)
       end
     end
 
