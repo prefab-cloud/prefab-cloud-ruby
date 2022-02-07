@@ -33,11 +33,9 @@ module Prefab
     end
 
     def get(key)
-      # @initialization_lock.with_read_lock do
-      puts "GET #{key}"
-      @base_client.log_internal Logger::DEBUG, "Get #{key}"
+      @initialization_lock.with_read_lock do
         @config_resolver.get(key)
-      # end
+      end
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
@@ -120,7 +118,6 @@ module Prefab
         @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status} Plan may not support this."
       end
     end
-
 
     def load_deltas(deltas, source)
       deltas.deltas.each do |delta|
