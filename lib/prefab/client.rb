@@ -40,6 +40,7 @@ module Prefab
     def channel
       credentials = ENV["PREFAB_CLOUD_HTTP"] == "true" ? :this_channel_is_insecure : creds
       url = ENV["PREFAB_API_URL"] || 'grpc.prefab.cloud:443'
+      log_internal Logger::DEBUG, "GRPC Channel #{url} #{credentials}"
       @_channel ||= GRPC::Core::Channel.new(url, nil, credentials)
     end
 
