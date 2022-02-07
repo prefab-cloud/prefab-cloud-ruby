@@ -24,9 +24,9 @@ module Prefab
     end
 
     def get(property)
-      config = @lock.with_read_lock do
+      # config = @lock.with_read_lock do
         @local_store[property]
-      end
+      # end
       config ? value_of(config[:value]) : nil
     end
 

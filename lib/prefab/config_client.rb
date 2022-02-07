@@ -6,6 +6,7 @@ module Prefab
 
     def initialize(base_client, timeout)
       @base_client = base_client
+      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient"
       @timeout = timeout
       @initialization_lock = Concurrent::ReadWriteLock.new
 
@@ -14,11 +15,14 @@ module Prefab
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
+      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquireWriteLock"
       @initialization_lock.acquire_write_lock
+      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquiredWriteLock"
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
 
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
+
       load_checkpoint
       start_checkpointing_thread
     end
@@ -29,9 +33,11 @@ module Prefab
     end
 
     def get(key)
-      @initialization_lock.with_read_lock do
+      # @initialization_lock.with_read_lock do
+      puts "GET #{key}"
+      @base_client.log_internal Logger::DEBUG, "Get #{key}"
         @config_resolver.get(key)
-      end
+      # end
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
@@ -86,9 +92,12 @@ module Prefab
     end
 
     def load_checkpoint_from_config
+      @base_client.log_internal Logger::DEBUG, "Load Checkpoint From Config"
+
       config_req = Prefab::ConfigServicePointer.new(account_id: @base_client.account_id,
                                                     start_at_id: @config_loader.highwater_mark)
       resp = stub.get_all_config(config_req)
+      @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
       load_deltas(resp, :api)
       resp.deltas.each do |delta|
         @config_loader.set(delta)
