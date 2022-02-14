@@ -8,7 +8,7 @@ module Prefab
     }
 
 
-    attr_reader :account_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment
+    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -26,7 +26,7 @@ module Prefab
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
       @api_key = api_key
-      @account_id = api_key.split("-")[0].to_i
+      @project_id = api_key.split("-")[0].to_i
       @environment = api_key.split("-")[1]
       @namespace = namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
@@ -91,7 +91,7 @@ module Prefab
     end
 
     def cache_key(post_fix)
-      "prefab:#{account_id}:#{post_fix}"
+      "prefab:#{project_id}:#{post_fix}"
     end
 
     def reset!

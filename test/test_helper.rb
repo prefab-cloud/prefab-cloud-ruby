@@ -11,7 +11,7 @@ class MockBaseClient
     @config_values = {}
   end
 
-  def account_id
+  def project_id
     1
   end
 
