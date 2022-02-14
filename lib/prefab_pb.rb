@@ -6,8 +6,9 @@ require 'google/protobuf'
 Google::Protobuf::DescriptorPool.generated_pool.build do
   add_file("prefab.proto", :syntax => :proto3) do
     add_message "prefab.ConfigServicePointer" do
-      optional :account_id, :int64, 1
+      optional :project_id, :int64, 1
       optional :start_at_id, :int64, 2
+      optional :env_key, :string, 3
     end
     add_message "prefab.ConfigValue" do
       oneof :type do
