@@ -16,25 +16,28 @@ module Prefab
       feature_is_on_for?(feature_name, nil)
     end
 
-    def feature_is_on_for?(feature_name, lookup_key, attributes: [])
+    def feature_is_on_for?(feature_name, lookup_key, attributes: {})
       @base_client.stats.increment("prefab.featureflag.on", tags: ["feature:#{feature_name}"])
 
-      feature_obj = @base_client.config_client.get(feature_name)
-      return is_on?(feature_name, lookup_key, attributes, feature_obj)
+      return is_on?(get(feature_name, lookup_key, attributes))
     end
 
-    def get(feature_name, lookup_key, attributes, feature_obj)
+    def get(feature_name, lookup_key, attributes)
+      feature_obj = @base_client.config_client.get(feature_name)
+      evaluate(feature_name, lookup_key, attributes, feature_obj)
+    end
+
+    def evaluate(feature_name, lookup_key, attributes, feature_obj)
       value_of(get_variant(feature_name, lookup_key, attributes, feature_obj))
     end
 
     private
 
-    def is_on?(feature_name, lookup_key, attributes, feature_obj)
-      if feature_obj.nil?
+    def is_on?(variant)
+      if variant.nil?
         return false
       end
-
-      get_variant(feature_name, lookup_key, attributes, feature_obj).bool
+      variant.bool
     end
 
     def get_variant(feature_name, lookup_key, attributes, feature_obj)
@@ -116,7 +119,7 @@ module Prefab
     # there should be an associated segment available as a standard config obj
     def segment_matches(segment_keys, lookup_key, attributes)
       segment_keys.map do |segment_key|
-        segment = @base_client.get(segment_key)
+        segment = @base_client.config_client.get(segment_key)
         if segment.nil?
           @base_client.log.info("Missing Segment")
           false

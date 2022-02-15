@@ -65,7 +65,7 @@ module Prefab
           if env_values.any?
             env_value = env_values.first
 
-            # override the top level defautl with env default
+            # override the top level default with env default
             to_store = { match: "env_default", env: env_value.environment, value: env_value.default }
 
             if env_value.namespace_values.any?
@@ -82,6 +82,14 @@ module Prefab
             end
           end
         end
+
+        # feature flags are a funny case
+        # we only define the variants in the default in order to be DRY
+        # but we want to access them in environments, clone them over
+        if to_store[:value].type == :feature_flag
+          to_store[:value].feature_flag.variants = delta.default.feature_flag.variants
+        end
+
         store[key] = to_store
       end
       @lock.with_write_lock do

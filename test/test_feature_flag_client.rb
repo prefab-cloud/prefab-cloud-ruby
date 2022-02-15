@@ -32,9 +32,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal false,
-                 @client.is_on?(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag)
     assert_equal true,
-                 @client.is_on?(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag)
   end
 
   def test_basic_active_inactive
@@ -49,9 +49,9 @@ class TestFeatureFlagClient < Minitest::Test
       default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal true,
-                 @client.is_on?(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag)
     assert_equal true,
-                 @client.is_on?(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag)
 
     flag = Prefab::FeatureFlag.new(
       active: false,
@@ -63,9 +63,9 @@ class TestFeatureFlagClient < Minitest::Test
       default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal false,
-                 @client.is_on?(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag)
     assert_equal false,
-                 @client.is_on?(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag)
   end
 
   def test_user_targets
@@ -87,13 +87,12 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "user target",
-                 @client.get(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag)
     assert_equal "default",
-                 @client.get(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag)
     assert_equal "user target",
-                 @client.get(feature, "user:3", [], flag)
+                 @client.evaluate(feature, "user:3", [], flag)
   end
-
 
   def test_inclusion_rule
     feature = "FlagName"
@@ -116,9 +115,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.get(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag)
     assert_equal "default",
-                 @client.get(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag)
 
   end
 
@@ -163,9 +162,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.get(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag)
     assert_equal "default",
-                 @client.get(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag)
 
   end
 
@@ -207,15 +206,15 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.get(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag)
     assert_equal "rule target",
-                 @client.get(feature, "user:2", [], flag), "matches segment 1"
+                 @client.evaluate(feature, "user:2", [], flag), "matches segment 1"
     assert_equal "rule target",
-                 @client.get(feature, "user:3", [], flag)
+                 @client.evaluate(feature, "user:3", [], flag)
     assert_equal "rule target",
-                 @client.get(feature, "user:4", [], flag)
+                 @client.evaluate(feature, "user:4", [], flag)
     assert_equal "default",
-                 @client.get(feature, "user:5", [], flag)
+                 @client.evaluate(feature, "user:5", [], flag)
 
   end
 end

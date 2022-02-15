@@ -5,7 +5,6 @@ require 'json'
 
 handler = Rack::Handler::Thin
 
-
 #
 # This is a very lightweight server that allows the compliance harness to excercise the prefab client
 #
@@ -18,6 +17,7 @@ class RackApp
     namespace = props["namespace"]
     environment = props["environment"]
     user_key = props["user_key"]
+    is_feature_flag = !props["feature_flag"].nil?
 
     client = Prefab::Client.new(
       api_key: "1-#{environment}-local_development_api_key", #sets environment
@@ -29,7 +29,14 @@ class RackApp
     puts "Environment #{environment}"
     puts "Namespace #{namespace}"
     puts "Props! #{props}"
-    rtn = client.config_client.get(key).to_s
+    puts "is_feature_flag! #{is_feature_flag}"
+
+    if is_feature_flag
+      puts "EVALFF #{key} #{user_key}"
+      rtn = client.feature_flag_client.get(key, user_key, []).to_s
+    else
+      rtn = client.config_client.get(key).to_s
+    end
     puts "return #{rtn}"
 
     [200, { "Content-Type" => "text/plain" }, rtn]
