@@ -90,6 +90,38 @@ class TestConfigResolver < Minitest::Test
     end
   end
 
+  def test_special_ff_variant_copying
+    @loader = MockConfigLoader.new
+    loaded_values = {
+      "ff" => Prefab::ConfigDelta.new(
+        key: "ff",
+        default: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+          variants: [
+            Prefab::FeatureFlagVariant.new(string: "inactive"),
+            Prefab::FeatureFlagVariant.new(string: "default"),
+            Prefab::FeatureFlagVariant.new(string: "env"),
+          ],
+          inactive_variant_idx: 0,
+          default: Prefab::VariantDistribution.new(variant_idx: 1)
+        )),
+        envs: [
+          Prefab::EnvironmentValues.new(
+            environment: "test",
+            default: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+              inactive_variant_idx: 0,
+              default: Prefab::VariantDistribution.new(variant_idx: 2)))
+          )
+        ]
+      )
+    }
+    @loader.stub :calc_config, loaded_values do
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
+      ff = resolver.get("ff")
+      assert_equal 3, ff.variants.size
+      assert_equal %w(inactive default env), ff.variants.map(&:string)
+    end
+  end
+
   # colons are not allowed in keys, but verify behavior anyway
   def test_key_and_namespaces_with_colons
     @loader = MockConfigLoader.new
@@ -102,9 +134,8 @@ class TestConfigResolver < Minitest::Test
       "proj:apikey" => Prefab::ConfigDelta.new(
         key: "proj:apikey",
         default: Prefab::ConfigValue.new(string: "v2"),
-        )
+      )
     }
-
 
     @loader.stub :calc_config, loaded_values do
 
