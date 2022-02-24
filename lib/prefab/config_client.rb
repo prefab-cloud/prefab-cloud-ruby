@@ -92,8 +92,8 @@ module Prefab
     def load_checkpoint_from_config
       @base_client.log_internal Logger::DEBUG, "Load Checkpoint From Config"
 
-      config_req = Prefab::ConfigServicePointer.new(project_id: @base_client.project_id,
-                                                    start_at_id: @config_loader.highwater_mark)
+      config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
+
       resp = stub.get_all_config(config_req)
       @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
       load_deltas(resp, :api)
@@ -159,8 +159,7 @@ module Prefab
     # Setup a streaming connection to the API
     # Save new config values into the loader
     def start_api_connection_thread(start_at_id)
-      config_req = Prefab::ConfigServicePointer.new(project_id: @base_client.project_id,
-                                                    start_at_id: start_at_id)
+      config_req = Prefab::ConfigServicePointer.new(start_at_id: start_at_id)
       @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
       @base_client.stats.increment("prefab.config.api.start")
 

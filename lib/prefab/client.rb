@@ -31,7 +31,7 @@ module Prefab
       @namespace = namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
-
+      log_internal Logger::INFO, "Prefab Initializing in environment: '#{@environment}' and namespace: '#{@namespace}'"
       at_exit do
         channel.destroy
       end
