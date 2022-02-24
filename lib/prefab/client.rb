@@ -19,7 +19,7 @@ module Prefab
                    log_formatter: DEFAULT_LOG_FORMATTER
     )
       raise "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
-      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey" unless api_key.count("-") == 2
+      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
       @local = local
