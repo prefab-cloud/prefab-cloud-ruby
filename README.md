@@ -55,5 +55,5 @@ end
 
 ## Copyright
 
-Copyright (c) 2018 Jeff Dwyer. See LICENSE.txt for
+Copyright (c) 2022 Jeff Dwyer. See LICENSE.txt for
 further details.
