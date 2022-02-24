@@ -57,39 +57,26 @@ Gem::Specification.new do |s|
   ]
   s.homepage = "http://github.com/prefab-cloud/prefab-cloud-ruby".freeze
   s.licenses = ["MIT".freeze]
-  s.rubygems_version = "3.0.3.1".freeze
+  s.rubygems_version = "3.2.32".freeze
   s.summary = "Prefab Ruby Infrastructure".freeze
 
   if s.respond_to? :specification_version then
     s.specification_version = 4
+  end
 
-    if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
-      s.add_runtime_dependency(%q<concurrent-ruby>.freeze, ["~> 1.0", ">= 1.0.5"])
-      s.add_runtime_dependency(%q<faraday>.freeze, [">= 0"])
-      s.add_runtime_dependency(%q<grpc>.freeze, [">= 0"])
-      s.add_runtime_dependency(%q<google-protobuf>.freeze, [">= 0"])
-      s.add_runtime_dependency(%q<googleapis-common-protos-types>.freeze, [">= 0"])
-      s.add_development_dependency(%q<grpc-tools>.freeze, [">= 0"])
-      s.add_development_dependency(%q<shoulda>.freeze, [">= 0"])
-      s.add_development_dependency(%q<rdoc>.freeze, ["~> 3.12"])
-      s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_development_dependency(%q<juwelier>.freeze, ["~> 2.4.9"])
-      s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
-      s.add_development_dependency(%q<thin>.freeze, [">= 0"])
-    else
-      s.add_dependency(%q<concurrent-ruby>.freeze, ["~> 1.0", ">= 1.0.5"])
-      s.add_dependency(%q<faraday>.freeze, [">= 0"])
-      s.add_dependency(%q<grpc>.freeze, [">= 0"])
-      s.add_dependency(%q<google-protobuf>.freeze, [">= 0"])
-      s.add_dependency(%q<googleapis-common-protos-types>.freeze, [">= 0"])
-      s.add_dependency(%q<grpc-tools>.freeze, [">= 0"])
-      s.add_dependency(%q<shoulda>.freeze, [">= 0"])
-      s.add_dependency(%q<rdoc>.freeze, ["~> 3.12"])
-      s.add_dependency(%q<bundler>.freeze, [">= 0"])
-      s.add_dependency(%q<juwelier>.freeze, ["~> 2.4.9"])
-      s.add_dependency(%q<simplecov>.freeze, [">= 0"])
-      s.add_dependency(%q<thin>.freeze, [">= 0"])
-    end
+  if s.respond_to? :add_runtime_dependency then
+    s.add_runtime_dependency(%q<concurrent-ruby>.freeze, ["~> 1.0", ">= 1.0.5"])
+    s.add_runtime_dependency(%q<faraday>.freeze, [">= 0"])
+    s.add_runtime_dependency(%q<grpc>.freeze, [">= 0"])
+    s.add_runtime_dependency(%q<google-protobuf>.freeze, [">= 0"])
+    s.add_runtime_dependency(%q<googleapis-common-protos-types>.freeze, [">= 0"])
+    s.add_development_dependency(%q<grpc-tools>.freeze, [">= 0"])
+    s.add_development_dependency(%q<shoulda>.freeze, [">= 0"])
+    s.add_development_dependency(%q<rdoc>.freeze, ["~> 3.12"])
+    s.add_development_dependency(%q<bundler>.freeze, [">= 0"])
+    s.add_development_dependency(%q<juwelier>.freeze, ["~> 2.4.9"])
+    s.add_development_dependency(%q<simplecov>.freeze, [">= 0"])
+    s.add_development_dependency(%q<thin>.freeze, [">= 0"])
   else
     s.add_dependency(%q<concurrent-ruby>.freeze, ["~> 1.0", ">= 1.0.5"])
     s.add_dependency(%q<faraday>.freeze, [">= 0"])
