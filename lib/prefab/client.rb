@@ -8,7 +8,7 @@ module Prefab
     }
 
 
-    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment
+    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment, :prefab_api_url
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -31,17 +31,19 @@ module Prefab
       @namespace = namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
+      @prefab_api_url = ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud'
+      @prefab_grpc_url = ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443'
       log_internal Logger::INFO, "Prefab Initializing in environment: '#{@environment}' and namespace: '#{@namespace}'"
+      log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
       at_exit do
         channel.destroy
       end
     end
 
     def channel
-      credentials = ENV["PREFAB_CLOUD_HTTP"] == "true" ? :this_channel_is_insecure : creds
-      url = ENV["PREFAB_API_URL"] || 'grpc.prefab.cloud:443'
-      log_internal Logger::DEBUG, "GRPC Channel #{url} #{credentials}"
-      @_channel ||= GRPC::Core::Channel.new(url, nil, credentials)
+      credentials = http_secure? ? creds : :this_channel_is_insecure
+      log_internal Logger::DEBUG, "GRPC Channel #{@prefab_grpc_url} #{credentials}"
+      @_channel ||= GRPC::Core::Channel.new(@prefab_grpc_url, nil, credentials)
     end
 
     def config_client(timeout: 5.0)
@@ -100,6 +102,10 @@ module Prefab
     end
 
     private
+
+    def http_secure?
+      ENV["PREFAB_CLOUD_HTTP"] != "true"
+    end
 
     def stub_for(service, timeout)
       @stubs["#{service}_#{timeout}"] ||= service::Stub.new(nil,
