@@ -171,7 +171,8 @@ module Prefab
       SSE::Client.new(url, headers: headers) do |client|
         client.on_event do |event|
           config_deltas = Prefab::ConfigDeltas.decode(Base64.decode64(event.data))
-          @base_client.log_internal Logger::INFO, "SSE received config_deltas: #{config_deltas}"
+          @base_client.log_internal Logger::INFO, "SSE received config_deltas."
+          @base_client.log_internal Logger::DEBUG, "SSE received config_deltas: #{config_deltas}"
           config_deltas.deltas.each do |delta|
             @config_loader.set(delta)
           end
