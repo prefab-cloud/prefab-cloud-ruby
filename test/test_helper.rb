@@ -25,6 +25,11 @@ class MockBaseClient
   def get(key)
     @config_values[key]
   end
+
+  def get_config(key)
+    puts "HELLOOOO"
+    @config_values[key]
+  end
 end
 
 class MockConfigLoader

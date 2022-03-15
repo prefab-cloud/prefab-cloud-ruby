@@ -22,28 +22,21 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :segment, :message, 8, "prefab.Segment"
       end
     end
-    add_message "prefab.NamespaceValue" do
-      optional :namespace, :string, 1
-      optional :config_value, :message, 2, "prefab.ConfigValue"
+    add_message "prefab.Configs" do
+      repeated :configs, :message, 1, "prefab.Config"
     end
-    add_message "prefab.EnvironmentValues" do
-      optional :environment, :string, 1
-      repeated :namespace_values, :message, 2, "prefab.NamespaceValue"
-      optional :default, :message, 3, "prefab.ConfigValue"
-    end
-    add_message "prefab.ConfigDelta" do
+    add_message "prefab.Config" do
       optional :id, :int64, 1
-      optional :key, :string, 2
-      optional :default, :message, 3, "prefab.ConfigValue"
-      repeated :envs, :message, 4, "prefab.EnvironmentValues"
-    end
-    add_message "prefab.ConfigDeltas" do
-      repeated :deltas, :message, 1, "prefab.ConfigDelta"
-    end
-    add_message "prefab.UpsertRequest" do
-      optional :project_id, :int64, 1
-      optional :config_delta, :message, 2, "prefab.ConfigDelta"
+      optional :project_id, :int64, 2
+      optional :key, :string, 3
       optional :changed_by, :string, 4
+      repeated :rows, :message, 5, "prefab.ConfigRow"
+      repeated :variants, :message, 6, "prefab.FeatureFlagVariant"
+    end
+    add_message "prefab.ConfigRow" do
+      optional :env_key, :string, 1
+      optional :namespace, :string, 2
+      optional :value, :message, 3, "prefab.ConfigValue"
     end
     add_message "prefab.LimitResponse" do
       optional :passed, :bool, 1
@@ -137,7 +130,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :default, :message, 3, "prefab.VariantDistribution"
       repeated :user_targets, :message, 4, "prefab.UserTarget"
       repeated :rules, :message, 5, "prefab.Rule"
-      repeated :variants, :message, 6, "prefab.FeatureFlagVariant"
     end
     add_message "prefab.LimitDefinition" do
       optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
@@ -177,6 +169,10 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "prefab.BasicResponse" do
       optional :message, :string, 1
     end
+    add_message "prefab.CreationResponse" do
+      optional :message, :string, 1
+      optional :new_id, :int64, 2
+    end
     add_enum "prefab.OnFailure" do
       value :NOT_SET, 0
       value :LOG_AND_PASS, 1
@@ -189,11 +185,9 @@ end
 module Prefab
   ConfigServicePointer = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
   ConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
-  NamespaceValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.NamespaceValue").msgclass
-  EnvironmentValues = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.EnvironmentValues").msgclass
-  ConfigDelta = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDelta").msgclass
-  ConfigDeltas = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigDeltas").msgclass
-  UpsertRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UpsertRequest").msgclass
+  Configs = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Configs").msgclass
+  Config = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Config").msgclass
+  ConfigRow = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigRow").msgclass
   LimitResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse").msgclass
   LimitResponse::LimitPolicyNames = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
   LimitRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
@@ -214,5 +208,6 @@ module Prefab
   BufferedRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BufferedRequest").msgclass
   BatchRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
   BasicResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BasicResponse").msgclass
+  CreationResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.CreationResponse").msgclass
   OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
 end
