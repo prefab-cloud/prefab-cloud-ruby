@@ -29,7 +29,8 @@ module Prefab
 
     def start_streaming
       @streaming = true
-      start_api_connection_thread(@config_loader.highwater_mark)
+      # start_grpc_streaming_connection_thread(@config_loader.highwater_mark)
+      start_sse_streaming_connection_thread(@config_loader.highwater_mark)
     end
 
     def get(key)
@@ -92,8 +93,8 @@ module Prefab
     def load_checkpoint_from_config
       @base_client.log_internal Logger::DEBUG, "Load Checkpoint From Config"
 
-      config_req = Prefab::ConfigServicePointer.new(project_id: @base_client.project_id,
-                                                    start_at_id: @config_loader.highwater_mark)
+      config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
+
       resp = stub.get_all_config(config_req)
       @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
       load_deltas(resp, :api)
@@ -156,11 +157,35 @@ module Prefab
       end
     end
 
+
+    def start_sse_streaming_connection_thread(start_at_id)
+      auth = "#{@base_client.project_id}:#{@base_client.api_key}"
+
+      auth_string = Base64.strict_encode64(auth)
+      headers = {
+        "x-prefab-start-at-id": start_at_id,
+        "Authorization": "Basic #{auth_string}",
+      }
+      url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
+      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url}"
+      SSE::Client.new(url, headers: headers) do |client|
+        client.on_event do |event|
+          config_deltas = Prefab::ConfigDeltas.decode(Base64.decode64(event.data))
+          @base_client.log_internal Logger::INFO, "SSE received config_deltas."
+          @base_client.log_internal Logger::DEBUG, "SSE received config_deltas: #{config_deltas}"
+          config_deltas.deltas.each do |delta|
+            @config_loader.set(delta)
+          end
+          @config_resolver.update
+          finish_init!(:streaming)
+        end
+      end
+    end
+
     # Setup a streaming connection to the API
     # Save new config values into the loader
-    def start_api_connection_thread(start_at_id)
-      config_req = Prefab::ConfigServicePointer.new(project_id: @base_client.project_id,
-                                                    start_at_id: start_at_id)
+    def start_grpc_streaming_connection_thread(start_at_id)
+      config_req = Prefab::ConfigServicePointer.new(start_at_id: start_at_id)
       @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
       @base_client.stats.increment("prefab.config.api.start")
 

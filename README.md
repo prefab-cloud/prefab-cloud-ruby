@@ -56,6 +56,9 @@ end
 ## Release
 
 ```shell
+update VERSION
+bundle exec rake gemspec:generate
+git commit & push
 REMOTE_BRANCH=main LOCAL_BRANCH=main bundle exec rake release
 ```
 
