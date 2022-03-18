@@ -20,7 +20,7 @@ class RackApp
     is_feature_flag = !props["feature_flag"].nil?
 
     client = Prefab::Client.new(
-      api_key: "1-#{environment}-local_development_api_key", #sets environment
+      api_key: "1-#{environment}-local_development_api_key-SDK", #sets environment
       namespace: namespace,
     )
 
@@ -40,6 +40,11 @@ class RackApp
     puts "return #{rtn}"
 
     [200, { "Content-Type" => "text/plain" }, rtn]
+
+    rescue Exception => e
+      puts "ERROR #{e.message}"
+      puts e.backtrace
+      [500, { "Content-Type" => "text/plain" }, e.message]
   end
 end
 

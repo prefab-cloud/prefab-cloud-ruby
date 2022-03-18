@@ -24,7 +24,7 @@ module Prefab
 
     def get(feature_name, lookup_key, attributes)
       feature_obj = @base_client.config_client.get(feature_name)
-      variants = @base_client.config_client.get_config(feature_name).variants
+      variants = @base_client.config_client.get_config_obj(feature_name).variants
       evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
     end
 
@@ -120,7 +120,7 @@ module Prefab
     # there should be an associated segment available as a standard config obj
     def segment_matches(segment_keys, lookup_key, attributes)
       segment_keys.map do |segment_key|
-        segment = @base_client.get(segment_key)
+        segment = @base_client.config_client.get(segment_key)
         if segment.nil?
           @base_client.log.info("Missing Segment")
           false

@@ -67,6 +67,12 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
+    def get_config_obj(key)
+      @initialization_lock.with_read_lock do
+        @config_resolver.get_config(key)
+      end
+    end
+
     private
 
     def stub
