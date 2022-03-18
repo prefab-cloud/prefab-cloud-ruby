@@ -28,9 +28,9 @@ module Prefab
       self.unmarshal_class_method = :decode
       self.service_name = 'prefab.ConfigService'
 
-      rpc :GetConfig, ::Prefab::ConfigServicePointer, stream(::Prefab::ConfigDeltas)
-      rpc :GetAllConfig, ::Prefab::ConfigServicePointer, ::Prefab::ConfigDeltas
-      rpc :Upsert, ::Prefab::UpsertRequest, ::Prefab::ConfigServicePointer
+      rpc :GetConfig, ::Prefab::ConfigServicePointer, stream(::Prefab::Configs)
+      rpc :GetAllConfig, ::Prefab::ConfigServicePointer, ::Prefab::Configs
+      rpc :Upsert, ::Prefab::Config, ::Prefab::CreationResponse
     end
 
     Stub = Service.rpc_stub_class

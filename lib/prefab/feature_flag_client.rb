@@ -24,11 +24,12 @@ module Prefab
 
     def get(feature_name, lookup_key, attributes)
       feature_obj = @base_client.config_client.get(feature_name)
-      evaluate(feature_name, lookup_key, attributes, feature_obj)
+      variants = @base_client.config_client.get_config_obj(feature_name).variants
+      evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
     end
 
-    def evaluate(feature_name, lookup_key, attributes, feature_obj)
-      value_of(get_variant(feature_name, lookup_key, attributes, feature_obj))
+    def evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
+      value_of(get_variant(feature_name, lookup_key, attributes, feature_obj, variants))
     end
 
     private
@@ -40,9 +41,9 @@ module Prefab
       variant.bool
     end
 
-    def get_variant(feature_name, lookup_key, attributes, feature_obj)
+    def get_variant(feature_name, lookup_key, attributes, feature_obj, variants)
       if !feature_obj.active
-        return get_variant_obj(feature_obj, feature_obj.inactive_variant_idx)
+        return get_variant_obj(variants, feature_obj.inactive_variant_idx)
       end
 
       variant_distribution = feature_obj.default
@@ -50,7 +51,7 @@ module Prefab
       # if user_targets.match
       feature_obj.user_targets.each do |target|
         if (target.identifiers.include? lookup_key)
-          return get_variant_obj(feature_obj, target.variant_idx)
+          return get_variant_obj(variants, target.variant_idx)
         end
       end
 
@@ -73,11 +74,11 @@ module Prefab
         variant_idx = get_variant_idx_from_weights(variant_distribution.variant_weights.weights, distribution_bucket, feature_name)
       end
 
-      return get_variant_obj(feature_obj, variant_idx)
+      return get_variant_obj(variants, variant_idx)
     end
 
-    def get_variant_obj(feature_obj, idx)
-      return feature_obj.variants[idx] if feature_obj.variants.length >= idx
+    def get_variant_obj(variants, idx)
+      return variants[idx] if variants.length >= idx
       nil
     end
 

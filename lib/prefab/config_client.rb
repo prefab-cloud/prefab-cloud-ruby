@@ -63,8 +63,14 @@ module Prefab
     end
 
     def self.value_to_delta(key, config_value, namespace = nil)
-      Prefab::ConfigDelta.new(key: [namespace, key].compact.join(":"),
-                              value: config_value)
+      Prefab::Config.new(key: [namespace, key].compact.join(":"),
+                         rows: [Prefab::ConfigRow.new(value: config_value)])
+    end
+
+    def get_config_obj(key)
+      @initialization_lock.with_read_lock do
+        @config_resolver.get_config(key)
+      end
     end
 
     private
@@ -97,8 +103,8 @@ module Prefab
 
       resp = stub.get_all_config(config_req)
       @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
-      load_deltas(resp, :api)
-      resp.deltas.each do |delta|
+      load_configs(resp, :api)
+      resp.configs.each do |delta|
         @config_loader.set(delta)
       end
       @config_resolver.update
@@ -113,16 +119,16 @@ module Prefab
       url = "#{@s3_cloud_front}/#{@base_client.api_key.gsub("|", "/")}"
       resp = Faraday.get url
       if resp.status == 200
-        deltas = Prefab::ConfigDeltas.decode(resp.body)
-        load_deltas(deltas, :s3)
+        configs = Prefab::Configs.decode(resp.body)
+        load_configs(configs, :s3)
       else
         @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status} Plan may not support this."
       end
     end
 
-    def load_deltas(deltas, source)
-      deltas.deltas.each do |delta|
-        @config_loader.set(delta)
+    def load_configs(configs, source)
+      configs.configs.each do |config|
+        @config_loader.set(config)
       end
       @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}"
       @base_client.stats.increment("prefab.config.checkpoint.load")
@@ -170,11 +176,11 @@ module Prefab
       @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url}"
       SSE::Client.new(url, headers: headers) do |client|
         client.on_event do |event|
-          config_deltas = Prefab::ConfigDeltas.decode(Base64.decode64(event.data))
-          @base_client.log_internal Logger::INFO, "SSE received config_deltas."
-          @base_client.log_internal Logger::DEBUG, "SSE received config_deltas: #{config_deltas}"
-          config_deltas.deltas.each do |delta|
-            @config_loader.set(delta)
+          configs = Prefab::Configs.decode(Base64.decode64(event.data))
+          @base_client.log_internal Logger::INFO, "SSE received configs."
+          @base_client.log_internal Logger::DEBUG, "SSE received configs: #{configs}"
+          configs.configs.each do |config|
+            @config_loader.set(config)
           end
           @config_resolver.update
           finish_init!(:streaming)
@@ -199,8 +205,8 @@ module Prefab
           begin
             resp = stub.get_config(config_req)
             resp.each do |r|
-              r.deltas.each do |delta|
-                @config_loader.set(delta)
+              r.configs.each do |config|
+                @config_loader.set(config)
               end
               @config_resolver.update
               finish_init!(:streaming)

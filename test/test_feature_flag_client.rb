@@ -13,12 +13,12 @@ class TestFeatureFlagClient < Minitest::Test
   def test_pct
     feature = "FlagName"
 
+    variants = [
+      Prefab::FeatureFlagVariant.new(bool: false),
+      Prefab::FeatureFlagVariant.new(bool: true)
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(bool: false),
-        Prefab::FeatureFlagVariant.new(bool: true)
-      ],
       inactive_variant_idx: 0,
       default: Prefab::VariantDistribution.new(variant_weights:
                                                  Prefab::VariantWeights.new(weights: [
@@ -32,52 +32,52 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal false,
-                 @client.evaluate(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag, variants)
     assert_equal true,
-                 @client.evaluate(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag, variants)
   end
 
   def test_basic_active_inactive
     feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(bool: false),
+      Prefab::FeatureFlagVariant.new(bool: true)
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(bool: false),
-        Prefab::FeatureFlagVariant.new(bool: true)
-      ],
       inactive_variant_idx: 0,
       default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal true,
-                 @client.evaluate(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag, variants)
     assert_equal true,
-                 @client.evaluate(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag, variants)
 
+    variants = [
+      Prefab::FeatureFlagVariant.new(bool: false),
+      Prefab::FeatureFlagVariant.new(bool: true)
+    ]
     flag = Prefab::FeatureFlag.new(
       active: false,
-      variants: [
-        Prefab::FeatureFlagVariant.new(bool: false),
-        Prefab::FeatureFlagVariant.new(bool: true)
-      ],
       inactive_variant_idx: 0,
       default: Prefab::VariantDistribution.new(variant_idx: 1)
     )
     assert_equal false,
-                 @client.evaluate(feature, "hashes high", [], flag)
+                 @client.evaluate(feature, "hashes high", [], flag, variants)
     assert_equal false,
-                 @client.evaluate(feature, "hashes low", [], flag)
+                 @client.evaluate(feature, "hashes low", [], flag, variants)
   end
 
   def test_user_targets
 
     feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(string: "inactive"),
+      Prefab::FeatureFlagVariant.new(string: "user target"),
+      Prefab::FeatureFlagVariant.new(string: "default"),
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(string: "inactive"),
-        Prefab::FeatureFlagVariant.new(string: "user target"),
-        Prefab::FeatureFlagVariant.new(string: "default"),
-      ],
       inactive_variant_idx: 0,
       user_targets: [
         variant_idx: 1,
@@ -87,22 +87,22 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "user target",
-                 @client.evaluate(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag, variants)
     assert_equal "user target",
-                 @client.evaluate(feature, "user:3", [], flag)
+                 @client.evaluate(feature, "user:3", [], flag, variants)
   end
 
   def test_inclusion_rule
     feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(string: "inactive"),
+      Prefab::FeatureFlagVariant.new(string: "rule target"),
+      Prefab::FeatureFlagVariant.new(string: "default"),
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(string: "inactive"),
-        Prefab::FeatureFlagVariant.new(string: "rule target"),
-        Prefab::FeatureFlagVariant.new(string: "default"),
-      ],
       inactive_variant_idx: 0,
       rules: [Prefab::Rule.new(
         distribution: Prefab::VariantDistribution.new(variant_idx: 1),
@@ -115,9 +115,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag, variants)
 
   end
 
@@ -143,13 +143,13 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(string: "inactive"),
+      Prefab::FeatureFlagVariant.new(string: "rule target"),
+      Prefab::FeatureFlagVariant.new(string: "default"),
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(string: "inactive"),
-        Prefab::FeatureFlagVariant.new(string: "rule target"),
-        Prefab::FeatureFlagVariant.new(string: "default"),
-      ],
       inactive_variant_idx: 0,
       rules: [Prefab::Rule.new(
         distribution: Prefab::VariantDistribution.new(variant_idx: 1),
@@ -162,9 +162,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag)
+                 @client.evaluate(feature, "user:2", [], flag, variants)
 
   end
 
@@ -187,13 +187,13 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(string: "inactive"),
+      Prefab::FeatureFlagVariant.new(string: "rule target"),
+      Prefab::FeatureFlagVariant.new(string: "default"),
+    ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      variants: [
-        Prefab::FeatureFlagVariant.new(string: "inactive"),
-        Prefab::FeatureFlagVariant.new(string: "rule target"),
-        Prefab::FeatureFlagVariant.new(string: "default"),
-      ],
       inactive_variant_idx: 0,
       rules: [Prefab::Rule.new(
         distribution: Prefab::VariantDistribution.new(variant_idx: 1),
@@ -206,15 +206,15 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag)
+                 @client.evaluate(feature, "user:1", [], flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", [], flag), "matches segment 1"
+                 @client.evaluate(feature, "user:2", [], flag, variants), "matches segment 1"
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:3", [], flag)
+                 @client.evaluate(feature, "user:3", [], flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:4", [], flag)
+                 @client.evaluate(feature, "user:4", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:5", [], flag)
+                 @client.evaluate(feature, "user:5", [], flag, variants)
 
   end
 end

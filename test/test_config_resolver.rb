@@ -6,35 +6,44 @@ class TestConfigResolver < Minitest::Test
     @loader = MockConfigLoader.new
 
     loaded_values = {
-      "key" => Prefab::ConfigDelta.new(
+      "key" => Prefab::Config.new(
         key: "key",
-        default: Prefab::ConfigValue.new(string: "value_no_env_default"),
-        envs: [{
-                 environment: "test",
-                 default: Prefab::ConfigValue.new(string: "value_none"),
-                 namespace_values: [
-                   {
-                     namespace: "projectA",
-                     config_value: Prefab::ConfigValue.new(string: "valueA")
-                   },
-                   {
-                     namespace: "projectB",
-                     config_value: Prefab::ConfigValue.new(string: "valueB")
-                   },
-                   {
-                     namespace: "projectB.subprojectX",
-                     config_value: Prefab::ConfigValue.new(string: "projectB.subprojectX")
-                   },
-                   {
-                     namespace: "projectB.subprojectY",
-                     config_value: Prefab::ConfigValue.new(string: "projectB.subprojectY")
-                   },
-                 ]
-               }]
+        rows: [
+          Prefab::ConfigRow.new(
+            value: Prefab::ConfigValue.new(string: "value_no_env_default"),
+          ),
+          Prefab::ConfigRow.new(
+            env_key: "test",
+            value: Prefab::ConfigValue.new(string: "value_none"),
+          ),
+          Prefab::ConfigRow.new(
+            env_key: "test",
+            namespace: "projectA",
+            value: Prefab::ConfigValue.new(string: "valueA"),
+          ),
+          Prefab::ConfigRow.new(
+            env_key: "test",
+            namespace: "projectB",
+            value: Prefab::ConfigValue.new(string: "valueB"),
+          ),
+          Prefab::ConfigRow.new(
+            env_key: "test",
+            namespace: "projectB.subprojectX",
+            value: Prefab::ConfigValue.new(string: "projectB.subprojectX"),
+          ),
+          Prefab::ConfigRow.new(
+            env_key: "test",
+            namespace: "projectB.subprojectY",
+            value: Prefab::ConfigValue.new(string: "projectB.subprojectY"),
+          ),
+
+        ]
       ),
-      "key2" => Prefab::ConfigDelta.new(
+      "key2" => Prefab::Config.new(
         key: "key2",
-        default: Prefab::ConfigValue.new(string: "valueB2"),
+        rows: [
+          value: Prefab::ConfigValue.new(string: "valueB2"),
+        ]
       )
     }
 
@@ -93,32 +102,31 @@ class TestConfigResolver < Minitest::Test
   def test_special_ff_variant_copying
     @loader = MockConfigLoader.new
     loaded_values = {
-      "ff" => Prefab::ConfigDelta.new(
+      "ff" => Prefab::Config.new(
         key: "ff",
-        default: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
-          variants: [
-            Prefab::FeatureFlagVariant.new(string: "inactive"),
-            Prefab::FeatureFlagVariant.new(string: "default"),
-            Prefab::FeatureFlagVariant.new(string: "env"),
-          ],
-          inactive_variant_idx: 0,
-          default: Prefab::VariantDistribution.new(variant_idx: 1)
-        )),
-        envs: [
-          Prefab::EnvironmentValues.new(
-            environment: "test",
-            default: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+        variants: [
+          Prefab::FeatureFlagVariant.new(string: "inactive"),
+          Prefab::FeatureFlagVariant.new(string: "default"),
+          Prefab::FeatureFlagVariant.new(string: "env"),
+        ],
+        rows: [
+          { value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+            inactive_variant_idx: 0,
+            default: Prefab::VariantDistribution.new(variant_idx: 1)
+          )) },
+          { env_key: "test",
+            value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
               inactive_variant_idx: 0,
-              default: Prefab::VariantDistribution.new(variant_idx: 2)))
-          )
+              default: Prefab::VariantDistribution.new(variant_idx: 2)
+            )) }
         ]
       )
     }
     @loader.stub :calc_config, loaded_values do
       resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
-      ff = resolver.get("ff")
-      assert_equal 3, ff.variants.size
-      assert_equal %w(inactive default env), ff.variants.map(&:string)
+      config = resolver.get_config("ff")
+      assert_equal 3, config.variants.size
+      assert_equal %w(inactive default env), config.variants.map(&:string)
     end
   end
 
@@ -127,13 +135,17 @@ class TestConfigResolver < Minitest::Test
     @loader = MockConfigLoader.new
 
     loaded_values = {
-      "Key:With:Colons" => Prefab::ConfigDelta.new(
+      "Key:With:Colons" => Prefab::Config.new(
         key: "Key:With:Colons",
-        default: Prefab::ConfigValue.new(string: "value"),
+        rows: [Prefab::ConfigRow.new(
+          value: Prefab::ConfigValue.new(string: "value")
+        )]
       ),
-      "proj:apikey" => Prefab::ConfigDelta.new(
+      "proj:apikey" => Prefab::Config.new(
         key: "proj:apikey",
-        default: Prefab::ConfigValue.new(string: "v2"),
+        rows: [Prefab::ConfigRow.new(
+          value: Prefab::ConfigValue.new(string: "v2")
+        )]
       )
     }
 

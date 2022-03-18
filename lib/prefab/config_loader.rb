@@ -20,18 +20,18 @@ module Prefab
       rtn
     end
 
-    def set(delta)
+    def set(config)
       # don't overwrite newer values
-      if @api_config[delta.key] && @api_config[delta.key].id > delta.id
+      if @api_config[config.key] && @api_config[config.key].id > config.id
         return
       end
 
-      if delta.default.nil?
-        @api_config.delete(delta.key)
+      if config.rows.empty?
+        @api_config.delete(config.key)
       else
-        @api_config[delta.key] = delta
+        @api_config[config.key] = config
       end
-      @highwater_mark = [delta.id, @highwater_mark].max
+      @highwater_mark = [config.id, @highwater_mark].max
     end
 
     def rm(key)
@@ -39,11 +39,11 @@ module Prefab
     end
 
     def get_api_deltas
-      deltas = Prefab::ConfigDeltas.new
+      configs = Prefab::Configs.new
       @api_config.each_value do |config_value|
-        deltas.deltas << config_value
+        configs.configs << config_value
       end
-      deltas
+      configs
     end
 
     private
@@ -63,7 +63,9 @@ module Prefab
       Dir.glob(glob).each do |file|
         yaml = load(file)
         yaml.each do |k, v|
-          rtn[k] = Prefab::ConfigDelta.new(key: k, default: Prefab::ConfigValue.new(value_from(v)))
+          rtn[k] = Prefab::Config.new(key: k, rows: [
+            Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+          ])
         end
       end
       rtn
