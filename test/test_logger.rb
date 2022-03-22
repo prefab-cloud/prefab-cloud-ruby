@@ -39,13 +39,3 @@ class TestCLogger < Minitest::Test
                  @logger.level_of("app.models.user")
   end
 end
-
-class MockConfigClient
-  def initialize(hash)
-    @hash = hash
-  end
-
-  def get(key)
-    @hash[key]
-  end
-end

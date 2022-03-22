@@ -35,4 +35,18 @@ module Prefab
 
     Stub = Service.rpc_stub_class
   end
+  module IdService
+    class Service
+
+      include ::GRPC::GenericService
+
+      self.marshal_class_method = :encode
+      self.unmarshal_class_method = :decode
+      self.service_name = 'prefab.IdService'
+
+      rpc :GetBlock, ::Prefab::IdBlockRequest, ::Prefab::IdBlock
+    end
+
+    Stub = Service.rpc_stub_class
+  end
 end

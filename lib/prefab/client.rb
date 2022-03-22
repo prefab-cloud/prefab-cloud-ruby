@@ -8,7 +8,7 @@ module Prefab
     }
 
 
-    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :environment, :prefab_api_url
+    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :project_env_id, :prefab_api_url
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
                    logdev: nil,
@@ -27,13 +27,13 @@ module Prefab
       @shared_cache = (shared_cache || NoopCache.new)
       @api_key = api_key
       @project_id = api_key.split("-")[0].to_i
-      @environment = api_key.split("-")[1]
+      @project_env_id = api_key.split("-")[1].to_i
       @namespace = namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
       @prefab_api_url = ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud'
       @prefab_grpc_url = ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443'
-      log_internal Logger::INFO, "Prefab Initializing in environment: '#{@environment}' and namespace: '#{@namespace}'"
+      log_internal Logger::INFO, "Prefab Initializing in environment: '#{@project_env_id}' and namespace: '#{@namespace}'"
       log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
       at_exit do
         channel.destroy

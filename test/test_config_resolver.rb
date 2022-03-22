@@ -2,6 +2,10 @@ require 'test_helper'
 
 class TestConfigResolver < Minitest::Test
 
+  STAGING_ENV_ID = 1
+  PRODUCTION_ENV_ID = 2
+  TEST_ENV_ID = 3
+
   def test_resolution
     @loader = MockConfigLoader.new
 
@@ -13,26 +17,26 @@ class TestConfigResolver < Minitest::Test
             value: Prefab::ConfigValue.new(string: "value_no_env_default"),
           ),
           Prefab::ConfigRow.new(
-            env_key: "test",
+            project_env_id: TEST_ENV_ID,
             value: Prefab::ConfigValue.new(string: "value_none"),
           ),
           Prefab::ConfigRow.new(
-            env_key: "test",
+            project_env_id: TEST_ENV_ID,
             namespace: "projectA",
             value: Prefab::ConfigValue.new(string: "valueA"),
           ),
           Prefab::ConfigRow.new(
-            env_key: "test",
+            project_env_id: TEST_ENV_ID,
             namespace: "projectB",
             value: Prefab::ConfigValue.new(string: "valueB"),
           ),
           Prefab::ConfigRow.new(
-            env_key: "test",
+            project_env_id: TEST_ENV_ID,
             namespace: "projectB.subprojectX",
             value: Prefab::ConfigValue.new(string: "projectB.subprojectX"),
           ),
           Prefab::ConfigRow.new(
-            env_key: "test",
+            project_env_id: TEST_ENV_ID,
             namespace: "projectB.subprojectY",
             value: Prefab::ConfigValue.new(string: "projectB.subprojectY"),
           ),
@@ -49,7 +53,7 @@ class TestConfigResolver < Minitest::Test
 
     @loader.stub :calc_config, loaded_values do
 
-      @resolverA = resolver_for_namespace("", @loader, environment: "some_other_env")
+      @resolverA = resolver_for_namespace("", @loader, project_env_id: PRODUCTION_ENV_ID)
       assert_equal "value_no_env_default", @resolverA.get("key")
 
       ## below here in the test env
@@ -100,6 +104,7 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_special_ff_variant_copying
+
     @loader = MockConfigLoader.new
     loaded_values = {
       "ff" => Prefab::Config.new(
@@ -114,7 +119,7 @@ class TestConfigResolver < Minitest::Test
             inactive_variant_idx: 0,
             default: Prefab::VariantDistribution.new(variant_idx: 1)
           )) },
-          { env_key: "test",
+          { project_env_id: TEST_ENV_ID,
             value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
               inactive_variant_idx: 0,
               default: Prefab::VariantDistribution.new(variant_idx: 2)
@@ -183,8 +188,8 @@ class TestConfigResolver < Minitest::Test
     end
   end
 
-  def resolver_for_namespace(namespace, loader, environment: "test")
-    Prefab::ConfigResolver.new(MockBaseClient.new(namespace: namespace, environment: environment), loader)
+  def resolver_for_namespace(namespace, loader, project_env_id: TEST_ENV_ID)
+    Prefab::ConfigResolver.new(MockBaseClient.new(namespace: namespace, project_env_id: project_env_id), loader)
   end
 
 end

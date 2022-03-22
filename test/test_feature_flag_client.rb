@@ -135,7 +135,7 @@ class TestFeatureFlagClient < Minitest::Test
 
   def test_segments
     segment_key = "prefab-segment-beta-group"
-    @mock_base_client.mock_this_config(segment_key,
+    @mock_base_client.config_client.mock_this_config(segment_key,
                                        Prefab::Segment.new(
                                          name: "Beta Group",
                                          includes: ["user:1"]
@@ -170,7 +170,7 @@ class TestFeatureFlagClient < Minitest::Test
 
   def test_in_multiple_segments_has_or_behavior
     segment_key_one = "prefab-segment-segment-1"
-    @mock_base_client.mock_this_config(segment_key_one,
+    @mock_base_client.config_client.mock_this_config(segment_key_one,
                                        Prefab::Segment.new(
                                          name: "Segment-1",
                                          includes: ["user:1", "user:2"],
@@ -178,7 +178,7 @@ class TestFeatureFlagClient < Minitest::Test
                                        )
     )
     segment_key_two = "prefab-segment-segment-2"
-    @mock_base_client.mock_this_config(segment_key_two,
+    @mock_base_client.config_client.mock_this_config(segment_key_two,
                                        Prefab::Segment.new(
                                          name: "Segment-2",
                                          includes: ["user:3", "user:4"],
