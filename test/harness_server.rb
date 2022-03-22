@@ -15,21 +15,23 @@ class RackApp
 
     key = props["key"]
     namespace = props["namespace"]
-    environment = props["environment"]
+    project_env_id = props["project_env_id"]
     user_key = props["user_key"]
     is_feature_flag = !props["feature_flag"].nil?
 
     client = Prefab::Client.new(
-      api_key: "1-#{environment}-local_development_api_key-SDK", #sets environment
+      api_key: "1-#{project_env_id}-local_development_api_key-SDK", #sets environment
       namespace: namespace,
     )
 
     puts "Key #{key}"
     puts "User #{user_key}"
-    puts "Environment #{environment}"
+    puts "project_env_id #{project_env_id}"
     puts "Namespace #{namespace}"
     puts "Props! #{props}"
     puts "is_feature_flag! #{is_feature_flag}"
+
+    puts client.config_client.to_s
 
     if is_feature_flag
       puts "EVALFF #{key} #{user_key}"
@@ -37,6 +39,7 @@ class RackApp
     else
       rtn = client.config_client.get(key).to_s
     end
+
     puts "return #{rtn}"
 
     [200, { "Content-Type" => "text/plain" }, rtn]

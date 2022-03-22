@@ -6,7 +6,7 @@ module Prefab
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @environment = base_client.environment
+      @project_env_id = base_client.project_env_id
       @namespace = base_client.namespace
       @config_loader = config_loader
       make_local
@@ -16,8 +16,12 @@ module Prefab
       str = ""
       @lock.with_read_lock do
         @local_store.each do |k, v|
-          value = v[:value]
-          str << "|#{k}| from #{v[:match]} |#{value_of(value)}|#{value_of(value).class}\n"
+          if v.nil?
+            str<< "|#{k}| tombstone\n"
+          else
+            value = v[:value]
+            str << "|#{k}| from #{v[:match]} |#{value_of(value)}|#{value_of(value).class}\n"
+          end
         end
       end
       str
@@ -60,14 +64,14 @@ module Prefab
       store = {}
       @config_loader.calc_config.each do |key, config|
         sortable = config.rows.map do |row|
-          if !row.env_key.empty?
-            if row.env_key == @environment
+          if row.project_env_id != 0
+            if row.project_env_id == @project_env_id
               if !row.namespace.empty?
                 (starts_with, count) = starts_with_ns?(row.namespace, @namespace)
                 # rubocop:disable BlockNesting
                 { sortable: 2 + count, match: row.namespace, value: row.value, config: config} if starts_with
               else
-                { sortable: 1, match: row.env_key, value: row.value, config: config}
+                { sortable: 1, match: row.project_env_id, value: row.value, config: config}
               end
             end
           else

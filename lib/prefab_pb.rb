@@ -8,7 +8,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "prefab.ConfigServicePointer" do
       optional :project_id, :int64, 1
       optional :start_at_id, :int64, 2
-      optional :env_key, :string, 3
+      optional :project_env_id, :int64, 3
     end
     add_message "prefab.ConfigValue" do
       oneof :type do
@@ -34,7 +34,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       repeated :variants, :message, 6, "prefab.FeatureFlagVariant"
     end
     add_message "prefab.ConfigRow" do
-      optional :env_key, :string, 1
+      optional :project_env_id, :int64, 1
       optional :namespace, :string, 2
       optional :value, :message, 3, "prefab.ConfigValue"
     end
@@ -173,6 +173,19 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :message, :string, 1
       optional :new_id, :int64, 2
     end
+    add_message "prefab.IdBlock" do
+      optional :project_id, :int64, 1
+      optional :project_env_id, :int64, 2
+      optional :sequence_name, :string, 3
+      optional :start, :int64, 4
+      optional :end, :int64, 5
+    end
+    add_message "prefab.IdBlockRequest" do
+      optional :project_id, :int64, 1
+      optional :project_env_id, :int64, 2
+      optional :sequence_name, :string, 3
+      optional :size, :int64, 4
+    end
     add_enum "prefab.OnFailure" do
       value :NOT_SET, 0
       value :LOG_AND_PASS, 1
@@ -209,5 +222,7 @@ module Prefab
   BatchRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BatchRequest").msgclass
   BasicResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.BasicResponse").msgclass
   CreationResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.CreationResponse").msgclass
+  IdBlock = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlock").msgclass
+  IdBlockRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlockRequest").msgclass
   OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
 end
