@@ -95,10 +95,11 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :EQ, 3
       value :IN_SEG, 4
       value :NOT_IN_SEG, 5
+      value :ALWAYS_TRUE, 6
     end
     add_message "prefab.Rule" do
       optional :criteria, :message, 1, "prefab.Criteria"
-      optional :distribution, :message, 2, "prefab.VariantDistribution"
+      repeated :variant_weights, :message, 2, "prefab.VariantWeight"
     end
     add_message "prefab.Segment" do
       optional :name, :string, 1
@@ -115,19 +116,9 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :weight, :int32, 1
       optional :variant_idx, :int32, 2
     end
-    add_message "prefab.VariantWeights" do
-      repeated :weights, :message, 1, "prefab.VariantWeight"
-    end
-    add_message "prefab.VariantDistribution" do
-      oneof :type do
-        optional :variant_idx, :int32, 1
-        optional :variant_weights, :message, 2, "prefab.VariantWeights"
-      end
-    end
     add_message "prefab.FeatureFlag" do
       optional :active, :bool, 1
       optional :inactive_variant_idx, :int32, 2
-      optional :default, :message, 3, "prefab.VariantDistribution"
       repeated :user_targets, :message, 4, "prefab.UserTarget"
       repeated :rules, :message, 5, "prefab.Rule"
     end
@@ -212,8 +203,6 @@ module Prefab
   Segment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Segment").msgclass
   UserTarget = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UserTarget").msgclass
   VariantWeight = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeight").msgclass
-  VariantWeights = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeights").msgclass
-  VariantDistribution = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantDistribution").msgclass
   FeatureFlag = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlag").msgclass
   LimitDefinition = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition").msgclass
   LimitDefinition::SafetyLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition.SafetyLevel").enummodule

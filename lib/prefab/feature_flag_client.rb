@@ -46,8 +46,6 @@ module Prefab
         return get_variant_obj(variants, feature_obj.inactive_variant_idx)
       end
 
-      variant_distribution = feature_obj.default
-
       # if user_targets.match
       feature_obj.user_targets.each do |target|
         if (target.identifiers.include? lookup_key)
@@ -55,24 +53,25 @@ module Prefab
         end
       end
 
+      #default to inactive
+      variant_weights = [Prefab::VariantWeight.new(variant_idx: feature_obj.inactive_variant_idx, weight: 1)]
+
       # if rules.match
       feature_obj.rules.each do |rule|
         if criteria_match?(rule, lookup_key, attributes)
-          variant_distribution = rule.distribution
+          variant_weights = rule.variant_weights
+          break
         end
       end
 
-      if variant_distribution.type == :variant_idx
-        variant_idx = variant_distribution.variant_idx
-      else
-        percent_through_distribution = rand()
-        if lookup_key
-          percent_through_distribution = get_user_pct(feature_name, lookup_key)
-        end
-        distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
 
-        variant_idx = get_variant_idx_from_weights(variant_distribution.variant_weights.weights, distribution_bucket, feature_name)
+      percent_through_distribution = rand()
+      if lookup_key
+        percent_through_distribution = get_user_pct(feature_name, lookup_key)
       end
+      distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
+
+      variant_idx = get_variant_idx_from_weights(variant_weights, distribution_bucket, feature_name)
 
       return get_variant_obj(variants, variant_idx)
     end
@@ -103,7 +102,9 @@ module Prefab
     end
 
     def criteria_match?(rule, lookup_key, attributes)
-      if rule.criteria.operator == :IN
+      if rule.criteria.operator == :ALWAYS_TRUE
+        return true
+      elsif rule.criteria.operator == :IN
         return rule.criteria.values.include?(lookup_key)
       elsif rule.criteria.operator == :NOT_IN
         return !rule.criteria.values.include?(lookup_key)
