@@ -52,3 +52,18 @@ class MockConfigLoader
   def calc_config
   end
 end
+
+
+private
+
+def default_ff_rule(variant_idx)
+  [
+    Prefab::Rule.new(
+      criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
+      variant_weights: [
+        Prefab::VariantWeight.new(weight: 1000,
+                                  variant_idx: variant_idx)
+      ]
+    )
+  ]
+end

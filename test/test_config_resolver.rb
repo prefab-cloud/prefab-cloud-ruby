@@ -117,12 +117,12 @@ class TestConfigResolver < Minitest::Test
         rows: [
           { value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
             inactive_variant_idx: 0,
-            default: Prefab::VariantDistribution.new(variant_idx: 1)
+            rules: default_ff_rule(1),
           )) },
           { project_env_id: TEST_ENV_ID,
             value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
               inactive_variant_idx: 0,
-              default: Prefab::VariantDistribution.new(variant_idx: 2)
+              rules: default_ff_rule(2),
             )) }
         ]
       )
