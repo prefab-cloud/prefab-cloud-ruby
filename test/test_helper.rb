@@ -22,6 +22,10 @@ class MockBaseClient
     @project_env_id
   end
 
+  def log
+    @logger
+  end
+
   def log_internal level, message
   end
 

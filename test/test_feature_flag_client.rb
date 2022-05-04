@@ -24,19 +24,24 @@ class TestFeatureFlagClient < Minitest::Test
         Prefab::Rule.new(
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
-            Prefab::VariantWeight.new(weight: 500,
-                                      variant_idx: 2),
-            Prefab::VariantWeight.new(weight: 500,
-                                      variant_idx: 1),
+            Prefab::VariantWeight.new(weight: 86,
+                                      variant_idx: 2), #true
+            Prefab::VariantWeight.new(weight: 14,
+                                      variant_idx: 1), #false
           ]
         )
       ]
     )
+    # weights above chosen to be 86% in variant_idx 2. and 14% in variant_idx 1.
+    # since hashes high is 86.32 > 86 it just falls outside the 86% range and gets false
 
+    # "1FlagNamehashes high" hashes to 86.322% through dist
     assert_equal false,
                  @client.evaluate(feature, "hashes high", [], flag, variants)
+    # "1FlagNamehashes low" hashes to 44.547% through dist
     assert_equal true,
                  @client.evaluate(feature, "hashes low", [], flag, variants)
+
   end
 
   def test_basic_active_inactive

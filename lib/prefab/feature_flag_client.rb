@@ -2,7 +2,6 @@ module Prefab
   class FeatureFlagClient
     include Prefab::ConfigHelper
     MAX_32_FLOAT = 4294967294.0
-    DISTRIBUTION_SPACE = 1000
 
     def initialize(base_client)
       @base_client = base_client
@@ -72,9 +71,8 @@ module Prefab
       if lookup_key
         percent_through_distribution = get_user_pct(feature_name, lookup_key)
       end
-      distribution_bucket = DISTRIBUTION_SPACE * percent_through_distribution
 
-      variant_idx = get_variant_idx_from_weights(variant_weights, distribution_bucket, feature_name)
+      variant_idx = get_variant_idx_from_weights(variant_weights, percent_through_distribution, feature_name)
 
       return get_variant_obj(variants, variant_idx)
     end
@@ -85,7 +83,9 @@ module Prefab
       nil
     end
 
-    def get_variant_idx_from_weights(variant_weights, bucket, feature_name)
+    def get_variant_idx_from_weights(variant_weights, percent_through_distribution, feature_name)
+      distrubution_space = variant_weights.inject(0) { |sum, v| sum + v.weight }
+      bucket = distrubution_space * percent_through_distribution
       sum = 0
       variant_weights.each do |variant_weight|
         if bucket < sum + variant_weight.weight
