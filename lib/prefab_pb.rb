@@ -24,6 +24,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "prefab.Configs" do
       repeated :configs, :message, 1, "prefab.Config"
+      optional :config_service_pointer, :message, 2, "prefab.ConfigServicePointer"
     end
     add_message "prefab.Config" do
       optional :id, :int64, 1
@@ -90,12 +91,15 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_enum "prefab.Criteria.CriteriaOperator" do
       value :NOT_SET, 0
-      value :IN, 1
-      value :NOT_IN, 2
-      value :EQ, 3
-      value :IN_SEG, 4
-      value :NOT_IN_SEG, 5
-      value :ALWAYS_TRUE, 6
+      value :LOOKUP_KEY_IN, 1
+      value :LOOKUP_KEY_NOT_IN, 2
+      value :IN_SEG, 3
+      value :NOT_IN_SEG, 4
+      value :ALWAYS_TRUE, 5
+      value :PROP_IS_ONE_OF, 6
+      value :PROP_IS_NOT_ONE_OF, 7
+      value :PROP_ENDS_WITH_ONE_OF, 8
+      value :PROP_DOES_NOT_END_WITH_ONE_OF, 9
     end
     add_message "prefab.Rule" do
       optional :criteria, :message, 1, "prefab.Criteria"

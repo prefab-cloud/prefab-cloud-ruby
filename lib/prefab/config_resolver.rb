@@ -3,12 +3,14 @@ module Prefab
     include Prefab::ConfigHelper
     NAMESPACE_DELIMITER = ".".freeze
 
+    attr_accessor :project_env_id # this will be set by the config_client when it gets an API response
+
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @project_env_id = base_client.project_env_id
       @namespace = base_client.namespace
       @config_loader = config_loader
+      @project_env_id = 0
       make_local
     end
 

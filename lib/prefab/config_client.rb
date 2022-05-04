@@ -104,9 +104,6 @@ module Prefab
       resp = stub.get_all_config(config_req)
       @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
       load_configs(resp, :api)
-      resp.configs.each do |delta|
-        @config_loader.set(delta)
-      end
       @config_resolver.update
       finish_init!(:api)
       true
@@ -127,6 +124,10 @@ module Prefab
     end
 
     def load_configs(configs, source)
+      project_env_id = configs.config_service_pointer.project_env_id
+      @config_resolver.project_env_id = project_env_id
+
+      @base_client.log_internal Logger::INFO, "Prefab Initializing in project: #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       configs.configs.each do |config|
         @config_loader.set(config)
       end
