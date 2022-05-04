@@ -23,7 +23,9 @@ module Prefab
 
     def get(feature_name, lookup_key=nil, attributes={})
       feature_obj = @base_client.config_client.get(feature_name)
-      variants = @base_client.config_client.get_config_obj(feature_name).variants
+      config_obj = @base_client.config_client.get_config_obj(feature_name)
+      return nil if feature_obj.nil? || config_obj.nil?
+      variants = config_obj.variants
       evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
     end
 
