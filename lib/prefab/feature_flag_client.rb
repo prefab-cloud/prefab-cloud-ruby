@@ -106,16 +106,21 @@ module Prefab
     end
 
     def criteria_match?(rule, lookup_key, attributes)
+
       if rule.criteria.operator == :ALWAYS_TRUE
         return true
-      elsif rule.criteria.operator == :IN
+      elsif rule.criteria.operator == :LOOKUP_KEY_IN
         return rule.criteria.values.include?(lookup_key)
-      elsif rule.criteria.operator == :NOT_IN
+      elsif rule.criteria.operator == :LOOKUP_KEY_NOT_IN
         return !rule.criteria.values.include?(lookup_key)
       elsif rule.criteria.operator == :IN_SEG
         return segment_matches(rule.criteria.values, lookup_key, attributes).any?
       elsif rule.criteria.operator == :NOT_IN_SEG
         return segment_matches(rule.criteria.values, lookup_key, attributes).none?
+      elsif rule.criteria.operator == :PROP_IS_ONE_OF
+        return rule.criteria.values.include?(attributes[rule.criteria.property]) || rule.criteria.values.include?(attributes[rule.criteria.property.to_sym])
+      elsif rule.criteria.operator == :PROP_IS_NOT_ONE_OF
+        return !(rule.criteria.values.include?(attributes[rule.criteria.property]) || rule.criteria.values.include?(attributes[rule.criteria.property.to_sym]))
       end
       @base_client.log.info("Unknown Operator")
       false

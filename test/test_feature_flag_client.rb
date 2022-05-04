@@ -135,6 +135,50 @@ class TestFeatureFlagClient < Minitest::Test
 
   end
 
+  def test_property_is_one_of
+    feature = "FlagName"
+    variants = [
+      Prefab::FeatureFlagVariant.new(string: "inactive"),
+      Prefab::FeatureFlagVariant.new(string: "rule target"),
+      Prefab::FeatureFlagVariant.new(string: "default"),
+    ]
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_variant_idx: 1,
+      rules: [
+        Prefab::Rule.new(
+          variant_weights: [
+            Prefab::VariantWeight.new(weight: 1000,
+                                      variant_idx: 2)
+          ],
+          criteria: Prefab::Criteria.new(
+            operator: "PROP_IS_ONE_OF",
+            values: ["a@example.com", "b@example.com"],
+            property: "email"
+          )
+        ),
+        Prefab::Rule.new(
+          criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
+          variant_weights: [
+            Prefab::VariantWeight.new(weight: 1000,
+                                      variant_idx: 3)
+          ]
+        )
+
+      ],
+    )
+
+    assert_equal "default",
+                 @client.evaluate(feature, "user:1", {email: "not@example.com"}, flag, variants)
+    assert_equal "default",
+                 @client.evaluate(feature, "user:2", {}, flag, variants)
+    assert_equal "rule target",
+                 @client.evaluate(feature, "user:2", {email: "b@example.com"}, flag, variants)
+    assert_equal "rule target",
+                 @client.evaluate(feature, "user:2", {"email" => "b@example.com"}, flag, variants)
+
+  end
+
   def test_segment_match?
     segment = Prefab::Segment.new(
       name: "Beta Group",
