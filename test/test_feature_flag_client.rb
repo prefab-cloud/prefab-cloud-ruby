@@ -19,15 +19,15 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
+      inactive_variant_idx: 1,
       rules: [
         Prefab::Rule.new(
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
             Prefab::VariantWeight.new(weight: 500,
-                                      variant_idx: 1),
+                                      variant_idx: 2),
             Prefab::VariantWeight.new(weight: 500,
-                                      variant_idx: 0),
+                                      variant_idx: 1),
           ]
         )
       ]
@@ -47,8 +47,8 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
-      rules: default_ff_rule(1)
+      inactive_variant_idx: 1,
+      rules: default_ff_rule(2)
     )
     assert_equal true,
                  @client.evaluate(feature, "hashes high", [], flag, variants)
@@ -61,8 +61,8 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: false,
-      inactive_variant_idx: 0,
-      rules: default_ff_rule(1)
+      inactive_variant_idx: 1,
+      rules: default_ff_rule(2)
     )
     assert_equal false,
                  @client.evaluate(feature, "hashes high", [], flag, variants)
@@ -80,12 +80,12 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
+      inactive_variant_idx: 1,
       user_targets: [
-        variant_idx: 1,
+        variant_idx: 2,
         identifiers: ["user:1", "user:3"]
       ],
-      rules: default_ff_rule(2)
+      rules: default_ff_rule(3)
     )
 
     assert_equal "user target",
@@ -105,15 +105,15 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
+      inactive_variant_idx: 1,
       rules: [
         Prefab::Rule.new(
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 1)
+                                      variant_idx: 2)
           ],
           criteria: Prefab::Criteria.new(
-            operator: "IN",
+            operator: "LOOKUP_KEY_IN",
             values: ["user:1"]
           )
         ),
@@ -121,7 +121,7 @@ class TestFeatureFlagClient < Minitest::Test
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 2)
+                                      variant_idx: 3)
           ]
         )
 
@@ -164,12 +164,12 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
+      inactive_variant_idx: 1,
       rules: [
         Prefab::Rule.new(
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 1)
+                                      variant_idx: 2)
           ],
           criteria: Prefab::Criteria.new(
             operator: "IN_SEG",
@@ -180,7 +180,7 @@ class TestFeatureFlagClient < Minitest::Test
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 2)
+                                      variant_idx: 3)
           ]
         )
 
@@ -220,12 +220,12 @@ class TestFeatureFlagClient < Minitest::Test
     ]
     flag = Prefab::FeatureFlag.new(
       active: true,
-      inactive_variant_idx: 0,
+      inactive_variant_idx: 1,
       rules: [
         Prefab::Rule.new(
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 1)
+                                      variant_idx: 2)
           ],
           criteria: Prefab::Criteria.new(
             operator: "IN_SEG",
@@ -236,7 +236,7 @@ class TestFeatureFlagClient < Minitest::Test
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
             Prefab::VariantWeight.new(weight: 1000,
-                                      variant_idx: 2)
+                                      variant_idx: 3)
           ]
         )
       ]

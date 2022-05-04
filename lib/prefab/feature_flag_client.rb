@@ -77,7 +77,8 @@ module Prefab
     end
 
     def get_variant_obj(variants, idx)
-      return variants[idx] if variants.length >= idx
+      # our array is 0 based, but the idx are 1 based so the protos are clearly set
+      return variants[idx - 1] if variants.length >= idx
       nil
     end
 
@@ -92,7 +93,7 @@ module Prefab
       end
       # variants didn't add up to 100%
       @base_client.log.info("Variants of #{feature_name} did not add to 100%")
-      return variant_weights.last.variant
+      return variant_weights.last.variant_idx
     end
 
     def get_user_pct(feature, lookup_key)
