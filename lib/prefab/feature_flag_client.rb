@@ -22,7 +22,7 @@ module Prefab
       return is_on?(get(feature_name, lookup_key, attributes))
     end
 
-    def get(feature_name, lookup_key, attributes)
+    def get(feature_name, lookup_key=nil, attributes={})
       feature_obj = @base_client.config_client.get(feature_name)
       variants = @base_client.config_client.get_config_obj(feature_name).variants
       evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
@@ -39,6 +39,9 @@ module Prefab
         return false
       end
       variant.bool
+    rescue
+      @base_client.log.info("is_on? methods only work for boolean feature flags variants. This feature flags variant is '#{variant}'. Returning false")
+      false
     end
 
     def get_variant(feature_name, lookup_key, attributes, feature_obj, variants)
