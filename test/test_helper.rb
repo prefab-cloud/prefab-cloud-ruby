@@ -5,10 +5,10 @@ class MockBaseClient
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
-  attr_reader :namespace, :logger, :project_env_id, :config_client
+  attr_reader :namespace, :logger, :config_client
 
-  def initialize(project_env_id: TEST_ENV_ID, namespace: "")
-    @project_env_id = project_env_id
+  def initialize(namespace: "")
+
     @namespace = namespace
     @logger = Logger.new($stdout)
     @config_client = MockConfigClient.new
@@ -16,10 +16,6 @@ class MockBaseClient
 
   def project_id
     1
-  end
-
-  def project_env_id
-    @project_env_id
   end
 
   def log
