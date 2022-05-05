@@ -15,18 +15,18 @@ class RackApp
 
     key = props["key"]
     namespace = props["namespace"]
-    project_env_id = props["project_env_id"]
+    api_key = props["api_key"]
     user_key = props["user_key"]
     is_feature_flag = !props["feature_flag"].nil?
-
+    puts props
     client = Prefab::Client.new(
-      api_key: "1-#{project_env_id}-local_development_api_key-SDK", #sets environment
+      api_key: api_key,
       namespace: namespace,
     )
 
     puts "Key #{key}"
     puts "User #{user_key}"
-    puts "project_env_id #{project_env_id}"
+    puts "api_key #{api_key}"
     puts "Namespace #{namespace}"
     puts "Props! #{props}"
     puts "is_feature_flag! #{is_feature_flag}"
