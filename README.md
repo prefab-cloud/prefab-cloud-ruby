@@ -43,6 +43,15 @@ on_worker_boot do
 end
 ```
 
+## Logging & Debugging
+In classpath or ~/.prefab.overrides.config.yaml set
+```log_level.prefab: debug```
+
+To debug issues before this config file has been read, set env var
+```
+PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL = debug
+```
+
 ## Contributing to prefab-cloud-ruby
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.

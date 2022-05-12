@@ -29,7 +29,6 @@ module Prefab
 
     def start_streaming
       @streaming = true
-      # start_grpc_streaming_connection_thread(@config_loader.highwater_mark)
       start_sse_streaming_connection_thread(@config_loader.highwater_mark)
     end
 
@@ -82,10 +81,9 @@ module Prefab
                                                interceptors: [@base_client.interceptor, @cancellable_interceptor])
     end
 
-    # Bootstrap out of the cache
-    # returns the high-watermark of what was in the cache
+    # try API first, if not, fallback to s3
     def load_checkpoint
-      success = load_checkpoint_from_config
+      success = load_checkpoint_from_grpc_api
 
       if !success
         @base_client.log_internal Logger::INFO, "Fallback to S3"
@@ -96,16 +94,11 @@ module Prefab
       @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
     end
 
-    def load_checkpoint_from_config
-      @base_client.log_internal Logger::DEBUG, "Load Checkpoint From Config"
-
+    def load_checkpoint_from_grpc_api
       config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
 
       resp = stub.get_all_config(config_req)
-      @base_client.log_internal Logger::DEBUG, "Got Response #{resp}"
       load_configs(resp, :api)
-      @config_resolver.update
-      finish_init!(:api)
       true
     rescue => e
       @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
@@ -119,19 +112,23 @@ module Prefab
         configs = Prefab::Configs.decode(resp.body)
         load_configs(configs, :s3)
       else
-        @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status} Plan may not support this."
+        @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status}"
       end
     end
 
     def load_configs(configs, source)
       project_env_id = configs.config_service_pointer.project_env_id
       @config_resolver.project_env_id = project_env_id
+      starting_highwater_mark = @config_loader.highwater_mark
 
-      @base_client.log_internal Logger::INFO, "Prefab Initializing in project: #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       configs.configs.each do |config|
         @config_loader.set(config)
       end
-      @base_client.log_internal Logger::INFO, "Found checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}"
+      if @config_loader.highwater_mark > starting_highwater_mark
+        @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
+      else
+        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes."
+      end
       @base_client.stats.increment("prefab.config.checkpoint.load")
       @config_resolver.update
       finish_init!(source)
@@ -164,7 +161,6 @@ module Prefab
       end
     end
 
-
     def start_sse_streaming_connection_thread(start_at_id)
       auth = "#{@base_client.project_id}:#{@base_client.api_key}"
 
@@ -178,51 +174,9 @@ module Prefab
       SSE::Client.new(url, headers: headers) do |client|
         client.on_event do |event|
           configs = Prefab::Configs.decode(Base64.decode64(event.data))
-          @base_client.log_internal Logger::INFO, "SSE received configs."
-          @base_client.log_internal Logger::DEBUG, "SSE received configs: #{configs}"
-          configs.configs.each do |config|
-            @config_loader.set(config)
-          end
-          @config_resolver.update
-          finish_init!(:streaming)
+          load_configs(configs, :sse)
         end
       end
-    end
-
-    # Setup a streaming connection to the API
-    # Save new config values into the loader
-    def start_grpc_streaming_connection_thread(start_at_id)
-      config_req = Prefab::ConfigServicePointer.new(start_at_id: start_at_id)
-      @base_client.log_internal Logger::DEBUG, "start api connection thread #{start_at_id}"
-      @base_client.stats.increment("prefab.config.api.start")
-
-      @api_connection_thread = Thread.new do
-        at_exit do
-          @streaming = false
-          @cancellable_interceptor.cancel
-        end
-
-        while @streaming do
-          begin
-            resp = stub.get_config(config_req)
-            resp.each do |r|
-              r.configs.each do |config|
-                @config_loader.set(config)
-              end
-              @config_resolver.update
-              finish_init!(:streaming)
-            end
-          rescue => e
-            if @streaming
-              level = e.code == 1 ? Logger::DEBUG : Logger::INFO
-              @base_client.log_internal level, ("config client encountered #{e.message} pausing #{RECONNECT_WAIT}")
-              reset
-              sleep(RECONNECT_WAIT)
-            end
-          end
-        end
-      end
-
     end
   end
 end
