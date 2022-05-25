@@ -75,14 +75,12 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :MAXIMUM, 2
     end
     add_message "prefab.FeatureFlagVariant" do
+      proto3_optional :int, :int64, 1
+      proto3_optional :string, :string, 2
+      proto3_optional :double, :double, 3
+      proto3_optional :bool, :bool, 4
       optional :name, :string, 5
       optional :description, :string, 6
-      oneof :type do
-        optional :int, :int64, 1
-        optional :string, :string, 2
-        optional :double, :double, 3
-        optional :bool, :bool, 4
-      end
     end
     add_message "prefab.Criteria" do
       optional :property, :string, 1
@@ -106,15 +104,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       repeated :variant_weights, :message, 2, "prefab.VariantWeight"
     end
     add_message "prefab.Segment" do
-      optional :name, :string, 1
-      optional :description, :string, 2
-      repeated :includes, :string, 3
-      repeated :excludes, :string, 4
-      repeated :criterion, :message, 5, "prefab.Criteria"
-    end
-    add_message "prefab.UserTarget" do
-      optional :variant_idx, :int32, 1
-      repeated :identifiers, :string, 2
+      repeated :criterion, :message, 1, "prefab.Criteria"
     end
     add_message "prefab.VariantWeight" do
       optional :weight, :int32, 1
@@ -123,7 +113,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "prefab.FeatureFlag" do
       optional :active, :bool, 1
       optional :inactive_variant_idx, :int32, 2
-      repeated :user_targets, :message, 4, "prefab.UserTarget"
       repeated :rules, :message, 5, "prefab.Rule"
     end
     add_message "prefab.LimitDefinition" do
@@ -205,7 +194,6 @@ module Prefab
   Criteria::CriteriaOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criteria.CriteriaOperator").enummodule
   Rule = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Rule").msgclass
   Segment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Segment").msgclass
-  UserTarget = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.UserTarget").msgclass
   VariantWeight = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeight").msgclass
   FeatureFlag = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlag").msgclass
   LimitDefinition = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition").msgclass
