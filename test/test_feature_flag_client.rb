@@ -75,32 +75,6 @@ class TestFeatureFlagClient < Minitest::Test
                  @client.evaluate(feature, "hashes low", [], flag, variants)
   end
 
-  def test_user_targets
-
-    feature = "FlagName"
-    variants = [
-      Prefab::FeatureFlagVariant.new(string: "inactive"),
-      Prefab::FeatureFlagVariant.new(string: "user target"),
-      Prefab::FeatureFlagVariant.new(string: "default"),
-    ]
-    flag = Prefab::FeatureFlag.new(
-      active: true,
-      inactive_variant_idx: 1,
-      user_targets: [
-        variant_idx: 2,
-        identifiers: ["user:1", "user:3"]
-      ],
-      rules: default_ff_rule(3)
-    )
-
-    assert_equal "user target",
-                 @client.evaluate(feature, "user:1", [], flag, variants)
-    assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag, variants)
-    assert_equal "user target",
-                 @client.evaluate(feature, "user:3", [], flag, variants)
-  end
-
   def test_inclusion_rule
     feature = "FlagName"
     variants = [
@@ -174,34 +148,46 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "default",
-                 @client.evaluate(feature, "user:1", {email: "not@example.com"}, flag, variants)
+                 @client.evaluate(feature, "user:1", { email: "not@example.com" }, flag, variants)
     assert_equal "default",
                  @client.evaluate(feature, "user:2", {}, flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", {email: "b@example.com"}, flag, variants)
+                 @client.evaluate(feature, "user:2", { email: "b@example.com" }, flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", {"email" => "b@example.com"}, flag, variants)
+                 @client.evaluate(feature, "user:2", { "email" => "b@example.com" }, flag, variants)
 
   end
 
   def test_segment_match?
     segment = Prefab::Segment.new(
-      name: "Beta Group",
-      includes: ["user:1", "user:5"],
-      excludes: ["user:1", "user:2"]
+      criterion: [
+        Prefab::Criteria.new(
+          operator: "PROP_IS_ONE_OF",
+          values: ["a@example.com", "b@example.com"],
+          property: "email"
+        ),
+        Prefab::Criteria.new(
+          operator: "LOOKUP_KEY_IN",
+          values: ["user:2"]
+        )
+      ]
     )
     assert_equal false, @client.segment_match?(segment, "user:0", {})
-    assert_equal false, @client.segment_match?(segment, "user:1", {})
-    assert_equal false, @client.segment_match?(segment, "user:2", {})
-    assert_equal true, @client.segment_match?(segment, "user:5", {})
+    assert_equal true, @client.segment_match?(segment, "user:2", {})
+    assert_equal false, @client.segment_match?(segment, "user:1", { email: "no@example.com" })
+    assert_equal true, @client.segment_match?(segment, "user:1", { email: "a@example.com" })
   end
 
   def test_segments
     segment_key = "prefab-segment-beta-group"
     @mock_base_client.config_client.mock_this_config(segment_key,
                                                      Prefab::Segment.new(
-                                                       name: "Beta Group",
-                                                       includes: ["user:1"]
+                                                       criterion: [
+                                                         Prefab::Criteria.new(
+                                                           operator: Prefab::Criteria::CriteriaOperator::LOOKUP_KEY_IN,
+                                                           values: ["user:1"]
+                                                         )
+                                                       ]
                                                      )
     )
 
@@ -247,17 +233,23 @@ class TestFeatureFlagClient < Minitest::Test
     segment_key_one = "prefab-segment-segment-1"
     @mock_base_client.config_client.mock_this_config(segment_key_one,
                                                      Prefab::Segment.new(
-                                                       name: "Segment-1",
-                                                       includes: ["user:1", "user:2"],
-                                                       excludes: ["user:3"]
+                                                       criterion: [
+                                                         Prefab::Criteria.new(
+                                                           operator: Prefab::Criteria::CriteriaOperator::LOOKUP_KEY_IN,
+                                                           values: ["user:1", "user:2"]
+                                                         )
+                                                       ]
                                                      )
     )
     segment_key_two = "prefab-segment-segment-2"
     @mock_base_client.config_client.mock_this_config(segment_key_two,
                                                      Prefab::Segment.new(
-                                                       name: "Segment-2",
-                                                       includes: ["user:3", "user:4"],
-                                                       excludes: ["user:2"]
+                                                       criterion: [
+                                                         Prefab::Criteria.new(
+                                                           operator: Prefab::Criteria::CriteriaOperator::LOOKUP_KEY_IN,
+                                                           values: ["user:3", "user:4"]
+                                                         )
+                                                       ]
                                                      )
     )
 
@@ -288,7 +280,8 @@ class TestFeatureFlagClient < Minitest::Test
                                       variant_idx: 3)
           ]
         )
-      ]
+
+      ],
     )
 
     assert_equal "rule target",

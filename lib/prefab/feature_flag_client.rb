@@ -30,7 +30,7 @@ module Prefab
     end
 
     def evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
-      value_of(get_variant(feature_name, lookup_key, attributes, feature_obj, variants))
+      value_of_variant(get_variant(feature_name, lookup_key, attributes, feature_obj, variants))
     end
 
     private
@@ -50,19 +50,12 @@ module Prefab
         return get_variant_obj(variants, feature_obj.inactive_variant_idx)
       end
 
-      # if user_targets.match
-      feature_obj.user_targets.each do |target|
-        if (target.identifiers.include? lookup_key)
-          return get_variant_obj(variants, target.variant_idx)
-        end
-      end
-
       #default to inactive
       variant_weights = [Prefab::VariantWeight.new(variant_idx: feature_obj.inactive_variant_idx, weight: 1)]
 
       # if rules.match
       feature_obj.rules.each do |rule|
-        if criteria_match?(rule, lookup_key, attributes)
+        if criteria_match?(rule.criteria, lookup_key, attributes)
           variant_weights = rule.variant_weights
           break
         end
@@ -107,22 +100,25 @@ module Prefab
       int_value / MAX_32_FLOAT
     end
 
-    def criteria_match?(rule, lookup_key, attributes)
+    # def criteria_match?(rule, lookup_key, attributes)
+    #
+    # end
+    def criteria_match?(criteria, lookup_key, attributes)
 
-      if rule.criteria.operator == :ALWAYS_TRUE
+      if criteria.operator == :ALWAYS_TRUE
         return true
-      elsif rule.criteria.operator == :LOOKUP_KEY_IN
-        return rule.criteria.values.include?(lookup_key)
-      elsif rule.criteria.operator == :LOOKUP_KEY_NOT_IN
-        return !rule.criteria.values.include?(lookup_key)
-      elsif rule.criteria.operator == :IN_SEG
-        return segment_matches(rule.criteria.values, lookup_key, attributes).any?
-      elsif rule.criteria.operator == :NOT_IN_SEG
-        return segment_matches(rule.criteria.values, lookup_key, attributes).none?
-      elsif rule.criteria.operator == :PROP_IS_ONE_OF
-        return rule.criteria.values.include?(attributes[rule.criteria.property]) || rule.criteria.values.include?(attributes[rule.criteria.property.to_sym])
-      elsif rule.criteria.operator == :PROP_IS_NOT_ONE_OF
-        return !(rule.criteria.values.include?(attributes[rule.criteria.property]) || rule.criteria.values.include?(attributes[rule.criteria.property.to_sym]))
+      elsif criteria.operator == :LOOKUP_KEY_IN
+        return criteria.values.include?(lookup_key)
+      elsif criteria.operator == :LOOKUP_KEY_NOT_IN
+        return !criteria.values.include?(lookup_key)
+      elsif criteria.operator == :IN_SEG
+        return segment_matches(criteria.values, lookup_key, attributes).any?
+      elsif criteria.operator == :NOT_IN_SEG
+        return segment_matches(criteria.values, lookup_key, attributes).none?
+      elsif criteria.operator == :PROP_IS_ONE_OF
+        return criteria.values.include?(attributes[criteria.property]) || criteria.values.include?(attributes[criteria.property.to_sym])
+      elsif criteria.operator == :PROP_IS_NOT_ONE_OF
+        return !(criteria.values.include?(attributes[criteria.property]) || criteria.values.include?(attributes[criteria.property.to_sym]))
       end
       @base_client.log.info("Unknown Operator")
       false
@@ -142,10 +138,11 @@ module Prefab
       end
     end
 
+    # does a given segment match?
     def segment_match?(segment, lookup_key, attributes)
-      includes = segment.includes.include?(lookup_key)
-      excludes = segment.excludes.include?(lookup_key)
-      includes && !excludes
+      segment.criterion.map do |criteria|
+        criteria_match?(criteria, lookup_key, attributes)
+      end.any?
     end
   end
 end

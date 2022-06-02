@@ -16,5 +16,13 @@ module Prefab
         config_value.segment
       end
     end
+
+    def value_of_variant(feature_flag_variant)
+      return feature_flag_variant.string if feature_flag_variant.has_string?
+      return feature_flag_variant.int if feature_flag_variant.has_int?
+      return feature_flag_variant.double if feature_flag_variant.has_double?
+      return feature_flag_variant.bool if feature_flag_variant.has_bool?
+      return nil
+    end
   end
 end
