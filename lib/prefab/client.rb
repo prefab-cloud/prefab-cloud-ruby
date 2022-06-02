@@ -14,7 +14,6 @@ module Prefab
                    logdev: nil,
                    stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
                    shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
-                   local: false,
                    namespace: "",
                    log_formatter: DEFAULT_LOG_FORMATTER
     )
@@ -22,7 +21,6 @@ module Prefab
       raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
-      @local = local
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
       @api_key = api_key
