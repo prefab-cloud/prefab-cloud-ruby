@@ -18,6 +18,7 @@ class RackApp
     api_key = props["api_key"]
     user_key = props["user_key"]
     is_feature_flag = !props["feature_flag"].nil?
+    attributes = props["attributes"]
     puts props
     client = Prefab::Client.new(
       api_key: api_key,
@@ -35,7 +36,7 @@ class RackApp
 
     if is_feature_flag
       puts "EVALFF #{key} #{user_key}"
-      rtn = client.feature_flag_client.get(key, user_key, []).to_s
+      rtn = client.feature_flag_client.get(key, user_key, attributes).to_s
     else
       rtn = client.config_client.get(key).to_s
     end
