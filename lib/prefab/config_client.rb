@@ -98,7 +98,7 @@ module Prefab
       config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
 
       resp = stub.get_all_config(config_req)
-      load_configs(resp, :api)
+      load_configs(resp, :grpc)
       true
     rescue => e
       @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
@@ -122,7 +122,7 @@ module Prefab
       starting_highwater_mark = @config_loader.highwater_mark
 
       configs.configs.each do |config|
-        @config_loader.set(config)
+        @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
         @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"

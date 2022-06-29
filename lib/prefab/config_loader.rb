@@ -20,16 +20,16 @@ module Prefab
       rtn
     end
 
-    def set(config)
+    def set(config, source="unspecified")
       # don't overwrite newer values
-      if @api_config[config.key] && @api_config[config.key].id > config.id
+      if @api_config[config.key] && @api_config[config.key][:config].id > config.id
         return
       end
 
       if config.rows.empty?
         @api_config.delete(config.key)
       else
-        @api_config[config.key] = config
+        @api_config[config.key] = {source: source, config: config}
       end
       @highwater_mark = [config.id, @highwater_mark].max
     end
@@ -41,7 +41,7 @@ module Prefab
     def get_api_deltas
       configs = Prefab::Configs.new
       @api_config.each_value do |config_value|
-        configs.configs << config_value
+        configs.configs << config_value[:config]
       end
       configs
     end
@@ -63,9 +63,10 @@ module Prefab
       Dir.glob(glob).each do |file|
         yaml = load(file)
         yaml.each do |k, v|
-          rtn[k] = Prefab::Config.new(key: k, rows: [
-            Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
-          ])
+          rtn[k] = { source: file,
+                     config: Prefab::Config.new(key: k, rows: [
+                       Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+                     ]) }
         end
       end
       rtn

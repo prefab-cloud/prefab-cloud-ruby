@@ -18,12 +18,17 @@ module Prefab
       str = ""
       @lock.with_read_lock do
         @local_store.each do |k, v|
+          elements = [k.slice(0..59).ljust(60)]
           if v.nil?
-            str<< "|#{k}| tombstone\n"
+            elements << "tombstone"
           else
             value = v[:value]
-            str << "|#{k}| from #{v[:match]} |#{value_of(value)}|#{value_of(value).class}\n"
+            elements << value_of(value).to_s.slice(0..14).ljust(15)
+            elements << value_of(value).class.to_s.slice(0..9).ljust(10)
+            elements << "Match: #{v[:match]}".slice(0..14).ljust(15)
+            elements << "Source: #{v[:source]}"
           end
+          str << elements.join(" | ") << "\n"
         end
       end
       str
@@ -43,10 +48,6 @@ module Prefab
       make_local
     end
 
-    def export_api_deltas
-      @config_loader.get_api_deltas
-    end
-
     private
 
     # Should client a.b.c see key in namespace a.b? yes
@@ -64,16 +65,17 @@ module Prefab
 
     def make_local
       store = {}
-      @config_loader.calc_config.each do |key, config|
+      @config_loader.calc_config.each do |key, config_resolver_obj|
+        config = config_resolver_obj[:config]
         sortable = config.rows.map do |row|
           if row.project_env_id != 0
             if row.project_env_id == @project_env_id
               if !row.namespace.empty?
                 (starts_with, count) = starts_with_ns?(row.namespace, @namespace)
                 # rubocop:disable BlockNesting
-                { sortable: 2 + count, match: row.namespace, value: row.value, config: config} if starts_with
+                { sortable: 2 + count, match: "nm:#{row.namespace}", value: row.value, config: config} if starts_with
               else
-                { sortable: 1, match: row.project_env_id, value: row.value, config: config}
+                { sortable: 1, match: "env:#{row.project_env_id}", value: row.value, config: config}
               end
             end
           else
@@ -81,6 +83,7 @@ module Prefab
           end
         end.compact
         to_store = sortable.sort_by { |h| h[:sortable] }.last
+        to_store[:source] = config_resolver_obj[:source]
         store[key] = to_store
       end
 
@@ -89,9 +92,9 @@ module Prefab
       end
     end
 
-    def _get(property)
+    def _get(key)
       @lock.with_read_lock do
-        @local_store[property]
+        @local_store[key]
       end
     end
   end

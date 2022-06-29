@@ -10,7 +10,7 @@ class TestConfigResolver < Minitest::Test
     @loader = MockConfigLoader.new
 
     loaded_values = {
-      "key" => Prefab::Config.new(
+      "key" => { config: Prefab::Config.new(
         key: "key",
         rows: [
           Prefab::ConfigRow.new(
@@ -42,13 +42,14 @@ class TestConfigResolver < Minitest::Test
           ),
 
         ]
-      ),
-      "key2" => Prefab::Config.new(
+      ) },
+      "key2" => { config: Prefab::Config.new(
         key: "key2",
         rows: [
           value: Prefab::ConfigValue.new(string: "valueB2"),
         ]
-      )
+      ) }
+
     }
 
     @loader.stub :calc_config, loaded_values do
@@ -107,25 +108,27 @@ class TestConfigResolver < Minitest::Test
 
     @loader = MockConfigLoader.new
     loaded_values = {
-      "ff" => Prefab::Config.new(
-        key: "ff",
-        variants: [
-          Prefab::FeatureFlagVariant.new(string: "inactive"),
-          Prefab::FeatureFlagVariant.new(string: "default"),
-          Prefab::FeatureFlagVariant.new(string: "env"),
-        ],
-        rows: [
-          { value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
-            inactive_variant_idx: 0,
-            rules: default_ff_rule(1),
-          )) },
-          { project_env_id: TEST_ENV_ID,
-            value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
-              inactive_variant_idx: 0,
-              rules: default_ff_rule(2),
-            )) }
-        ]
-      )
+      "ff" => { source: 'test',
+                config: Prefab::Config.new(
+                  key: "ff",
+                  variants: [
+                    Prefab::FeatureFlagVariant.new(string: "inactive"),
+                    Prefab::FeatureFlagVariant.new(string: "default"),
+                    Prefab::FeatureFlagVariant.new(string: "env"),
+                  ],
+                  rows: [
+                    { value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+                      inactive_variant_idx: 0,
+                      rules: default_ff_rule(1),
+                    )) },
+                    { project_env_id: TEST_ENV_ID,
+                      value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
+                        inactive_variant_idx: 0,
+                        rules: default_ff_rule(2),
+                      )) }
+                  ]
+                )
+      }
     }
     @loader.stub :calc_config, loaded_values do
       resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
@@ -140,18 +143,18 @@ class TestConfigResolver < Minitest::Test
     @loader = MockConfigLoader.new
 
     loaded_values = {
-      "Key:With:Colons" => Prefab::Config.new(
+      "Key:With:Colons" => { config: Prefab::Config.new(
         key: "Key:With:Colons",
         rows: [Prefab::ConfigRow.new(
           value: Prefab::ConfigValue.new(string: "value")
         )]
-      ),
-      "proj:apikey" => Prefab::Config.new(
+      ) },
+      "proj:apikey" => { config: Prefab::Config.new(
         key: "proj:apikey",
         rows: [Prefab::ConfigRow.new(
           value: Prefab::ConfigValue.new(string: "v2")
         )]
-      )
+      ) }
     }
 
     @loader.stub :calc_config, loaded_values do
