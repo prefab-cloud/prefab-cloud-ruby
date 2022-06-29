@@ -7,7 +7,6 @@ module Prefab
       "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
     }
 
-
     attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url
 
     def initialize(api_key: ENV['PREFAB_API_KEY'],
@@ -17,8 +16,8 @@ module Prefab
                    namespace: "",
                    log_formatter: DEFAULT_LOG_FORMATTER
     )
-      raise "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
-      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
+      log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
+      log_internal Logger::ERROR, "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
       @stats = (stats || NoopStats.new)
