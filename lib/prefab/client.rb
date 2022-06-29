@@ -20,7 +20,7 @@ module Prefab
       @log_formatter = log_formatter
       if api_key.nil? || api_key.empty?
         log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var"
-        return
+        api_key = "0-unset-unset-SDK"
       end
       raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @stats = (stats || NoopStats.new)
@@ -33,6 +33,7 @@ module Prefab
       @prefab_api_url = ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud'
       @prefab_grpc_url = ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443'
       log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
+      config_client.start_streaming
       at_exit do
         channel.destroy
       end

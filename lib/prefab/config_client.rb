@@ -9,6 +9,7 @@ module Prefab
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient"
       @timeout = timeout
       @initialization_lock = Concurrent::ReadWriteLock.new
+      @stream_lock = Concurrent::ReadWriteLock.new
 
       @checkpoint_freq_secs = DEFAULT_CHECKPOINT_FREQ_SEC
 
@@ -28,8 +29,9 @@ module Prefab
     end
 
     def start_streaming
-      @streaming = true
-      start_sse_streaming_connection_thread(@config_loader.highwater_mark)
+      @stream_lock.with_write_lock do
+        start_sse_streaming_connection_thread(@config_loader.highwater_mark) if @streaming_thread.nil?
+      end
     end
 
     def get(key)
@@ -89,7 +91,6 @@ module Prefab
         @base_client.log_internal Logger::INFO, "Fallback to S3"
         load_checkpoint_from_s3
       end
-
     rescue => e
       @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
     end
@@ -100,7 +101,10 @@ module Prefab
       resp = stub.get_all_config(config_req)
       load_configs(resp, :grpc)
       true
+    rescue GRPC::Unauthenticated
+      @base_client.log_internal Logger::WARN, "Unauthenticated"
     rescue => e
+      puts e.class
       @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
       false
     end
@@ -136,6 +140,7 @@ module Prefab
 
     # A thread that checks for a checkpoint
     def start_checkpointing_thread
+
       Thread.new do
         loop do
           begin
@@ -163,7 +168,6 @@ module Prefab
 
     def start_sse_streaming_connection_thread(start_at_id)
       auth = "#{@base_client.project_id}:#{@base_client.api_key}"
-
       auth_string = Base64.strict_encode64(auth)
       headers = {
         "x-prefab-start-at-id": start_at_id,
@@ -171,7 +175,7 @@ module Prefab
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
       @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url}"
-      SSE::Client.new(url, headers: headers) do |client|
+      @streaming_thread = SSE::Client.new(url, headers: headers) do |client|
         client.on_event do |event|
           configs = Prefab::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)
