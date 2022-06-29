@@ -16,10 +16,13 @@ module Prefab
                    namespace: "",
                    log_formatter: DEFAULT_LOG_FORMATTER
     )
-      log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var" if api_key.nil? || api_key.empty?
-      log_internal Logger::ERROR, "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @logdev = (logdev || $stdout)
       @log_formatter = log_formatter
+      if api_key.nil? || api_key.empty?
+        log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var"
+        return
+      end
+      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
       @stats = (stats || NoopStats.new)
       @shared_cache = (shared_cache || NoopCache.new)
       @api_key = api_key

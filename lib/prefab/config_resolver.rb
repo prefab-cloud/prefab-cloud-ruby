@@ -25,7 +25,7 @@ module Prefab
             value = v[:value]
             elements << value_of(value).to_s.slice(0..14).ljust(15)
             elements << value_of(value).class.to_s.slice(0..9).ljust(10)
-            elements << "Match: #{v[:match]}".slice(0..14).ljust(15)
+            elements << "Match: #{v[:match]}".slice(0..19).ljust(20)
             elements << "Source: #{v[:source]}"
           end
           str << elements.join(" | ") << "\n"
