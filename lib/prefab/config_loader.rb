@@ -22,13 +22,16 @@ module Prefab
 
     def set(config, source="unspecified")
       # don't overwrite newer values
-      if @api_config[config.key] && @api_config[config.key][:config].id > config.id
+      if @api_config[config.key] && @api_config[config.key][:config].id >= config.id
         return
       end
 
       if config.rows.empty?
         @api_config.delete(config.key)
       else
+        if @api_config[config.key]
+          @base_client.log_internal Logger::DEBUG, "Replace #{config.key} with value from #{source} #{ @api_config[config.key][:config].id} -> #{config.id}"
+        end
         @api_config[config.key] = {source: source, config: config}
       end
       @highwater_mark = [config.id, @highwater_mark].max
