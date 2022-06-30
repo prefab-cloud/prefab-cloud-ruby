@@ -40,7 +40,7 @@ module Prefab
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, #options :unlock_and_continue, :lock_and_keep_trying, :raise
       # new_config_callback: nil, #callback method
       # live_override_url: nil,
-      local_only: false
+      local_only: ENV['PREFAB_LOCAL_ONLY'] == "true"
     )
       @api_key = api_key
       @logdev = logdev
