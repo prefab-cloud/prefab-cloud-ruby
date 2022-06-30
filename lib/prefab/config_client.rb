@@ -1,9 +1,10 @@
 module Prefab
   class ConfigClient
+    include Prefab::ConfigHelper
+
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
-
 
 
     def initialize(base_client, timeout)
