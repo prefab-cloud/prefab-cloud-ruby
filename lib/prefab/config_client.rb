@@ -4,10 +4,7 @@ module Prefab
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
 
-    module ON_INITIALIZATION_FAILURE
-      RAISE = 1
-      RETURN = 2
-    end
+
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -26,16 +23,13 @@ module Prefab
       @initialization_lock.acquire_write_lock
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquiredWriteLock"
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
-      @initialization_timeout = 2
-      @on_init_failure = ON_INITIALIZATION_FAILURE::RETURN
-      @local_mode = false
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
 
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
 
-      if @local_mode
-        finish_init!(:local_mode)
+      if @base_client.options.local_only
+        finish_init!(:local_only)
       else
         load_checkpoint
         start_checkpointing_thread
@@ -91,13 +85,13 @@ module Prefab
 
     def _get(key)
       # wait timeout sec for the initalization to be complete
-      @initialized_future.value(@initialization_timeout)
+      @initialized_future.value(@base_client.options.initialization_timeout_sec)
       if @initialized_future.incomplete?
-        if @on_init_failure == ON_INITIALIZATION_FAILURE::RETURN
-          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@initialization_timeout}. Key #{key}. Returning what we have"
+        if @base_client.options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
+          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@base_client.options.initialization_timeout_sec}. Key #{key}. Returning what we have"
           @initialization_lock.release_write_lock
         else
-          raise "Prefab Couldn't Initialize In #{@initialization_timeout} 2 timeout. Key #{key}. "
+          raise "Prefab Couldn't Initialize In #{@base_client.options.initialization_timeout_sec} 2 timeout. Key #{key}. "
         end
       end
       @config_resolver._get(key)

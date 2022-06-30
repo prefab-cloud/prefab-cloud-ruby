@@ -3,35 +3,26 @@ module Prefab
 
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
-    DEFAULT_LOG_FORMATTER = proc {|severity, datetime, progname, msg|
-      "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
-    }
 
-    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url
+    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
 
-    def initialize(api_key: ENV['PREFAB_API_KEY'],
-                   logdev: nil,
-                   stats: nil, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
-                   shared_cache: nil, # Something that quacks like Rails.cache ideally memcached
-                   namespace: "",
-                   log_formatter: DEFAULT_LOG_FORMATTER
-    )
-      @logdev = (logdev || $stdout)
-      @log_formatter = log_formatter
-      if api_key.nil? || api_key.empty?
+    def initialize(options: Prefab::Options.new)
+      @options = options
+      @shared_cache = @options.shared_cache
+      @stats = @options.stats
+      if @options.api_key.nil? || @options.api_key.empty?
         log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var"
-        api_key = "0-unset-unset-SDK"
+        @api_key = "0-unset-unset-SDK"
+      else
+        @api_key = api_key
       end
       raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
-      @stats = (stats || NoopStats.new)
-      @shared_cache = (shared_cache || NoopCache.new)
-      @api_key = api_key
       @project_id = api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
-      @namespace = namespace
+      @namespace = @options.namespace
       @interceptor = Prefab::AuthInterceptor.new(api_key)
       @stubs = {}
-      @prefab_api_url = ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud'
-      @prefab_grpc_url = ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443'
+      @prefab_api_url = @options.prefab_api_url
+      @prefab_grpc_url = @options.prefab_grpc_url
       log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
       at_exit do
         channel.destroy
@@ -57,7 +48,7 @@ module Prefab
     end
 
     def log
-      @logger_client ||= Prefab::LoggerClient.new(@logdev, formatter: @log_formatter)
+      @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter)
     end
 
     def log_internal(level, msg)
