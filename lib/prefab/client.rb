@@ -14,12 +14,12 @@ module Prefab
         log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var"
         @api_key = "0-unset-unset-SDK"
       else
-        @api_key = api_key
+        @api_key = @options.api_key
       end
-      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless api_key.count("-") == 3
-      @project_id = api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
+      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless @api_key.count("-") == 3
+      @project_id = @api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
       @namespace = @options.namespace
-      @interceptor = Prefab::AuthInterceptor.new(api_key)
+      @interceptor = Prefab::AuthInterceptor.new(@api_key)
       @stubs = {}
       @prefab_api_url = @options.prefab_api_url
       @prefab_grpc_url = @options.prefab_grpc_url
