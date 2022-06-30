@@ -15,7 +15,7 @@ module Prefab
     end
 
     def to_s
-      str = ""
+      str = "\n"
       @lock.with_read_lock do
         @local_store.each do |k, v|
           elements = [k.slice(0..59).ljust(60)]
