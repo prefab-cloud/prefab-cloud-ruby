@@ -33,7 +33,6 @@ module Prefab
       @prefab_api_url = ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud'
       @prefab_grpc_url = ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443'
       log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
-      config_client.start_streaming
       at_exit do
         channel.destroy
       end

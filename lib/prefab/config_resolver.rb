@@ -44,6 +44,12 @@ module Prefab
       config ? config[:config] : nil
     end
 
+    def _get(key)
+      @lock.with_read_lock do
+        @local_store[key]
+      end
+    end
+
     def update
       make_local
     end
@@ -89,12 +95,6 @@ module Prefab
 
       @lock.with_write_lock do
         @local_store = store
-      end
-    end
-
-    def _get(key)
-      @lock.with_read_lock do
-        @local_store[key]
       end
     end
   end

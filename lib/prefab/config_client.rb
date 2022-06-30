@@ -4,11 +4,16 @@ module Prefab
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
 
+    module ON_INITIALIZATION_FAILURE
+      RAISE = 1
+      RETURN = 2
+    end
+
     def initialize(base_client, timeout)
       @base_client = base_client
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient"
       @timeout = timeout
-      @initialization_lock = Concurrent::ReadWriteLock.new
+
       @stream_lock = Concurrent::ReadWriteLock.new
 
       @checkpoint_freq_secs = DEFAULT_CHECKPOINT_FREQ_SEC
@@ -16,27 +21,31 @@ module Prefab
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
+      @initialization_lock = Concurrent::ReadWriteLock.new
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquireWriteLock"
       @initialization_lock.acquire_write_lock
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquiredWriteLock"
+      @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
+      @initialization_timeout = 2
+      @on_init_failure = ON_INITIALIZATION_FAILURE::RETURN
+      @local_mode = false
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
 
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
 
-      load_checkpoint
-      start_checkpointing_thread
+      if @local_mode
+        finish_init!(:local_mode)
+      else
+        load_checkpoint
+        start_checkpointing_thread
+        start_streaming
+      end
     end
 
     def start_streaming
       @stream_lock.with_write_lock do
         start_sse_streaming_connection_thread(@config_loader.highwater_mark) if @streaming_thread.nil?
-      end
-    end
-
-    def get(key)
-      @initialization_lock.with_read_lock do
-        @config_resolver.get(key)
       end
     end
 
@@ -68,13 +77,31 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
+    def get(key)
+      config = _get(key)
+      config ? value_of(config[:value]) : nil
+    end
+
     def get_config_obj(key)
-      @initialization_lock.with_read_lock do
-        @config_resolver.get_config(key)
-      end
+      config = _get(key)
+      config ? config[:config] : nil
     end
 
     private
+
+    def _get(key)
+      # wait timeout sec for the initalization to be complete
+      @initialized_future.value(@initialization_timeout)
+      if @initialized_future.incomplete?
+        if @on_init_failure == ON_INITIALIZATION_FAILURE::RETURN
+          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@initialization_timeout}. Key #{key}. Returning what we have"
+          @initialization_lock.release_write_lock
+        else
+          raise "Prefab Couldn't Initialize In #{@initialization_timeout} 2 timeout. Key #{key}. "
+        end
+      end
+      @config_resolver._get(key)
+    end
 
     def stub
       @_stub = Prefab::ConfigService::Stub.new(nil,
@@ -160,7 +187,7 @@ module Prefab
 
     def finish_init!(source)
       if @initialization_lock.write_locked?
-        @base_client.log_internal Logger::DEBUG, "Unlocked Config via #{source}"
+        @base_client.log_internal Logger::INFO, "Unlocked Config via #{source}"
         @initialization_lock.release_write_lock
         @base_client.log.set_config_client(self)
       end

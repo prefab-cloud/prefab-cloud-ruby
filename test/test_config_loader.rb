@@ -59,10 +59,10 @@ class TestConfigLoader < Minitest::Test
 
   def test_loading_tombstones_removes_entries
     val = Prefab::ConfigValue.new(int: 456)
-    config = Prefab::Config.new(key: "sample_int", rows: [Prefab::ConfigRow.new(value: val)])
+    config = Prefab::Config.new(key: "sample_int", rows: [Prefab::ConfigRow.new(value: val)], id: 2)
     @loader.set(config)
 
-    config = Prefab::Config.new(key: "sample_int", rows: [])
+    config = Prefab::Config.new(key: "sample_int", rows: [], id: 3)
     @loader.set(config)
 
     configs = Prefab::Configs.new
