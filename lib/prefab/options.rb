@@ -70,7 +70,6 @@ module Prefab
     end
 
     def local_only?
-      puts "local_only? #{@prefab_datasources} #{@prefab_datasources == DATASOURCES::LOCAL_ONLY}"
       @prefab_datasources == DATASOURCES::LOCAL_ONLY
     end
   end

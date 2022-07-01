@@ -10,6 +10,8 @@ module Prefab
       @options = options
       @shared_cache = @options.shared_cache
       @stats = @options.stats
+      @namespace = @options.namespace
+      @stubs = {}
 
       if @options.local_only?
         @project_id = 0
@@ -23,13 +25,9 @@ module Prefab
         @prefab_api_url = @options.prefab_api_url
         @prefab_grpc_url = @options.prefab_grpc_url
         log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
-      end
-
-      @namespace = @options.namespace
-      @stubs = {}
-
-      at_exit do
-        channel.destroy
+        at_exit do
+          channel.destroy
+        end
       end
     end
 
