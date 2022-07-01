@@ -12,6 +12,9 @@ module Prefab
     attr_reader :initialization_timeout_sec
     attr_reader :on_init_failure
     attr_reader :local_only
+    attr_reader :prefab_config_override_dir
+    attr_reader :prefab_config_classpath_dir
+    attr_reader :defaults_env
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
@@ -40,7 +43,10 @@ module Prefab
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, #options :unlock_and_continue, :lock_and_keep_trying, :raise
       # new_config_callback: nil, #callback method
       # live_override_url: nil,
-      local_only: ENV['PREFAB_LOCAL_ONLY'] == "true"
+      local_only: ENV['PREFAB_LOCAL_ONLY'] == "true",
+      prefab_config_override_dir: Dir.home,
+      prefab_config_classpath_dir: ".",
+      defaults_env: ""
     )
       @api_key = api_key
       @logdev = logdev
@@ -54,6 +60,9 @@ module Prefab
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
       @local_only = local_only
+      @prefab_config_classpath_dir = prefab_config_classpath_dir
+      @prefab_config_override_dir = prefab_config_override_dir
+      @defaults_env = defaults_env
     end
   end
 end

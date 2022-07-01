@@ -1,0 +1,19 @@
+require 'test_helper'
+
+class TestConfigClient < Minitest::Test
+  def setup
+    options = Prefab::Options.new(
+      prefab_config_override_dir: "none",
+      prefab_config_classpath_dir: "test",
+      defaults_env: "unit_tests",
+      local_only: true
+    )
+    @config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+  end
+
+  def test_load
+    assert_equal "test sample value", @config_client.get("sample")
+    assert_equal 123, @config_client.get("sample_int")
+  end
+
+end

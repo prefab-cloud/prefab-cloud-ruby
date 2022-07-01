@@ -5,12 +5,12 @@ class MockBaseClient
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
-  attr_reader :namespace, :logger, :config_client
+  attr_reader :namespace, :logger, :config_client, :options
 
-  def initialize(namespace: "")
-
+  def initialize(options = Prefab::Options.new)
+    @options = options
     @namespace = namespace
-    @logger = Logger.new($stdout)
+    @logger = Prefab::LoggerClient.new($stdout)
     @config_client = MockConfigClient.new
   end
 

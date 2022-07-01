@@ -8,7 +8,7 @@ module Prefab
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @namespace = base_client.namespace
+      @namespace = base_client.options.namespace
       @config_loader = config_loader
       @project_env_id = 0
       make_local
@@ -18,14 +18,14 @@ module Prefab
       str = "\n"
       @lock.with_read_lock do
         @local_store.each do |k, v|
-          elements = [k.slice(0..59).ljust(60)]
+          elements = [k.slice(0..49).ljust(50)]
           if v.nil?
             elements << "tombstone"
           else
             value = v[:value]
-            elements << value_of(value).to_s.slice(0..14).ljust(15)
-            elements << value_of(value).class.to_s.slice(0..9).ljust(10)
-            elements << "Match: #{v[:match]}".slice(0..19).ljust(20)
+            elements << value_of(value).to_s.slice(0..34).ljust(35)
+            elements << value_of(value).class.to_s.slice(0..6).ljust(7)
+            elements << "Match: #{v[:match]}".slice(0..29).ljust(30)
             elements << "Source: #{v[:source]}"
           end
           str << elements.join(" | ") << "\n"
@@ -85,7 +85,8 @@ module Prefab
               end
             end
           else
-            { sortable: 0, match: "default", value: row.value, config: config}
+            match = config_resolver_obj[:match] || "default"
+            { sortable: 0, match: match, value: row.value, config: config}
           end
         end.compact
         to_store = sortable.sort_by { |h| h[:sortable] }.last

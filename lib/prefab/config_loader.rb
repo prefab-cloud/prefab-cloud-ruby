@@ -5,6 +5,7 @@ module Prefab
 
     def initialize(base_client)
       @base_client = base_client
+      @prefab_options = base_client.options
       @highwater_mark = 0
       @classpath_config = load_classpath_config
       @local_overrides = load_local_overrides
@@ -20,7 +21,7 @@ module Prefab
       rtn
     end
 
-    def set(config, source="unspecified")
+    def set(config, source)
       # don't overwrite newer values
       if @api_config[config.key] && @api_config[config.key][:config].id >= config.id
         return
@@ -32,7 +33,7 @@ module Prefab
         if @api_config[config.key]
           @base_client.log_internal Logger::DEBUG, "Replace #{config.key} with value from #{source} #{ @api_config[config.key][:config].id} -> #{config.id}"
         end
-        @api_config[config.key] = {source: source, config: config}
+        @api_config[config.key] = { source: source, config: config }
       end
       @highwater_mark = [config.id, @highwater_mark].max
     end
@@ -52,12 +53,12 @@ module Prefab
     private
 
     def load_classpath_config
-      classpath_dir = ENV['PREFAB_CONFIG_CLASSPATH_DIR'] || "."
+      classpath_dir = @prefab_options.prefab_config_classpath_dir
       load_glob(File.join(classpath_dir, ".prefab*config.yaml"))
     end
 
     def load_local_overrides
-      override_dir = ENV['PREFAB_CONFIG_OVERRIDE_DIR'] || Dir.home
+      override_dir = @prefab_options.prefab_config_override_dir
       load_glob(File.join(override_dir, ".prefab*config.yaml"))
     end
 
@@ -66,10 +67,29 @@ module Prefab
       Dir.glob(glob).each do |file|
         yaml = load(file)
         yaml.each do |k, v|
-          rtn[k] = { source: file,
-                     config: Prefab::Config.new(key: k, rows: [
-                       Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
-                     ]) }
+          puts "k #{k} #{v} #{v.class}"
+
+          if v.class == Hash
+            v.each do |env_k, env_v|
+              if k == @prefab_options.defaults_env
+                rtn[env_k] = { source: file,
+                               match: k,
+                               config: Prefab::Config.new(key: env_k, rows: [
+                                 Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(env_v)))
+                               ]) }
+              else
+                puts "ignore #{k} #{v} non matching env"
+                next
+              end
+            end
+          else
+            rtn[k] = { source: file,
+                       match: "default",
+                       config: Prefab::Config.new(key: k, rows: [
+                         Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+                       ]) }
+
+          end
         end
       end
       rtn

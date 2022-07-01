@@ -1,6 +1,10 @@
-sample: OneTwoThree
+sample: default sample value
 sample_int: 123
 sample_double: 12.12
 sample_bool: true
 sample_to_override: Foo
 prefab.log_level: debug
+unit_tests:
+  sample: test sample value
+ignored_env:
+  sample: ignored value

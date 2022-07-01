@@ -192,7 +192,10 @@ class TestConfigResolver < Minitest::Test
   end
 
   def resolver_for_namespace(namespace, loader, project_env_id: TEST_ENV_ID)
-    resolver = Prefab::ConfigResolver.new(MockBaseClient.new(namespace: namespace), loader)
+    options = Prefab::Options.new(
+      namespace: namespace
+    )
+    resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
     resolver.project_env_id = project_env_id
     resolver.update
     resolver
