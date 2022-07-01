@@ -11,7 +11,6 @@ module Prefab
     attr_reader :on_no_default
     attr_reader :initialization_timeout_sec
     attr_reader :on_init_failure
-    attr_reader :local_only
     attr_reader :prefab_config_override_dir
     attr_reader :prefab_config_classpath_dir
     attr_reader :defaults_env
@@ -28,6 +27,10 @@ module Prefab
       RAISE = 1
       RETURN = 2
     end
+    module DATASOURCES
+      ALL = 1
+      LOCAL_ONLY = 2
+    end
 
     def initialize(
       api_key: ENV['PREFAB_API_KEY'],
@@ -43,11 +46,12 @@ module Prefab
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, #options :unlock_and_continue, :lock_and_keep_trying, :raise
       # new_config_callback: nil, #callback method
       # live_override_url: nil,
-      local_only: ENV['PREFAB_LOCAL_ONLY'] == "true",
+      prefab_datasources: ENV['PREFAB_DATASOURCES'] == "LOCAL_ONLY" ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: ".",
       defaults_env: ""
     )
+      # debugger
       @api_key = api_key
       @logdev = logdev
       @stats = stats
@@ -59,10 +63,15 @@ module Prefab
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
-      @local_only = local_only
+      @prefab_datasources = prefab_datasources
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @defaults_env = defaults_env
+    end
+
+    def local_only?
+      puts "local_only? #{@prefab_datasources} #{@prefab_datasources == DATASOURCES::LOCAL_ONLY}"
+      @prefab_datasources == DATASOURCES::LOCAL_ONLY
     end
   end
 end

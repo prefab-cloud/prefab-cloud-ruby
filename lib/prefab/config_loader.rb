@@ -67,8 +67,6 @@ module Prefab
       Dir.glob(glob).each do |file|
         yaml = load(file)
         yaml.each do |k, v|
-          puts "k #{k} #{v} #{v.class}"
-
           if v.class == Hash
             v.each do |env_k, env_v|
               if k == @prefab_options.defaults_env
@@ -78,7 +76,6 @@ module Prefab
                                  Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(env_v)))
                                ]) }
               else
-                puts "ignore #{k} #{v} non matching env"
                 next
               end
             end

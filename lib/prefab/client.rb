@@ -1,29 +1,33 @@
 module Prefab
-  class Client
 
+  class Client
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
 
     attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
 
-    def initialize(options: Prefab::Options.new)
+    def initialize(options = Prefab::Options.new)
       @options = options
       @shared_cache = @options.shared_cache
       @stats = @options.stats
-      if @options.api_key.nil? || @options.api_key.empty?
-        log_internal Logger::ERROR, "No API key. Set PREFAB_API_KEY env var"
-        @api_key = "0-unset-unset-SDK"
+
+      if @options.local_only?
+        @project_id = 0
+        log_internal Logger::INFO, "Prefab Running in Local Mode"
       else
         @api_key = @options.api_key
+        raise "No API key. Set PREFAB_API_KEY env var or use PREFAB_DATASOURCES=LOCAL_ONLY" if @api_key.nil? || @api_key.empty?
+        raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless @api_key.count("-") == 3
+        @project_id = @api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
+        @interceptor = Prefab::AuthInterceptor.new(@api_key)
+        @prefab_api_url = @options.prefab_api_url
+        @prefab_grpc_url = @options.prefab_grpc_url
+        log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
       end
-      raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless @api_key.count("-") == 3
-      @project_id = @api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
+
       @namespace = @options.namespace
-      @interceptor = Prefab::AuthInterceptor.new(@api_key)
       @stubs = {}
-      @prefab_api_url = @options.prefab_api_url
-      @prefab_grpc_url = @options.prefab_grpc_url
-      log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
+
       at_exit do
         channel.destroy
       end
@@ -113,7 +117,7 @@ module Prefab
       Dir["#{OpenSSL::X509::DEFAULT_CERT_DIR}/*.pem"].each do |cert|
         ssl_certs << File.open(cert).read
       end
-      if OpenSSL::X509::DEFAULT_CERT_FILE && File.exists?(OpenSSL::X509::DEFAULT_CERT_FILE)
+      if OpenSSL::X509::DEFAULT_CERT_FILE && File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE)
         ssl_certs << File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
       end
       ssl_certs

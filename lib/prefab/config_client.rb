@@ -29,7 +29,7 @@ module Prefab
 
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
 
-      if @base_client.options.local_only
+      if @base_client.options.local_only?
         finish_init!(:local_only)
       else
         load_checkpoint
@@ -53,7 +53,7 @@ module Prefab
 
       @base_client.request Prefab::ConfigService, :upsert, req_options: { timeout: @timeout }, params: upsert_req
       @base_client.stats.increment("prefab.config.upsert")
-      @config_loader.set(config_delta)
+      @config_loader.set(config_delta, :upsert)
       @config_loader.rm(previous_key) if previous_key&.present?
       @config_resolver.update
     end
@@ -121,7 +121,7 @@ module Prefab
       config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
 
       resp = stub.get_all_config(config_req)
-      load_configs(resp, :grpc)
+      load_configs(resp, :remote_api_grpc)
       true
     rescue GRPC::Unauthenticated
       @base_client.log_internal Logger::WARN, "Unauthenticated"
@@ -136,7 +136,7 @@ module Prefab
       resp = Faraday.get url
       if resp.status == 200
         configs = Prefab::Configs.decode(resp.body)
-        load_configs(configs, :s3)
+        load_configs(configs, :remote_s3)
       else
         @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status}"
       end
