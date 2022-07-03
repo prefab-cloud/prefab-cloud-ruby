@@ -107,15 +107,29 @@ module Prefab
 
     # try API first, if not, fallback to s3
     def load_checkpoint
+      success = load_checkpoint_api_cdn
+
+      if success
+        return
+      else
+        @base_client.log_internal Logger::INFO, "LoadCheckpoint: Fallback to GRPC API"
+      end
+
       success = load_checkpoint_from_grpc_api
 
-      if !success
-        @base_client.log_internal Logger::INFO, "Fallback to S3"
-        load_checkpoint_from_s3
+      if success
+        return
+      else
+        @base_client.log_internal Logger::INFO, "LoadCheckpoint: Fallback to S3"
       end
-    rescue => e
-      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+
+      success = load_checkpoint_from_s3
+
+      if !success
+        @base_client.log_internal Logger::WARN, "No success loading checkpoints"
+      end
     end
+
 
     def load_checkpoint_from_grpc_api
       config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
@@ -131,15 +145,33 @@ module Prefab
       false
     end
 
+    def load_checkpoint_api_cdn
+      url = "#{@base_client.prefab_api_url}/api/v1/config/100/100/0"
+      conn = Faraday.new(url) do |conn|
+        conn.request :basic_auth, @base_client.project_id, @base_client.api_key
+      end
+      load_url(conn, :remote_cdn_api)
+    end
+
     def load_checkpoint_from_s3
       url = "#{@s3_cloud_front}/#{@base_client.api_key.gsub("|", "/")}"
-      resp = Faraday.get url
+      load_url(Faraday.new(url), :remote_s3)
+    end
+
+    def load_url(conn, source)
+      @base_client.log_internal Logger::DEBUG, conn.to_json
+      resp = conn.get('')
       if resp.status == 200
         configs = Prefab::Configs.decode(resp.body)
-        load_configs(configs, :remote_s3)
+        load_configs(configs, source)
+        true
       else
-        @base_client.log_internal Logger::INFO, "No S3 checkpoint. Response #{resp.status}"
+        @base_client.log_internal Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
+        false
       end
+    rescue => e
+      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+      false
     end
 
     def load_configs(configs, source)
