@@ -9,6 +9,7 @@ module Prefab
 
     def initialize(base_client, timeout)
       @base_client = base_client
+      @options = base_client.options
       @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient"
       @timeout = timeout
 
@@ -29,7 +30,7 @@ module Prefab
 
       @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
 
-      if @base_client.options.local_only?
+      if @options.local_only?
         finish_init!(:local_only)
       else
         load_checkpoint
@@ -86,13 +87,13 @@ module Prefab
 
     def _get(key)
       # wait timeout sec for the initalization to be complete
-      @initialized_future.value(@base_client.options.initialization_timeout_sec)
+      @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
-        if @base_client.options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
-          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@base_client.options.initialization_timeout_sec}. Key #{key}. Returning what we have"
+        if @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
+          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
           @initialization_lock.release_write_lock
         else
-          raise "Prefab Couldn't Initialize In #{@base_client.options.initialization_timeout_sec} 2 timeout. Key #{key}. "
+          raise "Prefab Couldn't Initialize In #{@options.initialization_timeout_sec} 2 timeout. Key #{key}. "
         end
       end
       @config_resolver._get(key)
@@ -146,7 +147,7 @@ module Prefab
     end
 
     def load_checkpoint_api_cdn
-      url = "#{@base_client.prefab_api_url}/api/v1/config/100/100/0"
+      url = "#{@options.url_for_api_cdn}/api/v1/config/100/100/0"
       conn = Faraday.new(url) do |conn|
         conn.request :basic_auth, @base_client.project_id, @base_client.api_key
       end
