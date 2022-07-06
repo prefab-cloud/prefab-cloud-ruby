@@ -148,9 +148,15 @@ module Prefab
 
     def load_checkpoint_api_cdn
       url = "#{@options.url_for_api_cdn}/api/v1/config/100/100/0"
-      conn = Faraday.new(url) do |conn|
-        conn.request :basic_auth, @base_client.project_id, @base_client.api_key
-      end
+      conn = if Faraday::VERSION[0].to_i >= 2
+               Faraday.new(url) do |conn|
+                 conn.request :authorization, :basic, @base_client.project_id, @base_client.api_key
+               end
+             else
+               Faraday.new(url) do |conn|
+                 conn.request :basic_auth, @base_client.project_id, @base_client.api_key
+               end
+             end
       load_url(conn, :remote_cdn_api)
     end
 
