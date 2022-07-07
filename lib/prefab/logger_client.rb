@@ -122,7 +122,7 @@ module Prefab
     # sanitize & clean the path of the caller so the key
     # looks like log_level.app.models.user
     def get_path(absolute_path, base_label)
-      path = absolute_path + ""
+      path = (absolute_path || "unknown") + ""
       path.slice! Dir.pwd
 
       path.gsub!(/.*?(?=\/lib\/)/im, "")

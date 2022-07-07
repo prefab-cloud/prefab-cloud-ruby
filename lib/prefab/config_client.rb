@@ -5,7 +5,7 @@ module Prefab
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
-
+    SSE_READ_TIMEOUT = 300
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -234,8 +234,11 @@ module Prefab
         "Authorization": "Basic #{auth_string}",
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url}"
-      @streaming_thread = SSE::Client.new(url, headers: headers) do |client|
+      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url} with #{auth} start_at #{start_at_id}"
+      @streaming_thread = SSE::Client.new(url,
+                                          headers: headers,
+                                          read_timeout: SSE_READ_TIMEOUT,
+                                          logger: Prefab::InternalLogger.new("prefab.config.sse", @base_client.log)) do |client|
         client.on_event do |event|
           configs = Prefab::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)

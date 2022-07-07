@@ -33,7 +33,6 @@ module Prefab
 
     def channel
       credentials = http_secure? ? creds : :this_channel_is_insecure
-      log_internal Logger::DEBUG, "GRPC Channel #{@prefab_grpc_url} #{credentials}"
       @_channel ||= GRPC::Core::Channel.new(@prefab_grpc_url, nil, credentials)
     end
 
@@ -53,8 +52,8 @@ module Prefab
       @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter)
     end
 
-    def log_internal(level, msg)
-      log.log_internal msg, "prefab", nil, level
+    def log_internal(level, msg, path = "prefab")
+      log.log_internal msg, path, nil, level
     end
 
     def request(service, method, req_options: {}, params: {})
