@@ -131,7 +131,6 @@ module Prefab
       end
     end
 
-
     def load_checkpoint_from_grpc_api
       config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
 
@@ -142,7 +141,7 @@ module Prefab
       @base_client.log_internal Logger::WARN, "Unauthenticated"
     rescue => e
       puts e.class
-      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+      @base_client.log_internal Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
       false
     end
 
@@ -166,7 +165,6 @@ module Prefab
     end
 
     def load_url(conn, source)
-      @base_client.log_internal Logger::DEBUG, conn.to_json
       resp = conn.get('')
       if resp.status == 200
         configs = Prefab::Configs.decode(resp.body)
@@ -177,7 +175,7 @@ module Prefab
         false
       end
     rescue => e
-      @base_client.log_internal Logger::WARN, "Unexpected problem loading checkpoint #{e}"
+      @base_client.log_internal Logger::WARN, "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
       false
     end
 
@@ -192,7 +190,7 @@ module Prefab
       if @config_loader.highwater_mark > starting_highwater_mark
         @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
-        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes."
+        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "prefab.config_client.load_configs"
       end
       @base_client.stats.increment("prefab.config.checkpoint.load")
       @config_resolver.update
