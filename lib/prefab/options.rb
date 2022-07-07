@@ -75,7 +75,7 @@ module Prefab
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
     def url_for_api_cdn
-      "#{@prefab_api_url.gsub(/\./, "-")}.global.ssl.fastly.net"
+      ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, "-")}.global.ssl.fastly.net"
     end
   end
 end
