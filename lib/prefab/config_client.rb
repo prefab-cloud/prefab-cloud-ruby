@@ -234,7 +234,7 @@ module Prefab
         "Authorization": "Basic #{auth_string}",
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url} with #{auth} start_at #{start_at_id}"
+      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
