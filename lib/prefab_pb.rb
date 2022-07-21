@@ -115,6 +115,19 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :inactive_variant_idx, :int32, 2
       repeated :rules, :message, 5, "prefab.Rule"
     end
+    add_message "prefab.Identity" do
+      proto3_optional :lookup, :string, 1
+      map :attributes, :string, :string, 2
+    end
+    add_message "prefab.ClientConfigValue" do
+      proto3_optional :int, :int64, 1
+      proto3_optional :string, :string, 2
+      proto3_optional :double, :double, 3
+      proto3_optional :bool, :bool, 4
+    end
+    add_message "prefab.ConfigEvaluations" do
+      map :values, :string, :message, 1, "prefab.ClientConfigValue"
+    end
     add_message "prefab.LimitDefinition" do
       optional :policy_name, :enum, 2, "prefab.LimitResponse.LimitPolicyNames"
       optional :limit, :int32, 3
@@ -196,6 +209,9 @@ module Prefab
   Segment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Segment").msgclass
   VariantWeight = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.VariantWeight").msgclass
   FeatureFlag = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.FeatureFlag").msgclass
+  Identity = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Identity").msgclass
+  ClientConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ClientConfigValue").msgclass
+  ConfigEvaluations = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigEvaluations").msgclass
   LimitDefinition = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition").msgclass
   LimitDefinition::SafetyLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinition.SafetyLevel").enummodule
   LimitDefinitions = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitDefinitions").msgclass

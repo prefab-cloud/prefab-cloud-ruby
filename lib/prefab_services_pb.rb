@@ -49,4 +49,18 @@ module Prefab
 
     Stub = Service.rpc_stub_class
   end
+  module ClientService
+    class Service
+
+      include ::GRPC::GenericService
+
+      self.marshal_class_method = :encode
+      self.unmarshal_class_method = :decode
+      self.service_name = 'prefab.ClientService'
+
+      rpc :GetAll, ::Prefab::Identity, ::Prefab::ConfigEvaluations
+    end
+
+    Stub = Service.rpc_stub_class
+  end
 end
