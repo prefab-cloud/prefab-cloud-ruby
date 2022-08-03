@@ -1,8 +1,10 @@
+# frozen_string_literal: true
 module Prefab
   class LoggerClient < Logger
 
-    SEP = ".".freeze
-    BASE = "log_level".freeze
+    SEP = "."
+    BASE = "log_level"
+    UNKNOWN = "unknown"
 
     def initialize(logdev, formatter: nil)
       super(logdev)
@@ -122,7 +124,7 @@ module Prefab
     # sanitize & clean the path of the caller so the key
     # looks like log_level.app.models.user
     def get_path(absolute_path, base_label)
-      path = (absolute_path || "unknown") + ""
+      path = (absolute_path || UNKNOWN).dup
       path.slice! Dir.pwd
 
       path.gsub!(/.*?(?=\/lib\/)/im, "")

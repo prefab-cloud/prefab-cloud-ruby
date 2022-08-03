@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prefab
   module ConfigHelper
     def value_of(config_value)

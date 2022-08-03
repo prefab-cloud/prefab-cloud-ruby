@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prefab
   class AuthInterceptor < GRPC::ClientInterceptor
     def initialize(api_key)
