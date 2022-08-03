@@ -9,10 +9,13 @@ gem 'googleapis-common-protos-types', :platforms => :ruby
 
 group :development do
   gem 'grpc-tools', :platforms => :ruby
-  gem "shoulda", ">= 0"
   gem "rdoc", "~> 3.12"
   gem "bundler"
   gem "juwelier", "~> 2.4.9"
   gem "simplecov", ">= 0"
   gem 'thin'
+end
+
+group :test do
+  gem "minitest"
 end
