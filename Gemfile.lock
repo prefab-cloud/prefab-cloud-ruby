@@ -1,15 +1,16 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.0.3.1)
+    activesupport (6.1.6.1)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (>= 1.6, < 2)
       minitest (>= 5.1)
       tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
     builder (3.2.4)
-    concurrent-ruby (1.1.8)
+    concurrent-ruby (1.1.10)
     daemons (1.4.1)
     descendants_tracker (0.0.4)
       thread_safe (~> 0.3, >= 0.3.1)
@@ -119,6 +120,7 @@ GEM
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.8)
+    zeitwerk (2.6.0)
 
 PLATFORMS
   ruby
