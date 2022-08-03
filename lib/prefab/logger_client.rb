@@ -129,7 +129,7 @@ module Prefab
 
       path.gsub!(/.*?(?=\/lib\/)/im, "")
 
-      path = "#{path.gsub("/", SEP).gsub(".rb", "")}#{SEP}#{base_label}"
+      path = path.gsub("/", SEP).gsub(".rb", "") + SEP + base_label
       path.slice! ".lib"
       path.slice! SEP
       path
