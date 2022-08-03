@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'prefab-cloud-ruby'
 require 'rack'
 require 'base64'

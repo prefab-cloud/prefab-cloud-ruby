@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prefab
   class Options
     attr_reader :api_key

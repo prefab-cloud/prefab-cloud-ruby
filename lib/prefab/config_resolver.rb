@@ -1,7 +1,8 @@
+# frozen_string_literal: true
 module Prefab
   class ConfigResolver
     include Prefab::ConfigHelper
-    NAMESPACE_DELIMITER = ".".freeze
+    NAMESPACE_DELIMITER = "."
 
     attr_accessor :project_env_id # this will be set by the config_client when it gets an API response
 
@@ -28,7 +29,7 @@ module Prefab
             elements << "Match: #{v[:match]}".slice(0..29).ljust(30)
             elements << "Source: #{v[:source]}"
           end
-          str << elements.join(" | ") << "\n"
+          str += elements.join(" | ") << "\n"
         end
       end
       str

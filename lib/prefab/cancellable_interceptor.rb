@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Prefab
   class CancellableInterceptor < GRPC::ClientInterceptor
     WAIT_SEC = 3
