@@ -107,10 +107,10 @@ module Prefab
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
-      closest_log_level_match = @config_client.get(BASE) || :warn
+      closest_log_level_match = @config_client.get(BASE, :warn)
       path.split(SEP).inject([BASE]) do |memo, n|
         memo << n
-        val = @config_client.get(memo.join(SEP))
+        val = @config_client.get(memo.join(SEP), nil)
         unless val.nil?
           closest_log_level_match = val
         end
@@ -141,8 +141,8 @@ module Prefab
   # StubConfigClient to be used while config client initializes
   # since it may log
   class BootstrappingConfigClient
-    def get(key)
-      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] || :info
+    def get(key, default=nil)
+      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] || default
     end
   end
 end

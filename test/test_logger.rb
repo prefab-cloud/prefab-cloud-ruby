@@ -18,24 +18,27 @@ class TestCLogger < Minitest::Test
   end
 
   def test_level_of
-    assert_equal Logger::INFO,
-                 @logger.level_of("app.models.user"), "PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL is info"
+    with_env("PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL", "info") do
+      # env var overrides the default level
+      assert_equal Logger::INFO,
+        @logger.level_of("app.models.user"), "PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL is info"
 
-    @logger.set_config_client(MockConfigClient.new({}))
-    assert_equal Logger::WARN,
-                 @logger.level_of("app.models.user"), "default is warn"
+      @logger.set_config_client(MockConfigClient.new({}))
+      assert_equal Logger::WARN,
+                  @logger.level_of("app.models.user"), "default is warn"
 
-    @logger.set_config_client(MockConfigClient.new("log_level.app" => "info"))
-    assert_equal Logger::INFO,
-                 @logger.level_of("app.models.user")
+      @logger.set_config_client(MockConfigClient.new("log_level.app" => "info"))
+      assert_equal Logger::INFO,
+                  @logger.level_of("app.models.user")
 
-    @logger.set_config_client(MockConfigClient.new("log_level.app" => "debug"))
-    assert_equal Logger::DEBUG,
-                 @logger.level_of("app.models.user")
+      @logger.set_config_client(MockConfigClient.new("log_level.app" => "debug"))
+      assert_equal Logger::DEBUG,
+                  @logger.level_of("app.models.user")
 
-    @logger.set_config_client(MockConfigClient.new("log_level.app" => "debug",
-                                                   "log_level.app.models" => "warn"))
-    assert_equal Logger::WARN,
-                 @logger.level_of("app.models.user")
+      @logger.set_config_client(MockConfigClient.new("log_level.app" => "debug",
+                                                    "log_level.app.models" => "warn"))
+      assert_equal Logger::WARN,
+                  @logger.level_of("app.models.user")
+    end
   end
 end

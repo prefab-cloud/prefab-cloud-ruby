@@ -1,10 +1,15 @@
-module Prefab
+require 'forwardable'
 
+module Prefab
   class Client
+    extend Forwardable
+
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
 
     attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
+
+    def_delegators :config_client, :get
 
     def initialize(options = Prefab::Options.new)
       @options = options
