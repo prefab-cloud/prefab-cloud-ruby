@@ -25,7 +25,7 @@ module Prefab
     end
     module ON_NO_DEFAULT
       RAISE = 1
-      RETURN = 2
+      RETURN_NIL = 2
     end
     module DATASOURCES
       ALL = 1

@@ -2,6 +2,8 @@ sample: default sample value
 sample_int: 123
 sample_double: 12.12
 sample_bool: true
+false_value: false
+zero_value: 0
 sample_to_override: Foo
 prefab.log_level: debug
 unit_tests:

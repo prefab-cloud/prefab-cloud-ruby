@@ -35,8 +35,8 @@ class MockConfigClient
   def initialize(config_values = {})
     @config_values = config_values
   end
-  def get(key)
-    @config_values[key]
+  def get(key, default=nil)
+    @config_values.fetch(key, default)
   end
 
   def get_config(key)
@@ -66,4 +66,12 @@ def default_ff_rule(variant_idx)
       ]
     )
   ]
+end
+
+def with_env(key, value)
+  old_value = ENV[key]
+
+  ENV[key] = value
+ensure
+  ENV[key] = old_value
 end

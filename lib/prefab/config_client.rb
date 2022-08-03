@@ -6,6 +6,7 @@ module Prefab
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
     SSE_READ_TIMEOUT = 300
+    NO_DEFAULT_PROVIDED = :no_default_provided
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -73,9 +74,9 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
-    def get(key)
+    def get(key, default=NO_DEFAULT_PROVIDED)
       config = _get(key)
-      config ? value_of(config[:value]) : nil
+      config ? value_of(config[:value]) : handle_default(key, default)
     end
 
     def get_config_obj(key)
@@ -84,6 +85,18 @@ module Prefab
     end
 
     private
+
+    def handle_default(key, default)
+      if default != NO_DEFAULT_PROVIDED
+        return default
+      end
+
+      if @options.on_no_default == Prefab::Options::ON_NO_DEFAULT::RAISE
+        raise Prefab::Errors::MissingDefaultError.new(key)
+      end
+
+      nil
+    end
 
     def _get(key)
       # wait timeout sec for the initalization to be complete

@@ -8,6 +8,7 @@ class TestConfigClient < Minitest::Test
       defaults_env: "unit_tests",
       prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
     )
+
     @config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
   end
 
@@ -15,5 +16,4 @@ class TestConfigClient < Minitest::Test
     assert_equal "test sample value", @config_client.get("sample")
     assert_equal 123, @config_client.get("sample_int")
   end
-
 end
