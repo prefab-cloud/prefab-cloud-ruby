@@ -174,7 +174,6 @@ class TestConfigResolver < Minitest::Test
       assert_equal "value", @resolverKeyWith.get("Key:With:Colons")
 
       @resolverKeyWithExtra = resolver_for_namespace("Key:With:Extra", @loader)
-      puts @resolverKeyWithExtra.to_s
       assert_nil @resolverKeyWithExtra.get("Colons")
       assert_nil @resolverKeyWithExtra.get("With:Colons")
       assert_equal "value", @resolverKeyWithExtra.get("Key:With:Colons")

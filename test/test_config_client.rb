@@ -6,7 +6,7 @@ class TestConfigClient < Minitest::Test
       prefab_config_override_dir: "none",
       prefab_config_classpath_dir: "test",
       defaults_env: "unit_tests",
-      local_only: true
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
     )
     @config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
   end
