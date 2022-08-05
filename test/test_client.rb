@@ -68,7 +68,6 @@ class TestClient < Minitest::Test
     assert_equal "new-version", @client.get("just_my_domain", "abc123", { domain: "example.com" })
   end
 
-
   def test_getting_feature_flag_value
     assert_equal false, @client.enabled?("flag_with_a_value")
     assert_equal "all-features", @client.get("flag_with_a_value")

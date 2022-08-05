@@ -134,7 +134,7 @@ module Prefab
       criteria = Prefab::Criteria.new(operator: 'ALWAYS_TRUE')
 
       if env_v['criteria']
-        criteria = Prefab::Criteria.new(**env_v['criteria'])
+        criteria = Prefab::Criteria.new(criteria_values(env_v['criteria']))
       end
 
       row = Prefab::ConfigRow.new(
@@ -167,6 +167,14 @@ module Prefab
           rows: [row]
         )
       }
+    end
+
+    def criteria_values(criteria_hash)
+      if RUBY_VERSION < '2.7'
+        criteria_hash.transform_keys(&:to_sym)
+      else
+        criteria_hash
+      end
     end
   end
 end
