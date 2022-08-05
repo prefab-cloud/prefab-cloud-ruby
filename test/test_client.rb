@@ -24,9 +24,12 @@ class TestClient < Minitest::Test
 
   def test_get_with_missing_default
     # it raises by default
-    assert_raises(Prefab::Errors::MissingDefaultError) do
+    err = assert_raises(Prefab::Errors::MissingDefaultError) do
       assert_nil @client.get("missing_value")
     end
+
+    assert_match /No value found for key/, err.message
+    assert_match /on_no_default/, err.message
 
     # you can opt-in to return `nil` instead
     client = new_client(on_no_default: Prefab::Options::ON_NO_DEFAULT::RETURN_NIL)

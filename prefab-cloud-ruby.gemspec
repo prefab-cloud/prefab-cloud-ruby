@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2022-08-03"
+  s.date = "2022-08-05"
   s.description = "RateLimits & Config as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.extra_rdoc_files = [
@@ -39,6 +39,8 @@ Gem::Specification.new do |s|
     "lib/prefab/config_loader.rb",
     "lib/prefab/config_resolver.rb",
     "lib/prefab/error.rb",
+    "lib/prefab/errors/initialization_timeout_error.rb",
+    "lib/prefab/errors/invalid_api_key_error.rb",
     "lib/prefab/errors/missing_default_error.rb",
     "lib/prefab/feature_flag_client.rb",
     "lib/prefab/internal_logger.rb",

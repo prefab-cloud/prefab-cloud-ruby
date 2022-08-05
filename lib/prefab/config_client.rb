@@ -106,7 +106,7 @@ module Prefab
           @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
           @initialization_lock.release_write_lock
         else
-          raise "Prefab Couldn't Initialize In #{@options.initialization_timeout_sec} 2 timeout. Key #{key}. "
+          raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
         end
       end
       @config_resolver._get(key)
@@ -153,7 +153,6 @@ module Prefab
     rescue GRPC::Unauthenticated
       @base_client.log_internal Logger::WARN, "Unauthenticated"
     rescue => e
-      puts e.class
       @base_client.log_internal Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
       false
     end
