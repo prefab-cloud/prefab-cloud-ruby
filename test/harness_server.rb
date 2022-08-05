@@ -21,10 +21,18 @@ class RackApp
     is_feature_flag = !props["feature_flag"].nil?
     attributes = props["attributes"]
     puts props
-    client = Prefab::Client.new(
+
+    options = Prefab::Options.new(
       api_key: api_key,
       namespace: namespace,
+      initialization_timeout_sec: 1,
+      # We want to `return` rather than raise so we'll use the initial payload if we can't connect to the SSE server
+      on_init_failure: Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN,
+      # Want to return `nil` rather than raise so we can verify empty values
+      on_no_default: Prefab::Options::ON_NO_DEFAULT::RETURN_NIL
     )
+
+    client = Prefab::Client.new(options)
 
     puts "Key #{key}"
     puts "User #{user_key}"
