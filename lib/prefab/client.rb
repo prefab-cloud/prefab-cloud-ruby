@@ -1,16 +1,11 @@
 # frozen_string_literal: true
-require 'forwardable'
-
 module Prefab
   class Client
-    extend Forwardable
-
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
+    NO_DEFAULT_PROVIDED = :no_default_provided
 
     attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
-
-    def_delegators :config_client, :get
 
     def initialize(options = Prefab::Options.new)
       @options = options
@@ -95,6 +90,20 @@ module Prefab
     def reset!
       @stubs.clear
       @_channel = nil
+    end
+
+    def enabled?(feature_name, lookup_key=nil, attributes={})
+      feature_flag_client.feature_is_on_for?(feature_name, lookup_key, attributes: attributes)
+    end
+
+    def get(key, default_or_lookup_key=NO_DEFAULT_PROVIDED, attributes={}, ff_default=NO_DEFAULT_PROVIDED)
+      result = config_client.get(key, default_or_lookup_key)
+
+      if result.is_a?(Prefab::FeatureFlag)
+        feature_flag_client.get(key, default_or_lookup_key, attributes, default: ff_default)
+      else
+        result
+      end
     end
 
     private

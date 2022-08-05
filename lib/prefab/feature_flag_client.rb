@@ -19,27 +19,48 @@ module Prefab
     def feature_is_on_for?(feature_name, lookup_key, attributes: {})
       @base_client.stats.increment("prefab.featureflag.on", tags: ["feature:#{feature_name}"])
 
-      return is_on?(get(feature_name, lookup_key, attributes))
+      return is_on?(_get(feature_name, lookup_key, attributes, default: false))
     end
 
-    def get(feature_name, lookup_key=nil, attributes={})
-      feature_obj = @base_client.config_client.get(feature_name)
-      config_obj = @base_client.config_client.get_config_obj(feature_name)
-      return nil if feature_obj.nil? || config_obj.nil?
-      variants = config_obj.variants
-      evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
-    end
+    def get(feature_name, lookup_key=nil, attributes={}, default: false)
+      variant = _get(feature_name, lookup_key, attributes, default: default)
 
-    def evaluate(feature_name, lookup_key, attributes, feature_obj, variants)
-      value_of_variant(get_variant(feature_name, lookup_key, attributes, feature_obj, variants))
+      value_of_variant_or_nil(variant, default)
     end
 
     private
+
+    def value_of_variant_or_nil(variant_maybe, default)
+      if variant_maybe.nil?
+        default != Prefab::Client::NO_DEFAULT_PROVIDED ? default : nil
+      else
+        value_of_variant(variant_maybe)
+      end
+    end
+
+    def _get(feature_name, lookup_key=nil, attributes={}, default:)
+      feature_obj = @base_client.config_client.get(feature_name, default)
+      config_obj = @base_client.config_client.get_config_obj(feature_name)
+
+      return nil if feature_obj.nil? || config_obj.nil?
+
+      if feature_obj == !!feature_obj
+        return feature_obj
+      end
+
+      variants = config_obj.variants
+      get_variant(feature_name, lookup_key, attributes, feature_obj, variants)
+    end
 
     def is_on?(variant)
       if variant.nil?
         return false
       end
+
+      if variant == !!variant
+        return variant
+      end
+
       variant.bool
     rescue
       @base_client.log.info("is_on? methods only work for boolean feature flags variants. This feature flags variant is '#{variant}'. Returning false")
@@ -61,7 +82,6 @@ module Prefab
           break
         end
       end
-
 
       percent_through_distribution = rand()
       if lookup_key
@@ -105,7 +125,6 @@ module Prefab
     #
     # end
     def criteria_match?(criteria, lookup_key, attributes)
-
       if criteria.operator == :ALWAYS_TRUE
         return true
       elsif criteria.operator == :LOOKUP_KEY_IN

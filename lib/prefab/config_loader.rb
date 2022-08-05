@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'yaml'
 module Prefab
   class ConfigLoader
@@ -71,22 +72,35 @@ module Prefab
           if v.class == Hash
             v.each do |env_k, env_v|
               if k == @prefab_options.defaults_env
-                rtn[env_k] = { source: file,
-                               match: k,
-                               config: Prefab::Config.new(key: env_k, rows: [
-                                 Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(env_v)))
-                               ]) }
+                if env_v.class == Hash && env_v['feature_flag']
+                  rtn[env_k] = feature_flag_config(file, k, env_k, env_v)
+                else
+                  rtn[env_k] = {
+                    source: file,
+                    match: k,
+                    config: Prefab::Config.new(
+                      key: env_k,
+                      rows: [
+                        Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(env_v)))
+                      ]
+                    )
+                  }
+                end
               else
                 next
               end
             end
           else
-            rtn[k] = { source: file,
-                       match: "default",
-                       config: Prefab::Config.new(key: k, rows: [
-                         Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
-                       ]) }
-
+            rtn[k] = {
+              source: file,
+              match: "default",
+              config: Prefab::Config.new(
+                key: k,
+                rows: [
+                  Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+                ]
+              )
+            }
           end
         end
       end
@@ -114,6 +128,45 @@ module Prefab
       when Float
         { double: raw }
       end
+    end
+
+    def feature_flag_config(file, k, env_k, env_v)
+      criteria = Prefab::Criteria.new(operator: 'ALWAYS_TRUE')
+
+      if env_v['criteria']
+        criteria = Prefab::Criteria.new(**env_v['criteria'])
+      end
+
+      row = Prefab::ConfigRow.new(
+        value: Prefab::ConfigValue.new(
+          feature_flag: Prefab::FeatureFlag.new(
+            active: true,
+            inactive_variant_idx: -1, # not supported
+            rules: [
+              Prefab::Rule.new(
+                variant_weights: [
+                  Prefab::VariantWeight.new(variant_idx: 0, weight: 1000)
+                ],
+                criteria: criteria
+              )
+            ]
+          )
+        )
+      )
+
+      unless env_v.has_key?('value')
+        raise Prefab::Error, "Feature flag config `#{env_k}` #{file} must have a `value`"
+      end
+
+      {
+        source: file,
+        match: k,
+        config: Prefab::Config.new(
+          key: env_k,
+          variants: [Prefab::FeatureFlagVariant.new(value_from(env_v['value']))],
+          rows: [row]
+        )
+      }
     end
   end
 end
