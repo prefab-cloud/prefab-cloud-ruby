@@ -33,6 +33,46 @@ class TestClient < Minitest::Test
     assert_nil client.get("missing_value")
   end
 
+  def test_enabled
+    assert_equal false, @client.enabled?("does_not_exist")
+    assert_equal true, @client.enabled?("enabled_flag")
+    assert_equal false, @client.enabled?("disabled_flag")
+    assert_equal false, @client.enabled?("flag_with_a_value")
+  end
+
+  def test_ff_enabled_with_lookup_key
+    assert_equal false, @client.enabled?("in_lookup_key", "jimmy")
+    assert_equal true, @client.enabled?("in_lookup_key", "abc123")
+    assert_equal true, @client.enabled?("in_lookup_key", "xyz987")
+  end
+
+  def test_ff_get_with_lookup_key
+    assert_nil @client.get("in_lookup_key", "jimmy")
+    assert_equal "DEFAULT", @client.get("in_lookup_key", "jimmy", {}, "DEFAULT")
+
+    assert_equal true, @client.get("in_lookup_key", "abc123")
+    assert_equal true, @client.get("in_lookup_key", "xyz987")
+  end
+
+  def test_ff_enabled_with_attributes
+    assert_equal false, @client.enabled?("just_my_domain", "abc123", { domain: "gmail.com" })
+    assert_equal false, @client.enabled?("just_my_domain", "abc123", { domain: "prefab.cloud" })
+    assert_equal false, @client.enabled?("just_my_domain", "abc123", { domain: "example.com" })
+  end
+
+  def test_ff_get_with_attributes
+    assert_nil @client.get("just_my_domain", "abc123", { domain: "gmail.com" })
+    assert_equal "DEFAULT", @client.get("just_my_domain", "abc123", { domain: "gmail.com" }, "DEFAULT")
+
+    assert_equal "new-version", @client.get("just_my_domain", "abc123", { domain: "prefab.cloud" })
+    assert_equal "new-version", @client.get("just_my_domain", "abc123", { domain: "example.com" })
+  end
+
+  def test_getting_feature_flag_value
+    assert_equal false, @client.enabled?("flag_with_a_value")
+    assert_equal "all-features", @client.get("flag_with_a_value")
+  end
+
   private
 
   def new_client(overrides = {})

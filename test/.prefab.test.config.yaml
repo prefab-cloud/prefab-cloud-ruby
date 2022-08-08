@@ -8,5 +8,25 @@ sample_to_override: Foo
 prefab.log_level: debug
 unit_tests:
   sample: test sample value
+  enabled_flag: true
+  disabled_flag: false
+  flag_with_a_value:
+    feature_flag: true
+    value: "all-features"
+  in_lookup_key:
+    feature_flag: true
+    value: true
+    criteria:
+      operator: LOOKUP_KEY_IN
+      values:
+        - abc123
+        - xyz987
+  just_my_domain:
+    feature_flag: true
+    value: new-version
+    criteria:
+      operator: PROP_IS_ONE_OF
+      property: domain
+      values: ["prefab.cloud", "example.com"]
 ignored_env:
   sample: ignored value

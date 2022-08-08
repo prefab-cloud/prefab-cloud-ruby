@@ -9,6 +9,7 @@ class TestFeatureFlagClient < Minitest::Test
     @client = Prefab::FeatureFlagClient.new(@mock_base_client)
     Prefab::FeatureFlagClient.send(:public, :is_on?) #publicize for testing
     Prefab::FeatureFlagClient.send(:public, :segment_match?) #publicize for testing
+    Prefab::FeatureFlagClient.send(:public, :get_variant) #publicize for testing
   end
 
   def test_pct
@@ -38,10 +39,10 @@ class TestFeatureFlagClient < Minitest::Test
 
     # "1FlagNamehashes high" hashes to 86.322% through dist
     assert_equal false,
-                 @client.evaluate(feature, "hashes high", [], flag, variants)
+                 evaluate(feature, "hashes high", [], flag, variants)
     # "1FlagNamehashes low" hashes to 44.547% through dist
     assert_equal true,
-                 @client.evaluate(feature, "hashes low", [], flag, variants)
+                 evaluate(feature, "hashes low", [], flag, variants)
 
   end
 
@@ -57,9 +58,9 @@ class TestFeatureFlagClient < Minitest::Test
       rules: default_ff_rule(2)
     )
     assert_equal true,
-                 @client.evaluate(feature, "hashes high", [], flag, variants)
+                 evaluate(feature, "hashes high", [], flag, variants)
     assert_equal true,
-                 @client.evaluate(feature, "hashes low", [], flag, variants)
+                 evaluate(feature, "hashes low", [], flag, variants)
 
     variants = [
       Prefab::FeatureFlagVariant.new(bool: false),
@@ -71,9 +72,9 @@ class TestFeatureFlagClient < Minitest::Test
       rules: default_ff_rule(2)
     )
     assert_equal false,
-                 @client.evaluate(feature, "hashes high", [], flag, variants)
+                 evaluate(feature, "hashes high", [], flag, variants)
     assert_equal false,
-                 @client.evaluate(feature, "hashes low", [], flag, variants)
+                 evaluate(feature, "hashes low", [], flag, variants)
   end
 
   def test_inclusion_rule
@@ -109,9 +110,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag, variants)
+                 evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag, variants)
+                 evaluate(feature, "user:2", [], flag, variants)
 
   end
 
@@ -149,13 +150,13 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "default",
-                 @client.evaluate(feature, "user:1", { email: "not@example.com" }, flag, variants)
+                 evaluate(feature, "user:1", { email: "not@example.com" }, flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", {}, flag, variants)
+                 evaluate(feature, "user:2", {}, flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", { email: "b@example.com" }, flag, variants)
+                 evaluate(feature, "user:2", { email: "b@example.com" }, flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", { "email" => "b@example.com" }, flag, variants)
+                 evaluate(feature, "user:2", { "email" => "b@example.com" }, flag, variants)
 
   end
 
@@ -224,9 +225,9 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag, variants)
+                 evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:2", [], flag, variants)
+                 evaluate(feature, "user:2", [], flag, variants)
 
   end
 
@@ -286,16 +287,20 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:1", [], flag, variants)
+                 evaluate(feature, "user:1", [], flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:2", [], flag, variants), "matches segment 1"
+                 evaluate(feature, "user:2", [], flag, variants), "matches segment 1"
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:3", [], flag, variants)
+                 evaluate(feature, "user:3", [], flag, variants)
     assert_equal "rule target",
-                 @client.evaluate(feature, "user:4", [], flag, variants)
+                 evaluate(feature, "user:4", [], flag, variants)
     assert_equal "default",
-                 @client.evaluate(feature, "user:5", [], flag, variants)
+                 evaluate(feature, "user:5", [], flag, variants)
 
   end
 
+  def evaluate(feature_name, lookup_key, attributes, flag, variants)
+    variant = @client.get_variant(feature_name, lookup_key, attributes, flag, variants)
+    @client.value_of_variant(variant)
+  end
 end
