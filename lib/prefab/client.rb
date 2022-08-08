@@ -19,8 +19,7 @@ module Prefab
         log_internal Logger::INFO, "Prefab Running in Local Mode"
       else
         @api_key = @options.api_key
-        raise "No API key. Set PREFAB_API_KEY env var or use PREFAB_DATASOURCES=LOCAL_ONLY" if @api_key.nil? || @api_key.empty?
-        raise "PREFAB_API_KEY format invalid. Expecting 123-development-yourapikey-SDK" unless @api_key.count("-") == 3
+        raise Prefab::Errors::InvalidApiKeyError.new(@api_key) if @api_key.nil? || @api_key.empty? || api_key.count("-") != 3
         @project_id = @api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
         @interceptor = Prefab::AuthInterceptor.new(@api_key)
         @prefab_api_url = @options.prefab_api_url
