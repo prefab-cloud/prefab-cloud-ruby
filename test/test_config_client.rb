@@ -29,7 +29,7 @@ class TestConfigClient < Minitest::Test
       Prefab::Client.new(options).config_client.get("anything")
     end
 
-    assert_match /couldn't initialize in 0.01 second timeout/, err.message
+    assert_match(/couldn't initialize in 0.01 second timeout/, err.message)
   end
 
   def test_invalid_api_key_error
@@ -41,7 +41,7 @@ class TestConfigClient < Minitest::Test
       Prefab::Client.new(options).config_client.get("anything")
     end
 
-    assert_match /No API key/, err.message
+    assert_match(/No API key/, err.message)
 
     options = Prefab::Options.new(
       api_key: "invalid",
@@ -51,6 +51,6 @@ class TestConfigClient < Minitest::Test
       Prefab::Client.new(options).config_client.get("anything")
     end
 
-    assert_match /format is invalid/, err.message
+    assert_match(/format is invalid/, err.message)
   end
 end

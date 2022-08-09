@@ -28,8 +28,8 @@ class TestClient < Minitest::Test
       assert_nil @client.get("missing_value")
     end
 
-    assert_match /No value found for key/, err.message
-    assert_match /on_no_default/, err.message
+    assert_match(/No value found for key/, err.message)
+    assert_match(/on_no_default/, err.message)
 
     # you can opt-in to return `nil` instead
     client = new_client(on_no_default: Prefab::Options::ON_NO_DEFAULT::RETURN_NIL)
