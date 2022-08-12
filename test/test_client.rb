@@ -76,6 +76,13 @@ class TestClient < Minitest::Test
     assert_equal "all-features", @client.get("flag_with_a_value")
   end
 
+  def test_ssl_certs
+    certs = @client.send(:ssl_certs).split("-----BEGIN CERTIFICATE-----")
+
+    # This is a smoke test to make sure multiple certs are loaded
+    assert certs.length > 1
+  end
+
   private
 
   def new_client(overrides = {})
