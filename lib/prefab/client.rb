@@ -126,10 +126,10 @@ module Prefab
     def ssl_certs
       ssl_certs = ""
       Dir["#{OpenSSL::X509::DEFAULT_CERT_DIR}/*.pem"].each do |cert|
-        ssl_certs << File.open(cert).read
+        ssl_certs += File.open(cert).read
       end
       if OpenSSL::X509::DEFAULT_CERT_FILE && File.exist?(OpenSSL::X509::DEFAULT_CERT_FILE)
-        ssl_certs << File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
+        ssl_certs += File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
       end
       ssl_certs
     rescue => e
