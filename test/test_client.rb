@@ -89,7 +89,7 @@ class TestClient < Minitest::Test
     options = Prefab::Options.new(**{
       prefab_config_override_dir: "none",
       prefab_config_classpath_dir: "test",
-      defaults_env: "unit_tests",
+      prefab_envs: ["unit_tests"],
       prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
     }.merge(overrides))
 

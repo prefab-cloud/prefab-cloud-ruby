@@ -56,55 +56,57 @@ module Prefab
 
     def load_classpath_config
       classpath_dir = @prefab_options.prefab_config_classpath_dir
-      load_glob(File.join(classpath_dir, ".prefab*config.yaml"))
+      rtn = load_glob(File.join(classpath_dir, ".prefab.default.config.yaml"))
+      @prefab_options.prefab_envs.each do |env|
+        rtn = rtn.merge load_glob(File.join(classpath_dir, ".prefab.#{env}.config.yaml"))
+      end
+      rtn
     end
 
     def load_local_overrides
       override_dir = @prefab_options.prefab_config_override_dir
-      load_glob(File.join(override_dir, ".prefab*config.yaml"))
+      rtn = load_glob(File.join(override_dir, ".prefab.overrides.config.yaml"))
+      @prefab_options.prefab_envs.each do |env|
+        rtn = rtn.merge load_glob(File.join(override_dir, ".prefab.#{env}.config.yaml"))
+      end
+      rtn
     end
 
     def load_glob(glob)
       rtn = {}
       Dir.glob(glob).each do |file|
+        @base_client.log_internal Logger::INFO, "Load #{file}"
         yaml = load(file)
         yaml.each do |k, v|
-          if v.class == Hash
-            v.each do |env_k, env_v|
-              if k == @prefab_options.defaults_env
-                if env_v.class == Hash && env_v['feature_flag']
-                  rtn[env_k] = feature_flag_config(file, k, env_k, env_v)
-                else
-                  rtn[env_k] = {
-                    source: file,
-                    match: k,
-                    config: Prefab::Config.new(
-                      key: env_k,
-                      rows: [
-                        Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(env_v)))
-                      ]
-                    )
-                  }
-                end
-              else
-                next
-              end
-            end
-          else
-            rtn[k] = {
-              source: file,
-              match: "default",
-              config: Prefab::Config.new(
-                key: k,
-                rows: [
-                  Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
-                ]
-              )
-            }
-          end
+          load_kv(k, v, rtn, file)
         end
       end
       rtn
+    end
+
+    def load_kv(k, v, rtn, file)
+      if v.class == Hash
+        if v['feature_flag']
+          rtn[k] = feature_flag_config(file, k, v)
+        else
+          v.each do |nest_k, nest_v|
+            nested_key = "#{k}.#{nest_k}"
+            nested_key = k if nest_k == "_"
+            load_kv(nested_key, nest_v, rtn, file)
+          end
+        end
+      else
+        rtn[k] = {
+          source: file,
+          match: "default",
+          config: Prefab::Config.new(
+            key: k,
+            rows: [
+              Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+            ]
+          )
+        }
+      end
     end
 
     def load(filename)
@@ -130,11 +132,11 @@ module Prefab
       end
     end
 
-    def feature_flag_config(file, k, env_k, env_v)
+    def feature_flag_config(file, key, value)
       criteria = Prefab::Criteria.new(operator: 'ALWAYS_TRUE')
 
-      if env_v['criteria']
-        criteria = Prefab::Criteria.new(criteria_values(env_v['criteria']))
+      if value['criteria']
+        criteria = Prefab::Criteria.new(criteria_values(value['criteria']))
       end
 
       row = Prefab::ConfigRow.new(
@@ -154,16 +156,16 @@ module Prefab
         )
       )
 
-      unless env_v.has_key?('value')
-        raise Prefab::Error, "Feature flag config `#{env_k}` #{file} must have a `value`"
+      unless value.has_key?('value')
+        raise Prefab::Error, "Feature flag config `#{key}` #{file} must have a `value`"
       end
 
       {
         source: file,
-        match: k,
+        match: key,
         config: Prefab::Config.new(
-          key: env_k,
-          variants: [Prefab::FeatureFlagVariant.new(value_from(env_v['value']))],
+          key: key,
+          variants: [Prefab::FeatureFlagVariant.new(value_from(value['value']))],
           rows: [row]
         )
       }
