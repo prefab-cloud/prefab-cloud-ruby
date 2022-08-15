@@ -18,6 +18,14 @@ class TestConfigLoader < Minitest::Test
     should_be :double, 12.12, "sample_double"
   end
 
+  def test_nested
+    should_be :string, "nested value", "nested.values.string"
+    should_be :string, "top level", "nested.values"
+    should_be :string, "error", "logging.app"
+    should_be :string, "warn", "logging.app.controller.hello"
+    should_be :string, "info", "logging.app.controller.hello.index"
+  end
+
   def test_load_without_unit_test_env
     options = Prefab::Options.new(
       prefab_config_override_dir: "none",

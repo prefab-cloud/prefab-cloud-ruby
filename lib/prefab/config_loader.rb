@@ -74,25 +74,35 @@ module Prefab
         @base_client.log_internal Logger::INFO, "Load #{file}"
         yaml = load(file)
         yaml.each do |k, v|
-          if v.class == Hash
-            if v['feature_flag']
-              rtn[k] = feature_flag_config(file, k, v)
-            end
-          else
-            rtn[k] = {
-              source: file,
-              match: "default",
-              config: Prefab::Config.new(
-                key: k,
-                rows: [
-                  Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
-                ]
-              )
-            }
-          end
+          load_kv(k, v, rtn, file)
         end
       end
       rtn
+    end
+
+    def load_kv(k, v, rtn, file)
+      if v.class == Hash
+        if v['feature_flag']
+          rtn[k] = feature_flag_config(file, k, v)
+        else
+          v.each do |nest_k, nest_v|
+            nested_key = "#{k}.#{nest_k}"
+            nested_key = k if nest_k == "_"
+            load_kv(nested_key, nest_v, rtn, file)
+          end
+        end
+      else
+        rtn[k] = {
+          source: file,
+          match: "default",
+          config: Prefab::Config.new(
+            key: k,
+            rows: [
+              Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+            ]
+          )
+        }
+      end
     end
 
     def load(filename)

@@ -11,3 +11,15 @@ disabled_flag: false
 flag_with_a_value: { "feature_flag": "true", value: "all-features" }
 in_lookup_key: { "feature_flag": "true", value: true, criteria: { operator: LOOKUP_KEY_IN, values: [ "abc123", "xyz987" ] } }
 just_my_domain: { "feature_flag": "true", value: "new-version", criteria: { operator: PROP_IS_ONE_OF, property: "domain", values: [ "prefab.cloud", "example.com" ] } }
+nested:
+  values:
+    _: top level
+    string: nested value
+
+logging:
+  app:
+    _: error
+    controller:
+      hello:
+        _: warn
+        index: info
