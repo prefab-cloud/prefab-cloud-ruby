@@ -5,7 +5,6 @@ module Prefab
 
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
-    DEFAULT_S3CF_BUCKET = 'http://d2j4ed6ti5snnd.cloudfront.net'
     SSE_READ_TIMEOUT = 300
 
     def initialize(base_client, timeout)
@@ -28,8 +27,6 @@ module Prefab
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
-
-      @s3_cloud_front = ENV["PREFAB_S3CF_BUCKET"] || DEFAULT_S3CF_BUCKET
 
       if @options.local_only?
         finish_init!(:local_only)
@@ -119,7 +116,6 @@ module Prefab
                                                interceptors: [@base_client.interceptor, @cancellable_interceptor])
     end
 
-    # try API first, if not, fallback to s3
     def load_checkpoint
       success = load_checkpoint_api_cdn
 
@@ -134,12 +130,6 @@ module Prefab
       if success
         return
       else
-        @base_client.log_internal Logger::INFO, "LoadCheckpoint: Fallback to S3"
-      end
-
-      success = load_checkpoint_from_s3
-
-      if !success
         @base_client.log_internal Logger::WARN, "No success loading checkpoints"
       end
     end
@@ -170,11 +160,6 @@ module Prefab
                end
              end
       load_url(conn, :remote_cdn_api)
-    end
-
-    def load_checkpoint_from_s3
-      url = "#{@s3_cloud_front}/#{@base_client.api_key.gsub("|", "/")}"
-      load_url(Faraday.new(url), :remote_s3)
     end
 
     def load_url(conn, source)
