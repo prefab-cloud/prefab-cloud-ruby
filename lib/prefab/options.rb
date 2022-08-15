@@ -67,7 +67,7 @@ module Prefab
       @prefab_datasources = prefab_datasources
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
-      @prefab_envs = [].push(prefab_envs).flatten(1)
+      @prefab_envs = Array(prefab_envs)
     end
 
     def local_only?
