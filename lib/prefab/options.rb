@@ -14,7 +14,7 @@ module Prefab
     attr_reader :on_init_failure
     attr_reader :prefab_config_override_dir
     attr_reader :prefab_config_classpath_dir
-    attr_reader :defaults_env
+    attr_reader :prefab_envs
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
@@ -50,7 +50,7 @@ module Prefab
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == "LOCAL_ONLY" ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: ".",
-      defaults_env: ""
+      prefab_envs:  ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(",")
     )
       # debugger
       @api_key = api_key
@@ -67,7 +67,7 @@ module Prefab
       @prefab_datasources = prefab_datasources
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
-      @defaults_env = defaults_env
+      @prefab_envs = [].push(prefab_envs).flatten(1)
     end
 
     def local_only?

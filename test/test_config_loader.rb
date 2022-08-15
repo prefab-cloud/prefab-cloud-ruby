@@ -6,7 +6,7 @@ class TestConfigLoader < Minitest::Test
     options = Prefab::Options.new(
       prefab_config_override_dir: "none",
       prefab_config_classpath_dir: "test",
-      defaults_env: "unit_tests"
+      prefab_envs: "unit_tests"
     )
     @loader = Prefab::ConfigLoader.new(MockBaseClient.new(options))
   end
@@ -18,11 +18,11 @@ class TestConfigLoader < Minitest::Test
     should_be :double, 12.12, "sample_double"
   end
 
-  def test_load_in_no_default_env
+  def test_load_without_unit_test_env
     options = Prefab::Options.new(
       prefab_config_override_dir: "none",
       prefab_config_classpath_dir: "test",
-    # no defaults_env
+      # no prefab_envs
     )
     @loader = Prefab::ConfigLoader.new(MockBaseClient.new(options))
     should_be :string, "default sample value", "sample"

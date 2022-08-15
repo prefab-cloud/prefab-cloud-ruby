@@ -57,7 +57,9 @@ module Prefab
     def load_classpath_config
       classpath_dir = @prefab_options.prefab_config_classpath_dir
       rtn = load_glob(File.join(classpath_dir, ".prefab.default.config.yaml"))
-      rtn = rtn.merge load_glob(File.join(classpath_dir, ".prefab.#{@prefab_options.defaults_env}.config.yaml"))
+      @prefab_options.prefab_envs.each do |env|
+        rtn = rtn.merge load_glob(File.join(classpath_dir, ".prefab.#{env}.config.yaml"))
+      end
       rtn
     end
 

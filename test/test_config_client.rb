@@ -6,7 +6,7 @@ class TestConfigClient < Minitest::Test
     options = Prefab::Options.new(
       prefab_config_override_dir: "none",
       prefab_config_classpath_dir: "test",
-      defaults_env: "unit_tests",
+      prefab_envs: "unit_tests",
       prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
     )
 
@@ -30,6 +30,21 @@ class TestConfigClient < Minitest::Test
     end
 
     assert_match(/couldn't initialize in 0.01 second timeout/, err.message)
+  end
+
+  def test_prefab_envs_is_forgiving
+    assert_equal ["my_env"], Prefab::Options.new(
+      prefab_envs: "my_env",
+    ).prefab_envs
+
+    assert_equal ["my_env", "a_second_env"], Prefab::Options.new(
+      prefab_envs: ["my_env", "a_second_env"],
+    ).prefab_envs
+  end
+
+  def test_prefab_envs_env_var
+    ENV["PREFAB_ENVS"] = "one,two"
+    assert_equal ["one", "two"], Prefab::Options.new().prefab_envs
   end
 
   def test_invalid_api_key_error
