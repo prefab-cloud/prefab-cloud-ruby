@@ -19,7 +19,7 @@ module Prefab
     end
 
     def add_internal(severity, message = nil, progname = nil, loc, &block)
-      path = get_path(loc.absolute_path, loc.base_label)
+      path = get_loc_path(loc)
       log_internal(message, path, progname, severity, &block)
     end
 
@@ -121,15 +121,19 @@ module Prefab
       val(closest_log_level_match)
     end
 
+    def get_loc_path(loc)
+      loc_path = loc.absolute_path || loc.to_s
+      get_path(loc_path, loc.base_label)
+    end
+
     # sanitize & clean the path of the caller so the key
     # looks like log_level.app.models.user
     def get_path(absolute_path, base_label)
       path = (absolute_path || UNKNOWN).dup
       path.slice! Dir.pwd
+      path.gsub!(/(.*)?(?=\/lib)/im, "") # replace everything before first lib
 
-      path.gsub!(/.*?(?=\/lib\/)/im, "")
-
-      path = path.gsub("/", SEP).gsub(".rb", "") + SEP + base_label
+      path = path.gsub("/", SEP).gsub(/.rb.*/, "") + SEP + base_label
       path.slice! ".lib"
       path.slice! SEP
       path
