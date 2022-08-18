@@ -131,10 +131,9 @@ module Prefab
     def get_path(absolute_path, base_label)
       path = (absolute_path || UNKNOWN).dup
       path.slice! Dir.pwd
+      path.gsub!(/(.*)?(?=\/lib)/im, "") # replace everything before first lib
 
-      path.gsub!(/.*?(?=\/lib\/)/im, "")
-
-      path = path.gsub("/", SEP).gsub(".rb", "") + SEP + base_label
+      path = path.gsub("/", SEP).gsub(/.rb.*/, "") + SEP + base_label
       path.slice! ".lib"
       path.slice! SEP
       path
