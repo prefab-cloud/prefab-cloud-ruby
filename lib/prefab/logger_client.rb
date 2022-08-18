@@ -19,7 +19,7 @@ module Prefab
     end
 
     def add_internal(severity, message = nil, progname = nil, loc, &block)
-      path = get_path(loc.absolute_path, loc.base_label)
+      path = get_loc_path(loc)
       log_internal(message, path, progname, severity, &block)
     end
 
@@ -119,6 +119,11 @@ module Prefab
         memo
       end
       val(closest_log_level_match)
+    end
+
+    def get_loc_path(loc)
+      loc_path = loc.absolute_path || loc.to_s
+      get_path(loc_path, loc.base_label)
     end
 
     # sanitize & clean the path of the caller so the key
