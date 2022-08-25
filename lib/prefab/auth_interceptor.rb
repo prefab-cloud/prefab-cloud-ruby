@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 module Prefab
   class AuthInterceptor < GRPC::ClientInterceptor
+    VERSION = File.exist?('VERSION') ? File.read('VERSION').chomp : ""
+    CLIENT = "prefab-cloud-ruby.#{VERSION}".freeze
+
     def initialize(api_key)
-      version = File.exist?('VERSION') ? File.read('VERSION').chomp : ""
-      @client = "prefab-cloud-ruby.#{version}".freeze
       @api_key = api_key
     end
 
@@ -25,7 +26,7 @@ module Prefab
 
     def shared(metadata)
       metadata['auth'] = @api_key
-      metadata['client'] = @client
+      metadata['client'] = CLIENT
       yield
     end
   end
