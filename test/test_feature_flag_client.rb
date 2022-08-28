@@ -37,10 +37,10 @@ class TestFeatureFlagClient < Minitest::Test
     # weights above chosen to be 86% in variant_idx 2. and 14% in variant_idx 1.
     # since hashes high is 86.32 > 86 it just falls outside the 86% range and gets false
 
-    # "1FlagNamehashes high" hashes to 86.322% through dist
+    # "FlagNamevery high hash" hashes to 88.8602812% through dist
     assert_equal false,
-                 evaluate(feature, "hashes high", [], flag, variants)
-    # "1FlagNamehashes low" hashes to 44.547% through dist
+                 evaluate(feature, "very high hash", [], flag, variants)
+    # "FlagNamehashes low" hashes to 42.7934% through dist
     assert_equal true,
                  evaluate(feature, "hashes low", [], flag, variants)
 

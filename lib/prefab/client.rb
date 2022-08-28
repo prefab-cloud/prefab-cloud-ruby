@@ -5,7 +5,7 @@ module Prefab
     BASE_SLEEP_SEC = 0.5
     NO_DEFAULT_PROVIDED = :no_default_provided
 
-    attr_reader :project_id, :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
+    attr_reader :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
 
     def initialize(options = Prefab::Options.new)
       @options = options
@@ -15,12 +15,10 @@ module Prefab
       @stubs = {}
 
       if @options.local_only?
-        @project_id = 0
         log_internal Logger::INFO, "Prefab Running in Local Mode"
       else
         @api_key = @options.api_key
-        raise Prefab::Errors::InvalidApiKeyError.new(@api_key) if @api_key.nil? || @api_key.empty? || api_key.count("-") != 3
-        @project_id = @api_key.split("-")[0].to_i # unvalidated, but that's ok. APIs only listen to the actual passwd
+        raise Prefab::Errors::InvalidApiKeyError.new(@api_key) if @api_key.nil? || @api_key.empty? || api_key.count("-") < 1
         @interceptor = Prefab::AuthInterceptor.new(@api_key)
         @prefab_api_url = @options.prefab_api_url
         @prefab_grpc_url = @options.prefab_grpc_url
@@ -80,10 +78,6 @@ module Prefab
         reset!
         retry
       end
-    end
-
-    def cache_key(post_fix)
-      "prefab:#{project_id}:#{post_fix}"
     end
 
     def reset!
