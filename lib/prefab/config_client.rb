@@ -6,6 +6,7 @@ module Prefab
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
+    AUTH_USER = "authuser"
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -149,14 +150,14 @@ module Prefab
 
     def load_checkpoint_api_cdn
       key_hash = Murmur3.murmur3_32(@base_client.api_key)
-      url = "#{@options.url_for_api_cdn}/api/v1/configs/#{@base_client.project_id}/#{key_hash}/0"
+      url = "#{@options.url_for_api_cdn}/api/v1/configs/0/#{key_hash}/0"
       conn = if Faraday::VERSION[0].to_i >= 2
                Faraday.new(url) do |conn|
-                 conn.request :authorization, :basic, @base_client.project_id, @base_client.api_key
+                 conn.request :authorization, :basic, AUTH_USER, @base_client.api_key
                end
              else
                Faraday.new(url) do |conn|
-                 conn.request :basic_auth, @base_client.project_id, @base_client.api_key
+                 conn.request :basic_auth, AUTH_USER, @base_client.api_key
                end
              end
       load_url(conn, :remote_cdn_api)
@@ -178,6 +179,7 @@ module Prefab
     end
 
     def load_configs(configs, source)
+      project_id = configs.config_service_pointer.project_id
       project_env_id = configs.config_service_pointer.project_env_id
       @config_resolver.project_env_id = project_env_id
       starting_highwater_mark = @config_loader.highwater_mark
@@ -186,7 +188,7 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{@base_client.project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
+        @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
         @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "prefab.config_client.load_configs"
       end
@@ -225,7 +227,7 @@ module Prefab
     end
 
     def start_sse_streaming_connection_thread(start_at_id)
-      auth = "#{@base_client.project_id}:#{@base_client.api_key}"
+      auth = "#{AUTH_USER}:#{@base_client.api_key}"
       auth_string = Base64.strict_encode64(auth)
       headers = {
         "x-prefab-start-at-id": start_at_id,
