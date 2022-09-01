@@ -31,8 +31,7 @@ Many ruby web servers fork. GRPC does not like to be forked. You should manually
 ```ruby
 
 #config/initializers/prefab.rb
-$prefab = Prefab::Client.new(shared_cache: Rails.cache,
-                             logdev: $stdout)
+$prefab = Prefab::Client.new
 Rails.logger = $prefab.log
 ```
 
