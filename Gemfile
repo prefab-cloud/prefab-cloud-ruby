@@ -8,6 +8,7 @@ gem 'google-protobuf', :platforms => :ruby
 gem 'googleapis-common-protos-types', :platforms => :ruby
 
 group :development do
+  gem 'benchmark-ips'
   gem 'grpc-tools', :platforms => :ruby
   gem "rdoc", "~> 3.12"
   gem "bundler"

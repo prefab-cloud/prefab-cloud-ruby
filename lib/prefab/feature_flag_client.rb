@@ -121,33 +121,40 @@ module Prefab
       int_value / MAX_32_FLOAT
     end
 
-    # def criteria_match?(rule, lookup_key, attributes)
-    #
-    # end
     def criteria_match?(criteria, lookup_key, attributes)
-      if criteria.operator == :ALWAYS_TRUE
-        return true
-      elsif criteria.operator == :LOOKUP_KEY_IN
-        return criteria.values.include?(lookup_key)
-      elsif criteria.operator == :LOOKUP_KEY_NOT_IN
-        return !criteria.values.include?(lookup_key)
-      elsif criteria.operator == :IN_SEG
-        return segment_matches(criteria.values, lookup_key, attributes).any?
-      elsif criteria.operator == :NOT_IN_SEG
-        return segment_matches(criteria.values, lookup_key, attributes).none?
-      elsif criteria.operator == :PROP_IS_ONE_OF
-        return criteria.values.include?(attributes[criteria.property]) || criteria.values.include?(attributes[criteria.property.to_sym])
-      elsif criteria.operator == :PROP_IS_NOT_ONE_OF
-        return !(criteria.values.include?(attributes[criteria.property]) || criteria.values.include?(attributes[criteria.property.to_sym]))
+      case criteria.operator
+      when :ALWAYS_TRUE
+        true
+      when :LOOKUP_KEY_IN
+        criteria.values.include?(lookup_key)
+      when :LOOKUP_KEY_NOT_IN
+        !criteria.values.include?(lookup_key)
+      when :IN_SEG
+        segment_matches?(criteria.values, lookup_key, attributes)
+      when :NOT_IN_SEG
+        !segment_matches?(criteria.values, lookup_key, attributes)
+      when :PROP_IS_ONE_OF
+        criteria.values.include?(attribute_value(attributes, criteria.property))
+      when :PROP_IS_NOT_ONE_OF
+        !criteria.values.include?(attribute_value(attributes, criteria.property))
+      when :PROP_ENDS_WITH_ONE_OF
+        criteria.values.any? { |value| attribute_value(attributes, criteria.property)&.end_with?(value) }
+      when :PROP_DOES_NOT_END_WITH_ONE_OF
+        criteria.values.none? { |value| attribute_value(attributes, criteria.property)&.end_with?(value) }
+      else
+        @base_client.log.info("Unknown Operator: #{criteria.operator}")
+        false
       end
-      @base_client.log.info("Unknown Operator")
-      false
     end
 
-    # evaluate each segment key and return whether each one matches
+    def attribute_value(attributes, property)
+      attributes[property] || attributes[property.to_sym]
+    end
+
+    # evaluate each segment key and return whether any match
     # there should be an associated segment available as a standard config obj
-    def segment_matches(segment_keys, lookup_key, attributes)
-      segment_keys.map do |segment_key|
+    def segment_matches?(segment_keys, lookup_key, attributes)
+      segment_keys.any? do |segment_key|
         segment = @base_client.config_client.get(segment_key)
         if segment.nil?
           @base_client.log.info("Missing Segment")
@@ -160,9 +167,9 @@ module Prefab
 
     # does a given segment match?
     def segment_match?(segment, lookup_key, attributes)
-      segment.criterion.map do |criteria|
+      segment.criterion.any? do |criteria|
         criteria_match?(criteria, lookup_key, attributes)
-      end.any?
+      end
     end
   end
 end
