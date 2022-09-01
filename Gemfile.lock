@@ -47,7 +47,6 @@ GEM
     http-cookie (1.0.4)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
-    json (1.8.6)
     juwelier (2.4.9)
       builder
       bundler
@@ -89,8 +88,7 @@ GEM
     rack (2.2.4)
     rake (13.0.3)
     rchardet (1.8.0)
-    rdoc (3.12.2)
-      json (~> 1.4)
+    rdoc (6.3.3)
     ruby2_keywords (0.0.4)
     semver2 (3.4.2)
     simplecov (0.18.5)
@@ -121,7 +119,7 @@ DEPENDENCIES
   juwelier (~> 2.4.9)
   ld-eventsource
   minitest
-  rdoc (~> 3.12)
+  rdoc
   simplecov
   thin
 

@@ -10,7 +10,7 @@ gem 'googleapis-common-protos-types', :platforms => :ruby
 group :development do
   gem 'benchmark-ips'
   gem 'grpc-tools', :platforms => :ruby
-  gem "rdoc", "~> 3.12"
+  gem "rdoc"
   gem "bundler"
   gem "juwelier", "~> 2.4.9"
   gem "simplecov", ">= 0"
