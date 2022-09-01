@@ -3,6 +3,7 @@ GEM
   specs:
     addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
+    benchmark-ips (2.10.0)
     builder (3.2.4)
     concurrent-ruby (1.1.10)
     daemons (1.4.1)
@@ -109,6 +110,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  benchmark-ips
   bundler
   concurrent-ruby (~> 1.0, >= 1.0.5)
   faraday

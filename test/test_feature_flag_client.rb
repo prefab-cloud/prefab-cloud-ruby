@@ -299,6 +299,66 @@ class TestFeatureFlagClient < Minitest::Test
 
   end
 
+  def test_prop_ends_with_one_of
+    feature = "FlagName"
+
+    variants = [
+      Prefab::FeatureFlagVariant.new(bool: false),
+      Prefab::FeatureFlagVariant.new(bool: true)
+    ]
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_variant_idx: 1,
+      rules: [
+        Prefab::Rule.new(
+          criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::PROP_ENDS_WITH_ONE_OF,
+                                         property: "email",
+                                         values: ["@example.com"]),
+          variant_weights: [
+            Prefab::VariantWeight.new(weight: 100, variant_idx: 2)
+          ]
+        )
+      ]
+    )
+
+    assert_equal false, evaluate(feature, "user:0", {}, flag, variants)
+    assert_equal true, evaluate(feature, "user:0", {email: "test@example.com"}, flag, variants)
+    assert_equal true, evaluate(feature, "user:0", {"email" => "test@example.com"}, flag, variants)
+  end
+
+  def test_prop_does_not_end_with_one_of
+    feature = "FlagName"
+
+    variants = [
+      Prefab::FeatureFlagVariant.new(bool: false),
+      Prefab::FeatureFlagVariant.new(bool: true)
+    ]
+    flag = Prefab::FeatureFlag.new(
+      active: true,
+      inactive_variant_idx: 1,
+      rules: [
+        Prefab::Rule.new(
+          criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::PROP_DOES_NOT_END_WITH_ONE_OF,
+                                         property: "email",
+                                         values: ["@example.com"]),
+          variant_weights: [
+            Prefab::VariantWeight.new(weight: 100, variant_idx: 2)
+          ]
+        ),
+        Prefab::Rule.new(
+          criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
+          variant_weights: [
+            Prefab::VariantWeight.new(weight: 100, variant_idx: 1)
+          ]
+        )
+      ],
+    )
+
+    assert_equal true, evaluate(feature, "user:0", {}, flag, variants)
+    assert_equal false, evaluate(feature, "user:0", {email: "test@example.com"}, flag, variants)
+    assert_equal false, evaluate(feature, "user:0", {"email" => "test@example.com"}, flag, variants)
+  end
+
   def evaluate(feature_name, lookup_key, attributes, flag, variants)
     variant = @client.get_variant(feature_name, lookup_key, attributes, flag, variants)
     @client.value_of_variant(variant)
