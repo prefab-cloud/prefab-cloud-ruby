@@ -30,11 +30,16 @@ class MockBaseClient
     @config_values[key]
   end
 
+  def stats
+    Prefab::NoopStats.new
+  end
+
 end
 
 class MockConfigClient
   def initialize(config_values = {})
     @config_values = config_values
+    @variants = {}
   end
   def get(key, default=nil)
     @config_values.fetch(key, default)
@@ -44,8 +49,13 @@ class MockConfigClient
     Prefab::Config.new(value: @config_values[key], key: key)
   end
 
-  def mock_this_config key, config_value
+  def get_config_obj(key)
+    Prefab::Config.new(key: key, variants: @variants[key]) # we only use this for variants
+  end
+
+  def mock_this_config(key, config_value, variants=nil)
     @config_values[key] = config_value
+    @variants[key] = variants
   end
 end
 
