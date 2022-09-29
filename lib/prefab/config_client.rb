@@ -149,8 +149,7 @@ module Prefab
     end
 
     def load_checkpoint_api_cdn
-      key_hash = Murmur3.murmur3_32(@base_client.api_key)
-      url = "#{@options.url_for_api_cdn}/api/v1/configs/0/#{key_hash}/0"
+      url = "#{@options.url_for_api_cdn}/api/v1/configs/0"
       conn = if Faraday::VERSION[0].to_i >= 2
                Faraday.new(url) do |conn|
                  conn.request :authorization, :basic, AUTH_USER, @base_client.api_key
