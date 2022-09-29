@@ -16,6 +16,9 @@ class TestConfigClient < Minitest::Test
   def test_load
     assert_equal "test sample value", @config_client.get("sample")
     assert_equal 123, @config_client.get("sample_int")
+    assert_equal 12.12, @config_client.get("sample_double")
+    assert_equal true, @config_client.get("sample_bool")
+    assert_equal :ERROR, @config_client.get("log-level.app")
   end
 
   def test_initialization_timeout_error
