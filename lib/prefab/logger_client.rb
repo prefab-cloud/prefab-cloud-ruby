@@ -3,12 +3,22 @@ module Prefab
   class LoggerClient < Logger
 
     SEP = "."
-    BASE = "log_level"
+    BASE_KEY = "log-level"
     UNKNOWN = "unknown"
+
+    LOG_LEVEL_LOOKUPS = {
+      Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
+      Prefab::LogLevel::TRACE => Logger::DEBUG,
+      Prefab::LogLevel::DEBUG => Logger::DEBUG,
+      Prefab::LogLevel::INFO => Logger::INFO,
+      Prefab::LogLevel::WARN => Logger::WARN,
+      Prefab::LogLevel::ERROR => Logger::ERROR,
+      Prefab::LogLevel::FATAL => Logger::FATAL
+    }
 
     def initialize(logdev, formatter: nil)
       super(logdev)
-      self.formatter= formatter
+      self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
       @silences = Concurrent::Map.new(:initial_capacity => 2)
     end
@@ -109,8 +119,8 @@ module Prefab
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
-      closest_log_level_match = @config_client.get(BASE, :warn)
-      path.split(SEP).inject([BASE]) do |memo, n|
+      closest_log_level_match = @config_client.get(BASE_KEY, Prefab::LogLevel::WARN)
+      path.split(SEP).inject([BASE_KEY]) do |memo, n|
         memo << n
         val = @config_client.get(memo.join(SEP), nil)
         unless val.nil?
@@ -118,7 +128,7 @@ module Prefab
         end
         memo
       end
-      val(closest_log_level_match)
+      LOG_LEVEL_LOOKUPS[closest_log_level_match]
     end
 
     def get_loc_path(loc)
@@ -138,17 +148,13 @@ module Prefab
       path.slice! SEP
       path
     end
-
-    def val level
-      return Object.const_get("Logger::#{level.upcase}")
-    end
   end
 
   # StubConfigClient to be used while config client initializes
   # since it may log
   class BootstrappingConfigClient
-    def get(key, default=nil)
-      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] || default
+    def get(key, default = nil)
+      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? Prefab::LogLevel.resolve(ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym) : default
     end
   end
 end

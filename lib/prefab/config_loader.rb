@@ -102,7 +102,7 @@ module Prefab
           config: Prefab::Config.new(
             key: k,
             rows: [
-              Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(v)))
+              Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(k, v)))
             ]
           )
         }
@@ -119,10 +119,15 @@ module Prefab
       end
     end
 
-    def value_from(raw)
+    def value_from(key, raw)
       case raw
       when String
-        { string: raw }
+        if key.start_with? Prefab::LoggerClient::BASE_KEY
+          prefab_log_level_resolve = Prefab::LogLevel.resolve(raw.upcase.to_sym) || Prefab::LogLevel::NOT_SET_LOG_LEVEL
+          { log_level: prefab_log_level_resolve }
+        else
+          { string: raw }
+        end
       when Integer
         { int: raw }
       when TrueClass, FalseClass
@@ -165,7 +170,7 @@ module Prefab
         match: key,
         config: Prefab::Config.new(
           key: key,
-          variants: [Prefab::FeatureFlagVariant.new(value_from(value['value']))],
+          variants: [Prefab::FeatureFlagVariant.new(value_from(key, value['value']))],
           rows: [row]
         )
       }

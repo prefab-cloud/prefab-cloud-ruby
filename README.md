@@ -44,7 +44,7 @@ end
 
 ## Logging & Debugging
 In classpath or ~/.prefab.overrides.config.yaml set
-```log_level.prefab: debug```
+```log-level.prefab: debug```
 
 To debug issues before this config file has been read, set env var
 ```

@@ -15,6 +15,8 @@ module Prefab
         config_value.feature_flag
       when :segment
         config_value.segment
+      when :log_level
+        config_value.log_level
       end
     end
 

@@ -16,10 +16,11 @@ nested:
     _: top level
     string: nested value
 
-logging:
+log-level:
   app:
     _: error
     controller:
       hello:
         _: warn
         index: info
+  invalid: not a valid log level
