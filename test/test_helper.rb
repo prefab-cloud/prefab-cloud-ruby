@@ -69,10 +69,11 @@ def default_ff_rule(variant_idx)
   ]
 end
 
-def with_env(key, value)
+def with_env(key, value, &block)
   old_value = ENV[key]
 
   ENV[key] = value
+  block.call
 ensure
   ENV[key] = old_value
 end
