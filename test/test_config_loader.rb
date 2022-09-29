@@ -21,9 +21,13 @@ class TestConfigLoader < Minitest::Test
   def test_nested
     should_be :string, "nested value", "nested.values.string"
     should_be :string, "top level", "nested.values"
-    should_be :string, "error", "logging.app"
-    should_be :string, "warn", "logging.app.controller.hello"
-    should_be :string, "info", "logging.app.controller.hello.index"
+    should_be :log_level, :ERROR, "log-level.app"
+    should_be :log_level, :WARN, "log-level.app.controller.hello"
+    should_be :log_level, :INFO, "log-level.app.controller.hello.index"
+  end
+
+  def test_invalid_log_level
+    should_be :log_level, :NOT_SET_LOG_LEVEL, "log-level.invalid"
   end
 
   def test_load_without_unit_test_env
