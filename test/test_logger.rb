@@ -95,12 +95,11 @@ class TestCLogger < Minitest::Test
       pattern.match(arg)
     end
 
-    mock_logdev.expect :!=, false, [String]
     calls.times.each do
       mock_logdev.expect(:nil?, false)
     end
 
-    logger = Prefab::LoggerClient.new(mock_logdev)
+    logger = Prefab::LoggerClient.new($stdout)
     logger.instance_variable_set('@logdev', mock_logdev)
     logger.set_config_client(MockConfigClient.new(configs))
     [logger, mock_logdev]
