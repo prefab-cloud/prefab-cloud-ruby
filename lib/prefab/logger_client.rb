@@ -119,7 +119,7 @@ module Prefab
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
-      closest_log_level_match = @config_client.get(BASE_KEY, Prefab::LogLevel::WARN)
+      closest_log_level_match = @config_client.get(BASE_KEY, :WARN)
       path.split(SEP).inject([BASE_KEY]) do |memo, n|
         memo << n
         val = @config_client.get(memo.join(SEP), nil)
@@ -128,7 +128,8 @@ module Prefab
         end
         memo
       end
-      LOG_LEVEL_LOOKUPS[closest_log_level_match]
+      closest_log_level_match_int = Prefab::LogLevel.resolve(closest_log_level_match)
+      LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
     end
 
     def get_loc_path(loc)
@@ -154,7 +155,7 @@ module Prefab
   # since it may log
   class BootstrappingConfigClient
     def get(key, default = nil)
-      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? Prefab::LogLevel.resolve(ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym) : default
+      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym : default
     end
   end
 end
