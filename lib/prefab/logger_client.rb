@@ -4,7 +4,7 @@ module Prefab
 
     SEP = "."
     BASE_KEY = "log-level"
-    UNKNOWN = "unknown"
+    UNKNOWN_PATH = "unknown."
 
     LOG_LEVEL_LOOKUPS = {
       Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
@@ -36,7 +36,7 @@ module Prefab
     def log_internal(message, path, progname, severity, &block)
       level = level_of(path)
       progname = "#{path}: #{progname}"
-      severity ||= UNKNOWN
+      severity ||= Logger::UNKNOWN
       if @logdev.nil? || severity < level || @silences[local_log_id]
         return true
       end
@@ -119,7 +119,7 @@ module Prefab
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
-      closest_log_level_match = @config_client.get(BASE_KEY, Prefab::LogLevel::WARN)
+      closest_log_level_match = @config_client.get(BASE_KEY, :WARN)
       path.split(SEP).inject([BASE_KEY]) do |memo, n|
         memo << n
         val = @config_client.get(memo.join(SEP), nil)
@@ -128,7 +128,8 @@ module Prefab
         end
         memo
       end
-      LOG_LEVEL_LOOKUPS[closest_log_level_match]
+      closest_log_level_match_int = Prefab::LogLevel.resolve(closest_log_level_match)
+      LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
     end
 
     def get_loc_path(loc)
@@ -139,7 +140,7 @@ module Prefab
     # sanitize & clean the path of the caller so the key
     # looks like log_level.app.models.user
     def get_path(absolute_path, base_label)
-      path = (absolute_path || UNKNOWN).dup
+      path = (absolute_path || UNKNOWN_PATH).dup
       path.slice! Dir.pwd
       path.gsub!(/(.*)?(?=\/lib)/im, "") # replace everything before first lib
 
@@ -154,7 +155,7 @@ module Prefab
   # since it may log
   class BootstrappingConfigClient
     def get(key, default = nil)
-      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? Prefab::LogLevel.resolve(ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym) : default
+      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym : default
     end
   end
 end
