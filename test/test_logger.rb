@@ -69,20 +69,6 @@ class TestCLogger < Minitest::Test
   end
 
   def test_log_internal
-    mockLogOut = Minitest::Mock.new
-    mockLogOut.expect :write, nil do |arg|
-      /W, \[.*\]  WARN -- test.path: : test message/.match(arg)
-    end
-
-    mockLogOut.expect :!=, false, [String]
-    mockLogOut.expect :nil?, false
-
-    @logger = Prefab::LoggerClient.new(mockLogOut)
-    @logger.instance_variable_set('@logdev', mockLogOut)
-    @logger.log_internal("test message", "test.path", "", Logger::WARN)
-  end
-
-  def test_log_internal
     logger, mock_logdev = mock_logger_expecting /W, \[.*\]  WARN -- test.path: : test message/
     logger.log_internal("test message", "test.path", "", Logger::WARN)
     mock_logdev.verify
