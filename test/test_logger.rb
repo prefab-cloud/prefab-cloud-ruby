@@ -20,6 +20,9 @@ class TestCLogger < Minitest::Test
     assert_equal "active_support.log_subscriber.info",
                  @logger.get_path("/Users/jeffdwyer/.asdf/installs/ruby/3.1.2/lib/ruby/gems/3.1.0/gems/activesupport-7.0.2.4/lib/active_support/log_subscriber.rb:130:in `info'",
                                   "info")
+    assert_equal "unknown.info",
+                 @logger.get_path(nil,
+                                  "info")
   end
 
   def test_loc_resolution

@@ -4,7 +4,7 @@ module Prefab
 
     SEP = "."
     BASE_KEY = "log-level"
-    UNKNOWN = "unknown"
+    UNKNOWN_PATH = "unknown."
 
     LOG_LEVEL_LOOKUPS = {
       Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
@@ -36,7 +36,7 @@ module Prefab
     def log_internal(message, path, progname, severity, &block)
       level = level_of(path)
       progname = "#{path}: #{progname}"
-      severity ||= UNKNOWN
+      severity ||= Logger::UNKNOWN
       if @logdev.nil? || severity < level || @silences[local_log_id]
         return true
       end
@@ -139,7 +139,7 @@ module Prefab
     # sanitize & clean the path of the caller so the key
     # looks like log_level.app.models.user
     def get_path(absolute_path, base_label)
-      path = (absolute_path || UNKNOWN).dup
+      path = (absolute_path || UNKNOWN_PATH).dup
       path.slice! Dir.pwd
       path.gsub!(/(.*)?(?=\/lib)/im, "") # replace everything before first lib
 
