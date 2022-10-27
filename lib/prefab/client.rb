@@ -50,7 +50,7 @@ module Prefab
       @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter)
     end
 
-    def log_internal(level, msg, path = "prefab")
+    def log_internal(level, msg, path = "cloud.prefab.client")
       log.log_internal msg, path, nil, level
     end
 
