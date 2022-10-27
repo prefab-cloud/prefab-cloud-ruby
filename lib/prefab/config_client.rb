@@ -237,7 +237,7 @@ module Prefab
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
-                                          logger: Prefab::InternalLogger.new("prefab.config.sse", @base_client.log)) do |client|
+                                          logger: Prefab::SseLogger.new(@base_client.log)) do |client|
         client.on_event do |event|
           configs = Prefab::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)
