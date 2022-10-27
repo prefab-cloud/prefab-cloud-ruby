@@ -18,7 +18,8 @@ module Prefab
     def to_s
       str = "\n"
       @lock.with_read_lock do
-        @local_store.each do |k, v|
+        @local_store.keys.sort.each do |k|
+          v = @local_store[k]
           elements = [k.slice(0..49).ljust(50)]
           if v.nil?
             elements << "tombstone"
