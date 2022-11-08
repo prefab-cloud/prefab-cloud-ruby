@@ -16,11 +16,12 @@ module Prefab
       Prefab::LogLevel::FATAL => Logger::FATAL
     }
 
-    def initialize(logdev, formatter: nil)
+    def initialize(logdev, formatter: nil, prefix: nil)
       super(logdev)
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
-      @silences = Concurrent::Map.new(:initial_capacity => 2)
+      @silences = Concurrent::Map.new(initial_capacity: 2)
+      @prefix = prefix
     end
 
     def add(severity, message = nil, progname = nil)
@@ -35,7 +36,7 @@ module Prefab
 
     def log_internal(message, path, progname, severity, &block)
       level = level_of(path)
-      progname = "#{path}: #{progname}"
+      progname = "#{@prefix}#{@prefix && '.'}#{path}: #{progname}"
       severity ||= Logger::UNKNOWN
       if @logdev.nil? || severity < level || @silences[local_log_id]
         return true

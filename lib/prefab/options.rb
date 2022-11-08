@@ -1,8 +1,10 @@
 # frozen_string_literal: true
+
 module Prefab
   class Options
     attr_reader :api_key
     attr_reader :logdev
+    attr_reader :log_prefix
     attr_reader :log_formatter
     attr_reader :stats
     attr_reader :shared_cache
@@ -40,6 +42,7 @@ module Prefab
       shared_cache: NoopCache.new, # Something that quacks like Rails.cache ideally memcached
       namespace: "",
       log_formatter: DEFAULT_LOG_FORMATTER,
+      log_prefix: nil,
       prefab_api_url: ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud',
       prefab_grpc_url: ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
@@ -59,6 +62,7 @@ module Prefab
       @shared_cache = shared_cache
       @namespace = namespace
       @log_formatter = log_formatter
+      @log_prefix = log_prefix
       @prefab_api_url = prefab_api_url
       @prefab_grpc_url = prefab_grpc_url
       @on_no_default = on_no_default
