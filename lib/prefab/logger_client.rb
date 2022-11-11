@@ -25,23 +25,24 @@ module Prefab
       @prefix = prefix
     end
 
-    def add(severity, message = nil, progname = nil)
-      loc = caller_locations(1, 1)[0]
-      add_internal(severity, message, progname, loc)
-    end
-
-    def add_internal(severity, message = nil, progname = nil, loc, &block)
+    def add(severity, message = nil, progname = nil, loc, &block)
       path = get_loc_path(loc)
-      log_internal(message, path, progname, severity, &block)
+      path = "#{@prefix}#{@prefix && '.'}#{path}"
+
+      log(message, path, progname, severity, &block)
     end
 
     def log_internal(message, path = nil, progname, severity, &block)
       if path
-        path = "#{@prefix}#{@prefix && '.'}#{path}"
+        path = "#{INTERNAL_PREFIX}.#{path}"
       else
         path = INTERNAL_PREFIX
       end
 
+      log(message, path, progname, severity, &block)
+    end
+
+    def log(message, path, progname, severity, &block)
       level = level_of(path)
       progname = "#{path}: #{progname}"
       severity ||= Logger::UNKNOWN
@@ -65,23 +66,23 @@ module Prefab
     end
 
     def debug(progname = nil, &block)
-      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
+      add(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def info(progname = nil, &block)
-      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], &block)
+      add(INFO, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def warn(progname = nil, &block)
-      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], &block)
+      add(WARN, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def error(progname = nil, &block)
-      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
+      add(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def fatal(progname = nil, &block)
-      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
+      add(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def debug?
