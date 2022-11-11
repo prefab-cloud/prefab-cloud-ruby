@@ -51,8 +51,8 @@ module Prefab
                                                                    prefix: @options.log_prefix)
     end
 
-    def log_internal(level, msg, path = "cloud.prefab.client")
-      log.log_internal msg, path, nil, level
+    def log_internal(level, msg, path = nil)
+      log.log_internal msg, path || @options.log_prefix, nil, level
     end
 
     def request(service, method, req_options: {}, params: {})

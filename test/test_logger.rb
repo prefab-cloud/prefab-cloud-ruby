@@ -91,7 +91,7 @@ class TestCLogger < Minitest::Test
   end
 
   def test_logging_with_prefix
-    prefix = 'cloud.prefab.web'
+    prefix = 'my.own.prefix'
     message = 'this is a test'
 
     io = StringIO.new
