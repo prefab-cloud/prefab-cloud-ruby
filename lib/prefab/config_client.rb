@@ -189,7 +189,7 @@ module Prefab
       if @config_loader.highwater_mark > starting_highwater_mark
         @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
-        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "#{Prefab::LoggerClient::INTERNAL_PREFIX}.load_configs"
+        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "load_configs"
       end
       @base_client.stats.increment("prefab.config.checkpoint.load")
       @config_resolver.update
