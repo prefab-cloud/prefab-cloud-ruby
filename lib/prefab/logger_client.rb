@@ -5,6 +5,7 @@ module Prefab
     SEP = "."
     BASE_KEY = "log-level"
     UNKNOWN_PATH = "unknown."
+    INTERNAL_PREFIX = "cloud.prefab.client"
 
     LOG_LEVEL_LOOKUPS = {
       Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
@@ -38,7 +39,7 @@ module Prefab
       if path
         path = "#{@prefix}#{@prefix && '.'}#{path}"
       else
-        path = "cloud.prefab.client"
+        path = INTERNAL_PREFIX
       end
 
       level = level_of(path)
