@@ -42,7 +42,7 @@ module Prefab
       shared_cache: NoopCache.new, # Something that quacks like Rails.cache ideally memcached
       namespace: "",
       log_formatter: DEFAULT_LOG_FORMATTER,
-      log_prefix: "cloud.prefab.client",
+      log_prefix: nil,
       prefab_api_url: ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud',
       prefab_grpc_url: ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,

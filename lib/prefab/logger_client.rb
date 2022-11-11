@@ -34,9 +34,15 @@ module Prefab
       log_internal(message, path, progname, severity, &block)
     end
 
-    def log_internal(message, path, progname, severity, &block)
+    def log_internal(message, path = nil, progname, severity, &block)
+      if path
+        path = "#{@prefix}#{@prefix && '.'}#{path}"
+      else
+        path = "cloud.prefab.client"
+      end
+
       level = level_of(path)
-      progname = "#{@prefix}#{@prefix && '.'}#{path}: #{progname}"
+      progname = "#{path}: #{progname}"
       severity ||= Logger::UNKNOWN
       if @logdev.nil? || severity < level || @silences[local_log_id]
         return true

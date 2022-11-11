@@ -52,7 +52,7 @@ module Prefab
     end
 
     def log_internal(level, msg, path = nil)
-      log.log_internal msg, path || @options.log_prefix, nil, level
+      log.log_internal msg, path, nil, level
     end
 
     def request(service, method, req_options: {}, params: {})
