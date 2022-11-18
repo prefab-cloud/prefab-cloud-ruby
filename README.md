@@ -16,7 +16,6 @@ puts @feature_flags.feature_is_on? "MyFeature", "user:1123"
 ```
 See full documentation https://www.prefab.cloud/documentation/installation
 
-
 ## Supports
 
 * [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
@@ -44,15 +43,19 @@ end
 
 ## Logging & Debugging
 In classpath or ~/.prefab.overrides.config.yaml set
-```log-level.prefab: debug```
+
+```
+log-level:
+  cloud.prefab: debug
+```
 
 To debug issues before this config file has been read, set env var
 ```
-PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL = debug
+PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL=debug
 ```
 
 ## Contributing to prefab-cloud-ruby
- 
+
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
 * Fork the project.
