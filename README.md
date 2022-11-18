@@ -1,5 +1,5 @@
 # prefab-cloud-ruby
-Ruby Client for Prefab RateLimits, FeatureFlags, Config as a Service: https://www.prefab.cloud
+Ruby Client for Prefab FeatureFlags, Config as a Service: https://www.prefab.cloud
 
 ```ruby
 client = Prefab::Client.new
@@ -16,11 +16,9 @@ puts @feature_flags.feature_is_on? "MyFeature", "user:1123"
 ```
 See full documentation https://www.prefab.cloud/documentation/installation
 
-
 ## Supports
 
 * [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
-* [RateLimits](https://www.prefab.cloud/documentation/basic_rate_limits)
 * Millions of individual limits sharing the same policies
 * WebUI for tweaking limits & feature flags
 * Infinite retention for [deduplication workflows](https://www.prefab.cloud/documentation/once_and_only_once)
@@ -44,15 +42,19 @@ end
 
 ## Logging & Debugging
 In classpath or ~/.prefab.overrides.config.yaml set
-```log-level.prefab: debug```
+
+```
+log-level:
+  cloud.prefab: debug
+```
 
 To debug issues before this config file has been read, set env var
 ```
-PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL = debug
+PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL=debug
 ```
 
 ## Contributing to prefab-cloud-ruby
- 
+
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
 * Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
 * Fork the project.
