@@ -1,5 +1,5 @@
 # prefab-cloud-ruby
-Ruby Client for Prefab RateLimits, FeatureFlags, Config as a Service: https://www.prefab.cloud
+Ruby Client for Prefab FeatureFlags, Config as a Service: https://www.prefab.cloud
 
 ```ruby
 client = Prefab::Client.new
@@ -19,7 +19,6 @@ See full documentation https://www.prefab.cloud/documentation/installation
 ## Supports
 
 * [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
-* [RateLimits](https://www.prefab.cloud/documentation/basic_rate_limits)
 * Millions of individual limits sharing the same policies
 * WebUI for tweaking limits & feature flags
 * Infinite retention for [deduplication workflows](https://www.prefab.cloud/documentation/once_and_only_once)
