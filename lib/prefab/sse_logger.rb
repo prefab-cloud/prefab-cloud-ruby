@@ -2,7 +2,7 @@
 module Prefab
   class SseLogger < InternalLogger
     def initialize(logger)
-      super("cloud.prefab.config.sse", logger)
+      super("sse", logger)
     end
 
     # The SSE::Client warns on a perfectly normal stream disconnect, recast to info

@@ -47,10 +47,11 @@ module Prefab
     end
 
     def log
-      @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter)
+      @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
+                                                                   prefix: @options.log_prefix)
     end
 
-    def log_internal(level, msg, path = "cloud.prefab.client")
+    def log_internal(level, msg, path = nil)
       log.log_internal msg, path, nil, level
     end
 

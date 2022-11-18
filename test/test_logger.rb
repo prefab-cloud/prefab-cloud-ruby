@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 
 class TestCLogger < Minitest::Test
@@ -69,24 +70,63 @@ class TestCLogger < Minitest::Test
   end
 
   def test_log_internal
-    logger, mock_logdev = mock_logger_expecting /W, \[.*\]  WARN -- test.path: : test message/
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : test message/)
     logger.log_internal("test message", "test.path", "", Logger::WARN)
     mock_logdev.verify
   end
 
   def test_log_internal_unknown
-    logger, mock_logdev = mock_logger_expecting /A, \[.*\]   ANY -- test.path: : test message/
+    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- cloud.prefab.client.test.path: : test message/)
     logger.log_internal("test message", "test.path", "", Logger::UNKNOWN)
     mock_logdev.verify
   end
 
   def test_log_internal_silencing
-    logger, mock_logdev = mock_logger_expecting /W, \[.*\]  WARN -- test.path: : should log/, calls: 2
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/, calls: 2)
     logger.silence do
       logger.log_internal("should not log", "test.path", "", Logger::WARN)
     end
     logger.log_internal("should log", "test.path", "", Logger::WARN)
     mock_logdev.verify
+  end
+
+  def test_log
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : test message/)
+    logger.log("test message", "test.path", "", Logger::WARN)
+    mock_logdev.verify
+  end
+
+  def test_log_unknown
+    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- test.path: : test message/)
+    logger.log("test message", "test.path", "", Logger::UNKNOWN)
+    mock_logdev.verify
+  end
+
+  def test_log_silencing
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : should log/, calls: 2)
+    logger.silence do
+      logger.log("should not log", "test.path", "", Logger::WARN)
+    end
+    logger.log("should log", "test.path", "", Logger::WARN)
+    mock_logdev.verify
+  end
+
+  def test_logging_with_prefix
+    prefix = 'my.own.prefix'
+    message = 'this is a test'
+
+    io = StringIO.new
+    options = Prefab::Options.new(logdev: io, log_prefix: prefix, prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY)
+    prefab = Prefab::Client.new(options)
+
+    prefixed_logger = prefab.log
+    prefixed_logger.error message
+
+    assert_logged io.string, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_prefix", message
+  end
+
+  def assert_logged(log_line, level, path, message)
+    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-\+]?\d+:  #{path}: #{message}\n/, log_line)
   end
 
   def mock_logger_expecting pattern, configs = {}, calls: 1
