@@ -70,23 +70,44 @@ class TestCLogger < Minitest::Test
   end
 
   def test_log_internal
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : test message/)
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : test message/)
     logger.log_internal("test message", "test.path", "", Logger::WARN)
     mock_logdev.verify
   end
 
   def test_log_internal_unknown
-    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- test.path: : test message/)
+    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- cloud.prefab.client.test.path: : test message/)
     logger.log_internal("test message", "test.path", "", Logger::UNKNOWN)
     mock_logdev.verify
   end
 
   def test_log_internal_silencing
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : should log/, calls: 2)
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/, calls: 2)
     logger.silence do
       logger.log_internal("should not log", "test.path", "", Logger::WARN)
     end
     logger.log_internal("should log", "test.path", "", Logger::WARN)
+    mock_logdev.verify
+  end
+
+  def test_log
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : test message/)
+    logger.log("test message", "test.path", "", Logger::WARN)
+    mock_logdev.verify
+  end
+
+  def test_log_unknown
+    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- test.path: : test message/)
+    logger.log("test message", "test.path", "", Logger::UNKNOWN)
+    mock_logdev.verify
+  end
+
+  def test_log_silencing
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : should log/, calls: 2)
+    logger.silence do
+      logger.log("should not log", "test.path", "", Logger::WARN)
+    end
+    logger.log("should log", "test.path", "", Logger::WARN)
     mock_logdev.verify
   end
 
