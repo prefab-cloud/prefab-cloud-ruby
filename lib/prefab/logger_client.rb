@@ -43,15 +43,13 @@ module Prefab
     end
 
     def log(message, path, progname, severity, &block)
-      level = level_of(path)
-      progname = "#{path}: #{progname}"
       severity ||= Logger::UNKNOWN
-      if @logdev.nil? || severity < level || @silences[local_log_id]
+      if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
         return true
       end
-      if progname.nil?
-        progname = @progname
-      end
+
+      progname = "#{path}: #{progname || @progname}"
+
       if message.nil?
         if block_given?
           message = yield
@@ -60,6 +58,7 @@ module Prefab
           progname = @progname
         end
       end
+
       @logdev.write(
         format_message(format_severity(severity), Time.now, progname, message))
       true
