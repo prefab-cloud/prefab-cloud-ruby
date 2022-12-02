@@ -115,18 +115,54 @@ class TestCLogger < Minitest::Test
     prefix = 'my.own.prefix'
     message = 'this is a test'
 
-    io = StringIO.new
-    options = Prefab::Options.new(logdev: io, log_prefix: prefix, prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY)
-    prefab = Prefab::Client.new(options)
+    prefab, io = captured_logger(log_prefix: prefix)
 
     prefixed_logger = prefab.log
     prefixed_logger.error message
 
-    assert_logged io.string, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_prefix", message
+    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_prefix", message
   end
 
-  def assert_logged(log_line, level, path, message)
-    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-\+]?\d+:  #{path}: #{message}\n/, log_line)
+  def test_logging_without_a_progname
+    prefab, io = captured_logger
+    message = "MY MESSAGE"
+
+    prefab.log.error message
+
+    assert_logged io, 'ERROR', "test.test_logger.test_logging_without_a_progname", message
+  end
+
+  def test_logging_without_a_progname_or_message
+    prefab, io = captured_logger
+
+    prefab.log.error
+
+    assert_logged io, 'ERROR', "test.test_logger.test_logging_without_a_progname_or_message", ""
+  end
+
+  def test_logging_with_a_progname
+    prefab, io = captured_logger
+    message = "MY MESSAGE"
+
+    prefab.log.progname = "MY_PROGNAME"
+    prefab.log.error message
+
+    assert_logged io, 'ERROR', "MY_PROGNAME test.test_logger.test_logging_with_a_progname", message
+  end
+
+  def test_logging_with_a_progname_and_no_message
+    prefab, io = captured_logger
+
+    prefab.log.progname = "MY_PROGNAME"
+    prefab.log.error
+
+    assert_logged io, 'ERROR', "MY_PROGNAME test.test_logger.test_logging_with_a_progname_and_no_message", "MY_PROGNAME"
+  end
+
+  private
+
+  def assert_logged(logged_io, level, path, message)
+    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-\+]?\d+: #{path}: #{message}\n/, logged_io.string)
   end
 
   def mock_logger_expecting pattern, configs = {}, calls: 1
@@ -143,5 +179,16 @@ class TestCLogger < Minitest::Test
     logger.instance_variable_set('@logdev', mock_logdev)
     logger.set_config_client(MockConfigClient.new(configs))
     [logger, mock_logdev]
+  end
+
+  def captured_logger(options = {})
+    io = StringIO.new
+    options = Prefab::Options.new(**options.merge(
+      logdev: io,
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+    ))
+    prefab = Prefab::Client.new(options)
+
+    return [prefab, io]
   end
 end

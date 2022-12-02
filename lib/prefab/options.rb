@@ -19,7 +19,7 @@ module Prefab
     attr_reader :prefab_envs
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
-      "#{severity.ljust(5)} #{datetime}: #{progname} #{msg}\n"
+      "#{severity.ljust(5)} #{datetime}:#{" " if progname}#{progname} #{msg}\n"
     }
 
     module ON_INITIALIZATION_FAILURE
