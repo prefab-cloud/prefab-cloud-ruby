@@ -2,6 +2,9 @@
 
 require 'minitest/autorun'
 require 'minitest/focus'
+require 'minitest/reporters'
+Minitest::Reporters.use!
+
 require 'prefab-cloud-ruby'
 
 class MockBaseClient

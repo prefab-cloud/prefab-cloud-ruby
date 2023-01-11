@@ -2,8 +2,6 @@
 
 module Prefab
   class ConfigClient
-    include Prefab::ConfigHelper
-
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
@@ -74,17 +72,17 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
-    def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED)
-      config = _get(key)
-      config ? value_of(config[:value]) : handle_default(key, default)
-    end
-
-    def get_config_obj(key)
-      config = _get(key)
-      config ? config[:config] : nil
+    # TODO: this call signature has changed, update docs
+    def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED, properties = {}, lookup_key = nil)
+      value = _get(key, lookup_key, properties)
+      value ? Prefab::ConfigValueUnwrapper.unwrap(value, key, properties) : handle_default(key, default)
     end
 
     private
+
+    def raw(key)
+      @config_resolver.raw(key)
+    end
 
     def handle_default(key, default)
       return default if default != Prefab::Client::NO_DEFAULT_PROVIDED
@@ -94,7 +92,7 @@ module Prefab
       nil
     end
 
-    def _get(key)
+    def _get(key, lookup_key, properties)
       # wait timeout sec for the initalization to be complete
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
@@ -107,7 +105,7 @@ module Prefab
         @initialization_lock.release_write_lock
 
       end
-      @config_resolver._get(key)
+      @config_resolver.get(key, lookup_key, properties)
     end
 
     def stub

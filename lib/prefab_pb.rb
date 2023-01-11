@@ -17,11 +17,22 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :bytes, :bytes, 3
         optional :double, :double, 4
         optional :bool, :bool, 5
-        optional :feature_flag, :message, 6, 'prefab.FeatureFlag'
+        optional :weighted_values, :message, 6, 'prefab.WeightedValues'
         optional :limit_definition, :message, 7, 'prefab.LimitDefinition'
         optional :segment, :message, 8, 'prefab.Segment'
         optional :log_level, :enum, 9, 'prefab.LogLevel'
+        optional :string_list, :message, 10, 'prefab.StringList'
       end
+    end
+    add_message 'prefab.StringList' do
+      repeated :values, :string, 1
+    end
+    add_message 'prefab.WeightedValue' do
+      optional :weight, :int32, 1
+      optional :value, :message, 2, 'prefab.ConfigValue'
+    end
+    add_message 'prefab.WeightedValues' do
+      repeated :weighted_values, :message, 1, 'prefab.WeightedValue'
     end
     add_message 'prefab.Configs' do
       repeated :configs, :message, 1, 'prefab.Config'
@@ -31,14 +42,23 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :id, :int64, 1
       optional :project_id, :int64, 2
       optional :key, :string, 3
-      optional :changed_by, :string, 4
+      optional :changed_by, :message, 4, 'prefab.ChangedBy'
       repeated :rows, :message, 5, 'prefab.ConfigRow'
-      repeated :variants, :message, 6, 'prefab.FeatureFlagVariant'
+      repeated :allowable_values, :message, 6, 'prefab.ConfigValue'
+      optional :config_type, :enum, 7, 'prefab.ConfigType'
+    end
+    add_message 'prefab.ChangedBy' do
+      optional :user_id, :int64, 1
+      optional :email, :string, 2
     end
     add_message 'prefab.ConfigRow' do
-      optional :project_env_id, :int64, 1
-      optional :namespace, :string, 2
-      optional :value, :message, 3, 'prefab.ConfigValue'
+      proto3_optional :project_env_id, :int64, 1
+      repeated :values, :message, 2, 'prefab.ConditionalValue'
+      map :properties, :string, :message, 3, 'prefab.ConfigValue'
+    end
+    add_message 'prefab.ConditionalValue' do
+      repeated :criteria, :message, 1, 'prefab.Criterion'
+      optional :value, :message, 2, 'prefab.ConfigValue'
     end
     add_message 'prefab.LimitResponse' do
       optional :passed, :bool, 1
@@ -75,20 +95,12 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :MINIMUM, 1
       value :MAXIMUM, 2
     end
-    add_message 'prefab.FeatureFlagVariant' do
-      proto3_optional :int, :int64, 1
-      proto3_optional :string, :string, 2
-      proto3_optional :double, :double, 3
-      proto3_optional :bool, :bool, 4
-      optional :name, :string, 5
-      optional :description, :string, 6
+    add_message 'prefab.Criterion' do
+      optional :property_name, :string, 1
+      optional :operator, :enum, 2, 'prefab.Criterion.CriterionOperator'
+      optional :value_to_match, :message, 3, 'prefab.ConfigValue'
     end
-    add_message 'prefab.Criteria' do
-      optional :property, :string, 1
-      optional :operator, :enum, 2, 'prefab.Criteria.CriteriaOperator'
-      repeated :values, :string, 3
-    end
-    add_enum 'prefab.Criteria.CriteriaOperator' do
+    add_enum 'prefab.Criterion.CriterionOperator' do
       value :NOT_SET, 0
       value :LOOKUP_KEY_IN, 1
       value :LOOKUP_KEY_NOT_IN, 2
@@ -99,22 +111,10 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :PROP_IS_NOT_ONE_OF, 7
       value :PROP_ENDS_WITH_ONE_OF, 8
       value :PROP_DOES_NOT_END_WITH_ONE_OF, 9
-    end
-    add_message 'prefab.Rule' do
-      optional :criteria, :message, 1, 'prefab.Criteria'
-      repeated :variant_weights, :message, 2, 'prefab.VariantWeight'
+      value :HIERARCHICAL_MATCH, 10
     end
     add_message 'prefab.Segment' do
-      repeated :criterion, :message, 1, 'prefab.Criteria'
-    end
-    add_message 'prefab.VariantWeight' do
-      optional :weight, :int32, 1
-      optional :variant_idx, :int32, 2
-    end
-    add_message 'prefab.FeatureFlag' do
-      optional :active, :bool, 1
-      optional :inactive_variant_idx, :int32, 2
-      repeated :rules, :message, 5, 'prefab.Rule'
+      repeated :criteria, :message, 1, 'prefab.Criterion'
     end
     add_message 'prefab.Identity' do
       proto3_optional :lookup, :string, 1
@@ -184,6 +184,14 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :sequence_name, :string, 3
       optional :size, :int64, 4
     end
+    add_enum 'prefab.ConfigType' do
+      value :NOT_SET_CONFIG_TYPE, 0
+      value :CONFIG, 1
+      value :FEATURE_FLAG, 2
+      value :LOG_LEVEL, 3
+      value :SEGMENT, 4
+      value :LIMIT_DEFINITION, 5
+    end
     add_enum 'prefab.LogLevel' do
       value :NOT_SET_LOG_LEVEL, 0
       value :TRACE, 1
@@ -205,20 +213,21 @@ end
 module Prefab
   ConfigServicePointer = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConfigServicePointer').msgclass
   ConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConfigValue').msgclass
+  StringList = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.StringList').msgclass
+  WeightedValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.WeightedValue').msgclass
+  WeightedValues = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.WeightedValues').msgclass
   Configs = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Configs').msgclass
   Config = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Config').msgclass
+  ChangedBy = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ChangedBy').msgclass
   ConfigRow = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConfigRow').msgclass
+  ConditionalValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConditionalValue').msgclass
   LimitResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.LimitResponse').msgclass
   LimitResponse::LimitPolicyNames = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.LimitResponse.LimitPolicyNames').enummodule
   LimitRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.LimitRequest').msgclass
   LimitRequest::LimitCombiner = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.LimitRequest.LimitCombiner').enummodule
-  FeatureFlagVariant = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.FeatureFlagVariant').msgclass
-  Criteria = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Criteria').msgclass
-  Criteria::CriteriaOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Criteria.CriteriaOperator').enummodule
-  Rule = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Rule').msgclass
+  Criterion = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Criterion').msgclass
+  Criterion::CriterionOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Criterion.CriterionOperator').enummodule
   Segment = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Segment').msgclass
-  VariantWeight = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.VariantWeight').msgclass
-  FeatureFlag = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.FeatureFlag').msgclass
   Identity = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.Identity').msgclass
   ClientConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ClientConfigValue').msgclass
   ConfigEvaluations = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConfigEvaluations').msgclass
@@ -231,6 +240,7 @@ module Prefab
   CreationResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.CreationResponse').msgclass
   IdBlock = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.IdBlock').msgclass
   IdBlockRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.IdBlockRequest').msgclass
+  ConfigType = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.ConfigType').enummodule
   LogLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.LogLevel').enummodule
   OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup('prefab.OnFailure').enummodule
 end

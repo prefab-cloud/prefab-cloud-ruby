@@ -6,6 +6,11 @@ class TestConfigResolver < Minitest::Test
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
+  SEGMENT_KEY = 'segment_key'
+  CONFIG_KEY = 'config_key'
+  DEFAULT_VALUE = 'default_value'
+  IN_SEGMENT_VALUE = 'in_segment_value'
+  NOT_IN_SEGMENT_VALUE = 'not_in_segment_value'
 
   def test_resolution
     @loader = MockConfigLoader.new
@@ -15,31 +20,79 @@ class TestConfigResolver < Minitest::Test
         key: 'key',
         rows: [
           Prefab::ConfigRow.new(
-            value: Prefab::ConfigValue.new(string: 'value_no_env_default')
+            values: [
+              Prefab::ConditionalValue.new(
+                value: Prefab::ConfigValue.new(string: 'value_no_env_default')
+              )
+            ]
           ),
           Prefab::ConfigRow.new(
             project_env_id: TEST_ENV_ID,
-            value: Prefab::ConfigValue.new(string: 'value_none')
-          ),
-          Prefab::ConfigRow.new(
-            project_env_id: TEST_ENV_ID,
-            namespace: 'projectA',
-            value: Prefab::ConfigValue.new(string: 'valueA')
-          ),
-          Prefab::ConfigRow.new(
-            project_env_id: TEST_ENV_ID,
-            namespace: 'projectB',
-            value: Prefab::ConfigValue.new(string: 'valueB')
-          ),
-          Prefab::ConfigRow.new(
-            project_env_id: TEST_ENV_ID,
-            namespace: 'projectB.subprojectX',
-            value: Prefab::ConfigValue.new(string: 'projectB.subprojectX')
-          ),
-          Prefab::ConfigRow.new(
-            project_env_id: TEST_ENV_ID,
-            namespace: 'projectB.subprojectY',
-            value: Prefab::ConfigValue.new(string: 'projectB.subprojectY')
+            values: [
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectB.subprojectX'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'projectB.subprojectX')
+              ),
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectB.subprojectY'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'projectB.subprojectY')
+              ),
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectA'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'valueA')
+              ),
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectB'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'valueB')
+              ),
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectB.subprojectX'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'projectB.subprojectX')
+              ),
+              Prefab::ConditionalValue.new(
+                criteria: [
+                  Prefab::Criterion.new(
+                    operator: Prefab::Criterion::CriterionOperator::HIERARCHICAL_MATCH,
+                    value_to_match: Prefab::ConfigValue.new(string: 'projectB.subprojectY'),
+                    property_name: Prefab::CriteriaEvaluator::NAMESPACE_KEY
+                  )
+                ],
+                value: Prefab::ConfigValue.new(string: 'projectB.subprojectY')
+              ),
+              Prefab::ConditionalValue.new(
+                value: Prefab::ConfigValue.new(string: 'value_none')
+              )
+            ]
           )
 
         ]
@@ -47,7 +100,13 @@ class TestConfigResolver < Minitest::Test
       'key2' => { config: Prefab::Config.new(
         key: 'key2',
         rows: [
-          value: Prefab::ConfigValue.new(string: 'valueB2')
+          Prefab::ConfigRow.new(
+            values: [
+              Prefab::ConditionalValue.new(
+                value: Prefab::ConfigValue.new(string: 'valueB2')
+              )
+            ]
+          )
         ]
       ) }
 
@@ -55,137 +114,164 @@ class TestConfigResolver < Minitest::Test
 
     @loader.stub :calc_config, loaded_values do
       @resolverA = resolver_for_namespace('', @loader, project_env_id: PRODUCTION_ENV_ID)
-      assert_equal 'value_no_env_default', @resolverA.get('key')
+      assert_equal 'value_no_env_default', @resolverA.get('key', nil).string
 
       ## below here in the test env
       @resolverA = resolver_for_namespace('', @loader)
-      assert_equal 'value_none', @resolverA.get('key')
+      assert_equal 'value_none', @resolverA.get('key', nil).string
 
       @resolverA = resolver_for_namespace('projectA', @loader)
-      assert_equal 'valueA', @resolverA.get('key')
+      assert_equal 'valueA', @resolverA.get('key', nil).string
 
       @resolverB = resolver_for_namespace('projectB', @loader)
-      assert_equal 'valueB', @resolverB.get('key')
+      assert_equal 'valueB', @resolverB.get('key', nil).string
 
       @resolverBX = resolver_for_namespace('projectB.subprojectX', @loader)
-      assert_equal 'projectB.subprojectX', @resolverBX.get('key')
+      assert_equal 'projectB.subprojectX', @resolverBX.get('key', nil).string
 
       @resolverBX = resolver_for_namespace('projectB.subprojectX', @loader)
-      assert_equal 'valueB2', @resolverBX.get('key2')
+      assert_equal 'valueB2', @resolverBX.get('key2', nil).string
 
       @resolverUndefinedSubProject = resolver_for_namespace('projectB.subprojectX.subsubQ', @loader)
-      assert_equal 'projectB.subprojectX', @resolverBX.get('key')
+      assert_equal 'projectB.subprojectX', @resolverUndefinedSubProject.get('key', nil).string
 
       @resolverBX = resolver_for_namespace('projectC', @loader)
-      assert_equal 'value_none', @resolverBX.get('key')
-      assert_nil @resolverBX.get('key_that_doesnt_exist')
+      assert_equal 'value_none', @resolverBX.get('key', nil).string
+
+      assert_nil @resolverBX.get('key_that_doesnt_exist', nil)
     end
   end
 
-  def test_starts_with_ns
-    @loader = MockConfigLoader.new
-    @loader.stub :calc_config, {} do
-      resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
-      assert_equal [true, 0], resolver.send(:starts_with_ns?, '', 'a')
-      assert_equal [true, 1], resolver.send(:starts_with_ns?, 'a', 'a')
-      assert_equal [true, 1], resolver.send(:starts_with_ns?, 'a', 'a.b')
-      assert_equal [false, 2], resolver.send(:starts_with_ns?, 'a.b', 'a')
+  def test_resolving_in_segment
+    segment = Prefab::Segment.new(criteria: [
+                                    Prefab::Criterion.new(
+                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                                      property_name: 'email'
+                                    )
+                                  ])
 
-      assert_equal [true, 1], resolver.send(:starts_with_ns?, 'corp', 'corp.proj.proja')
-      assert_equal [true, 2], resolver.send(:starts_with_ns?, 'corp.proj', 'corp.proj.proja')
-      assert_equal [true, 3], resolver.send(:starts_with_ns?, 'corp.proj.proja', 'corp.proj.proja')
-      assert_equal [false, 3], resolver.send(:starts_with_ns?, 'corp.proj.projb', 'corp.proj.proja')
+    segment_config = Prefab::Config.new(
+      config_type: Prefab::ConfigType::SEGMENT,
+      key: SEGMENT_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(segment: segment)
+            )
+          ]
+        )
+      ]
+    )
 
-      # corp_equal [true, 1:,a:b is not a real delimited namespace[0
-      assert_equal [false, 1], resolver.send(:starts_with_ns?, 'corp', 'corp:a:b')
-      assert_equal [true, 1], resolver.send(:starts_with_ns?, 'foo', 'foo.baz')
-      assert_equal [true, 2], resolver.send(:starts_with_ns?, 'foo.baz', 'foo.baz')
-      assert_equal [false, 2], resolver.send(:starts_with_ns?, 'foo.baz', 'foo.bazz')
-    end
-  end
-
-  def test_special_ff_variant_copying
-    @loader = MockConfigLoader.new
-    loaded_values = {
-      'ff' => { source: 'test',
-                config: Prefab::Config.new(
-                  key: 'ff',
-                  variants: [
-                    Prefab::FeatureFlagVariant.new(string: 'inactive'),
-                    Prefab::FeatureFlagVariant.new(string: 'default'),
-                    Prefab::FeatureFlagVariant.new(string: 'env')
-                  ],
-                  rows: [
-                    { value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
-                      inactive_variant_idx: 0,
-                      rules: default_ff_rule(1)
-                    )) },
-                    { project_env_id: TEST_ENV_ID,
-                      value: Prefab::ConfigValue.new(feature_flag: Prefab::FeatureFlag.new(
-                        inactive_variant_idx: 0,
-                        rules: default_ff_rule(2)
-                      )) }
-                  ]
-                ) }
-    }
-    @loader.stub :calc_config, loaded_values do
-      resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
-      config = resolver.get_config('ff')
-      assert_equal 3, config.variants.size
-      assert_equal %w[inactive default env], config.variants.map(&:string)
-    end
-  end
-
-  # colons are not allowed in keys, but verify behavior anyway
-  def test_key_and_namespaces_with_colons
-    @loader = MockConfigLoader.new
+    config = Prefab::Config.new(
+      key: CONFIG_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: IN_SEGMENT_VALUE)
+            ),
+            Prefab::ConditionalValue.new(
+              criteria: [],
+              value: Prefab::ConfigValue.new(string: DEFAULT_VALUE)
+            )
+          ]
+        )
+      ]
+    )
 
     loaded_values = {
-      'Key:With:Colons' => { config: Prefab::Config.new(
-        key: 'Key:With:Colons',
-        rows: [Prefab::ConfigRow.new(
-          value: Prefab::ConfigValue.new(string: 'value')
-        )]
-      ) },
-      'proj:apikey' => { config: Prefab::Config.new(
-        key: 'proj:apikey',
-        rows: [Prefab::ConfigRow.new(
-          value: Prefab::ConfigValue.new(string: 'v2')
-        )]
-      ) }
+      SEGMENT_KEY => { config: segment_config },
+      CONFIG_KEY => { config: config }
     }
 
-    @loader.stub :calc_config, loaded_values do
-      r = resolver_for_namespace('foo', @loader)
-      assert_nil r.get('apikey')
+    loader = MockConfigLoader.new
 
-      r = resolver_for_namespace('proj', @loader)
-      assert_nil r.get('apikey')
+    loader.stub :calc_config, loaded_values do
+      options = Prefab::Options.new
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
 
-      r = resolver_for_namespace('', @loader)
-      assert_nil r.get('apikey')
-
-      @resolverKeyWith = resolver_for_namespace('Ket:With', @loader)
-      assert_nil @resolverKeyWith.get('Colons')
-      assert_nil @resolverKeyWith.get('With:Colons')
-      assert_equal 'value', @resolverKeyWith.get('Key:With:Colons')
-
-      @resolverKeyWithExtra = resolver_for_namespace('Key:With:Extra', @loader)
-      assert_nil @resolverKeyWithExtra.get('Colons')
-      assert_nil @resolverKeyWithExtra.get('With:Colons')
-      assert_equal 'value', @resolverKeyWithExtra.get('Key:With:Colons')
-
-      @resolverKey = resolver_for_namespace('Key', @loader)
-      assert_nil @resolverKey.get('With:Colons')
-      assert_nil @resolverKey.get('Colons')
-      assert_equal 'value', @resolverKey.get('Key:With:Colons')
-
-      @resolverWithProperlySegmentedNamespace = resolver_for_namespace('Key.With.Extra', @loader)
-      assert_nil @resolverWithProperlySegmentedNamespace.get('Colons')
-      assert_nil @resolverWithProperlySegmentedNamespace.get('With:Colons')
-      assert_equal 'value', @resolverWithProperlySegmentedNamespace.get('Key:With:Colons')
+      assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@something-else.com' }).string
+      assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@hotmail.com' }).string
     end
   end
+
+  def test_resolving_not_in_segment
+    segment = Prefab::Segment.new(criteria: [
+                                    Prefab::Criterion.new(
+                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                                      property_name: 'email'
+                                    )
+                                  ])
+
+    segment_config = Prefab::Config.new(
+      config_type: Prefab::ConfigType::SEGMENT,
+      key: SEGMENT_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(segment: segment)
+            )
+          ]
+        )
+      ]
+    )
+
+    config = Prefab::Config.new(
+      key: CONFIG_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: IN_SEGMENT_VALUE)
+            ),
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::NOT_IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: NOT_IN_SEGMENT_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    loaded_values = {
+      SEGMENT_KEY => { config: segment_config },
+      CONFIG_KEY => { config: config }
+    }
+
+    loader = MockConfigLoader.new
+
+    loader.stub :calc_config, loaded_values do
+      options = Prefab::Options.new
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
+
+      assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@hotmail.com' }).string
+      assert_equal NOT_IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@something-else.com' }).string
+    end
+  end
+
+  private
 
   def resolver_for_namespace(namespace, loader, project_env_id: TEST_ENV_ID)
     options = Prefab::Options.new(
@@ -195,5 +281,9 @@ class TestConfigResolver < Minitest::Test
     resolver.project_env_id = project_env_id
     resolver.update
     resolver
+  end
+
+  def string_list(values)
+    Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
   end
 end

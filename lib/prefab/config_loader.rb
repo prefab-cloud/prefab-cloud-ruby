@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'yaml'
 module Prefab
   class ConfigLoader
     attr_reader :highwater_mark
@@ -73,109 +72,9 @@ module Prefab
     def load_glob(glob)
       rtn = {}
       Dir.glob(glob).each do |file|
-        @base_client.log_internal Logger::INFO, "Load #{file}"
-        yaml = load(file)
-        yaml.each do |k, v|
-          load_kv(k, v, rtn, file)
-        end
+        Prefab::YAMLConfigParser.new(file, @base_client).merge(rtn)
       end
       rtn
-    end
-
-    def load_kv(k, v, rtn, file)
-      if v.instance_of?(Hash)
-        if v['feature_flag']
-          rtn[k] = feature_flag_config(file, k, v)
-        else
-          v.each do |nest_k, nest_v|
-            nested_key = "#{k}.#{nest_k}"
-            nested_key = k if nest_k == '_'
-            load_kv(nested_key, nest_v, rtn, file)
-          end
-        end
-      else
-        rtn[k] = {
-          source: file,
-          match: 'default',
-          config: Prefab::Config.new(
-            key: k,
-            rows: [
-              Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(value_from(k, v)))
-            ]
-          )
-        }
-      end
-    end
-
-    def load(filename)
-      if File.exist? filename
-        @base_client.log_internal Logger::INFO, "Load #{filename}"
-        YAML.load_file(filename)
-      else
-        @base_client.log_internal Logger::INFO, "No file #{filename}"
-        {}
-      end
-    end
-
-    def value_from(key, raw)
-      case raw
-      when String
-        if key.start_with? Prefab::LoggerClient::BASE_KEY
-          prefab_log_level_resolve = Prefab::LogLevel.resolve(raw.upcase.to_sym) || Prefab::LogLevel::NOT_SET_LOG_LEVEL
-          { log_level: prefab_log_level_resolve }
-        else
-          { string: raw }
-        end
-      when Integer
-        { int: raw }
-      when TrueClass, FalseClass
-        { bool: raw }
-      when Float
-        { double: raw }
-      end
-    end
-
-    def feature_flag_config(file, key, value)
-      criteria = Prefab::Criteria.new(operator: 'ALWAYS_TRUE')
-
-      criteria = Prefab::Criteria.new(criteria_values(value['criteria'])) if value['criteria']
-
-      row = Prefab::ConfigRow.new(
-        value: Prefab::ConfigValue.new(
-          feature_flag: Prefab::FeatureFlag.new(
-            active: true,
-            inactive_variant_idx: -1, # not supported
-            rules: [
-              Prefab::Rule.new(
-                variant_weights: [
-                  Prefab::VariantWeight.new(variant_idx: 0, weight: 1000)
-                ],
-                criteria: criteria
-              )
-            ]
-          )
-        )
-      )
-
-      raise Prefab::Error, "Feature flag config `#{key}` #{file} must have a `value`" unless value.has_key?('value')
-
-      {
-        source: file,
-        match: key,
-        config: Prefab::Config.new(
-          key: key,
-          variants: [Prefab::FeatureFlagVariant.new(value_from(key, value['value']))],
-          rows: [row]
-        )
-      }
-    end
-
-    def criteria_values(criteria_hash)
-      if RUBY_VERSION < '2.7'
-        criteria_hash.transform_keys(&:to_sym)
-      else
-        criteria_hash
-      end
     end
   end
 end
