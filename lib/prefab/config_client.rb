@@ -7,12 +7,12 @@ module Prefab
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
-    AUTH_USER = "authuser"
+    AUTH_USER = 'authuser'
 
     def initialize(base_client, timeout)
       @base_client = base_client
       @options = base_client.options
-      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient"
+      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient'
       @timeout = timeout
 
       @stream_lock = Concurrent::ReadWriteLock.new
@@ -23,9 +23,9 @@ module Prefab
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
       @initialization_lock = Concurrent::ReadWriteLock.new
-      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquireWriteLock"
+      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient: AcquireWriteLock'
       @initialization_lock.acquire_write_lock
-      @base_client.log_internal Logger::DEBUG, "Initialize ConfigClient: AcquiredWriteLock"
+      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient: AcquiredWriteLock'
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
@@ -46,15 +46,15 @@ module Prefab
     end
 
     def upsert(key, config_value, namespace = nil, previous_key = nil)
-      raise "Key must not contain ':' set namespaces separately" if key.include? ":"
-      raise "Namespace must not contain ':'" if namespace&.include?(":")
+      raise "Key must not contain ':' set namespaces separately" if key.include? ':'
+      raise "Namespace must not contain ':'" if namespace&.include?(':')
 
       config_delta = Prefab::ConfigClient.value_to_delta(key, config_value, namespace)
       upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
       upsert_req.previous_key = previous_key if previous_key&.present?
 
       @base_client.request Prefab::ConfigService, :upsert, req_options: { timeout: @timeout }, params: upsert_req
-      @base_client.stats.increment("prefab.config.upsert")
+      @base_client.stats.increment('prefab.config.upsert')
       @config_loader.set(config_delta, :upsert)
       @config_loader.rm(previous_key) if previous_key&.present?
       @config_resolver.update
@@ -70,7 +70,7 @@ module Prefab
     end
 
     def self.value_to_delta(key, config_value, namespace = nil)
-      Prefab::Config.new(key: [namespace, key].compact.join(":"),
+      Prefab::Config.new(key: [namespace, key].compact.join(':'),
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
@@ -87,13 +87,9 @@ module Prefab
     private
 
     def handle_default(key, default)
-      if default != Prefab::Client::NO_DEFAULT_PROVIDED
-        return default
-      end
+      return default if default != Prefab::Client::NO_DEFAULT_PROVIDED
 
-      if @options.on_no_default == Prefab::Options::ON_NO_DEFAULT::RAISE
-        raise Prefab::Errors::MissingDefaultError.new(key)
-      end
+      raise Prefab::Errors::MissingDefaultError, key if @options.on_no_default == Prefab::Options::ON_NO_DEFAULT::RAISE
 
       nil
     end
@@ -102,13 +98,14 @@ module Prefab
       # wait timeout sec for the initalization to be complete
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
-        if @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
-          @base_client.log_internal Logger::WARN,
-                                    "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
-          @initialization_lock.release_write_lock
-        else
+        unless @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
           raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
         end
+
+        @base_client.log_internal Logger::WARN,
+                                  "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
+        @initialization_lock.release_write_lock
+
       end
       @config_resolver._get(key)
     end
@@ -123,19 +120,15 @@ module Prefab
     def load_checkpoint
       success = load_checkpoint_api_cdn
 
-      if success
-        return
-      else
-        @base_client.log_internal Logger::INFO, "LoadCheckpoint: Fallback to GRPC API"
-      end
+      return if success
+
+      @base_client.log_internal Logger::INFO, 'LoadCheckpoint: Fallback to GRPC API'
 
       success = load_checkpoint_from_grpc_api
 
-      if success
-        return
-      else
-        @base_client.log_internal Logger::WARN, "No success loading checkpoints"
-      end
+      return if success
+
+      @base_client.log_internal Logger::WARN, 'No success loading checkpoints'
     end
 
     def load_checkpoint_from_grpc_api
@@ -145,8 +138,8 @@ module Prefab
       load_configs(resp, :remote_api_grpc)
       true
     rescue GRPC::Unauthenticated
-      @base_client.log_internal Logger::WARN, "Unauthenticated"
-    rescue => e
+      @base_client.log_internal Logger::WARN, 'Unauthenticated'
+    rescue StandardError => e
       @base_client.log_internal Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
       false
     end
@@ -175,7 +168,7 @@ module Prefab
         @base_client.log_internal Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
         false
       end
-    rescue => e
+    rescue StandardError => e
       @base_client.log_internal Logger::WARN, "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
       false
     end
@@ -194,9 +187,9 @@ module Prefab
                                   "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
         @base_client.log_internal Logger::DEBUG,
-                                  "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "load_configs"
+                                  "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", 'load_configs'
       end
-      @base_client.stats.increment("prefab.config.checkpoint.load")
+      @base_client.stats.increment('prefab.config.checkpoint.load')
       @config_resolver.update
       finish_init!(source)
     end
@@ -205,28 +198,24 @@ module Prefab
     def start_checkpointing_thread
       Thread.new do
         loop do
-          begin
-            load_checkpoint
+          load_checkpoint
 
-            started_at = Time.now
-            delta = @checkpoint_freq_secs - (Time.now - started_at)
-            if delta > 0
-              sleep(delta)
-            end
-          rescue StandardError => exn
-            @base_client.log_internal Logger::INFO, "Issue Checkpointing #{exn.message}"
-          end
+          started_at = Time.now
+          delta = @checkpoint_freq_secs - (Time.now - started_at)
+          sleep(delta) if delta > 0
+        rescue StandardError => e
+          @base_client.log_internal Logger::INFO, "Issue Checkpointing #{e.message}"
         end
       end
     end
 
     def finish_init!(source)
-      if @initialization_lock.write_locked?
-        @base_client.log_internal Logger::INFO, "Unlocked Config via #{source}"
-        @initialization_lock.release_write_lock
-        @base_client.log.set_config_client(self)
-        @base_client.log_internal Logger::INFO, to_s
-      end
+      return unless @initialization_lock.write_locked?
+
+      @base_client.log_internal Logger::INFO, "Unlocked Config via #{source}"
+      @initialization_lock.release_write_lock
+      @base_client.log.set_config_client(self)
+      @base_client.log_internal Logger::INFO, to_s
     end
 
     def start_sse_streaming_connection_thread(start_at_id)
@@ -234,7 +223,7 @@ module Prefab
       auth_string = Base64.strict_encode64(auth)
       headers = {
         "x-prefab-start-at-id": start_at_id,
-        "Authorization": "Basic #{auth_string}",
+        "Authorization": "Basic #{auth_string}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
       @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
