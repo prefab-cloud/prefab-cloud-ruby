@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/atomics"
+require 'concurrent/atomics'
 require 'concurrent'
 require 'faraday'
 require 'openssl'

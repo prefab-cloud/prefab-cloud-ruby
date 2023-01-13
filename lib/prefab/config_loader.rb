@@ -19,15 +19,12 @@ module Prefab
       @api_config.each_key do |k|
         rtn[k] = @api_config[k]
       end
-      rtn = rtn.merge(@local_overrides)
-      rtn
+      rtn.merge(@local_overrides)
     end
 
     def set(config, source)
       # don't overwrite newer values
-      if @api_config[config.key] && @api_config[config.key][:config].id >= config.id
-        return
-      end
+      return if @api_config[config.key] && @api_config[config.key][:config].id >= config.id
 
       if config.rows.empty?
         @api_config.delete(config.key)
@@ -57,7 +54,7 @@ module Prefab
 
     def load_classpath_config
       classpath_dir = @prefab_options.prefab_config_classpath_dir
-      rtn = load_glob(File.join(classpath_dir, ".prefab.default.config.yaml"))
+      rtn = load_glob(File.join(classpath_dir, '.prefab.default.config.yaml'))
       @prefab_options.prefab_envs.each do |env|
         rtn = rtn.merge load_glob(File.join(classpath_dir, ".prefab.#{env}.config.yaml"))
       end
@@ -66,7 +63,7 @@ module Prefab
 
     def load_local_overrides
       override_dir = @prefab_options.prefab_config_override_dir
-      rtn = load_glob(File.join(override_dir, ".prefab.overrides.config.yaml"))
+      rtn = load_glob(File.join(override_dir, '.prefab.overrides.config.yaml'))
       @prefab_options.prefab_envs.each do |env|
         rtn = rtn.merge load_glob(File.join(override_dir, ".prefab.#{env}.config.yaml"))
       end
@@ -86,20 +83,20 @@ module Prefab
     end
 
     def load_kv(k, v, rtn, file)
-      if v.class == Hash
+      if v.instance_of?(Hash)
         if v['feature_flag']
           rtn[k] = feature_flag_config(file, k, v)
         else
           v.each do |nest_k, nest_v|
             nested_key = "#{k}.#{nest_k}"
-            nested_key = k if nest_k == "_"
+            nested_key = k if nest_k == '_'
             load_kv(nested_key, nest_v, rtn, file)
           end
         end
       else
         rtn[k] = {
           source: file,
-          match: "default",
+          match: 'default',
           config: Prefab::Config.new(
             key: k,
             rows: [
@@ -141,9 +138,7 @@ module Prefab
     def feature_flag_config(file, key, value)
       criteria = Prefab::Criteria.new(operator: 'ALWAYS_TRUE')
 
-      if value['criteria']
-        criteria = Prefab::Criteria.new(criteria_values(value['criteria']))
-      end
+      criteria = Prefab::Criteria.new(criteria_values(value['criteria'])) if value['criteria']
 
       row = Prefab::ConfigRow.new(
         value: Prefab::ConfigValue.new(
@@ -162,9 +157,7 @@ module Prefab
         )
       )
 
-      unless value.has_key?('value')
-        raise Prefab::Error, "Feature flag config `#{key}` #{file} must have a `value`"
-      end
+      raise Prefab::Error, "Feature flag config `#{key}` #{file} must have a `value`" unless value.has_key?('value')
 
       {
         source: file,

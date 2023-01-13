@@ -11,19 +11,19 @@ class TestCLogger < Minitest::Test
   end
 
   def test_get_path
-    assert_equal "test_l.foo_warn",
-                 @logger.get_path("/Users/jdwyah/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb",
-                                  "foo_warn")
+    assert_equal 'test_l.foo_warn',
+                 @logger.get_path('/Users/jdwyah/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb',
+                                  'foo_warn')
 
-    assert_equal "active_support.log_subscriber.info",
-                 @logger.get_path("/Users/jdwyah/.rvm/gems/ruby-2.3.3@forcerank/gems/activesupport-4.1.16/lib/active_support/log_subscriber.rb",
-                                  "info")
-    assert_equal "active_support.log_subscriber.info",
+    assert_equal 'active_support.log_subscriber.info',
+                 @logger.get_path('/Users/jdwyah/.rvm/gems/ruby-2.3.3@forcerank/gems/activesupport-4.1.16/lib/active_support/log_subscriber.rb',
+                                  'info')
+    assert_equal 'active_support.log_subscriber.info',
                  @logger.get_path("/Users/jeffdwyer/.asdf/installs/ruby/3.1.2/lib/ruby/gems/3.1.0/gems/activesupport-7.0.2.4/lib/active_support/log_subscriber.rb:130:in `info'",
-                                  "info")
-    assert_equal "unknown.info",
+                                  'info')
+    assert_equal 'unknown.info',
                  @logger.get_path(nil,
-                                  "info")
+                                  'info')
   end
 
   def test_loc_resolution
@@ -34,50 +34,50 @@ class TestCLogger < Minitest::Test
     end # https://ruby-doc.org/core-3.0.0/Thread/Backtrace/Location.html
 
     # verify that even if the Thread::Backtrace::Location does not have an absolute_location, we do our best
-    assert_equal "active_support.log_subscriber.info",
+    assert_equal 'active_support.log_subscriber.info',
                  @logger.get_loc_path(backtrace_location.new(nil,
-                                                             "info",
+                                                             'info',
                                                              "/Users/jeffdwyer/.asdf/installs/ruby/3.1.2/lib/ruby/gems/3.1.0/gems/activesupport-7.0.2.4/lib/active_support/log_subscriber.rb:130:in `info'"))
-    assert_equal "test_l.info",
-                 @logger.get_loc_path(backtrace_location.new("/Users/jdwyah/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb",
-                                                             "info",
+    assert_equal 'test_l.info',
+                 @logger.get_loc_path(backtrace_location.new('/Users/jdwyah/Documents/workspace/RateLimitInc/prefab-cloud-ruby/lib/test_l.rb',
+                                                             'info',
                                                              "/Users/jeffdwyer/.asdf/installs/ruby/3.1.2/lib/ruby/gems/3.1.0/gems/activesupport-7.0.2.4/lib/active_support/log_subscriber.rb:130:in `info'"))
   end
 
   def test_level_of
-    with_env("PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL", "info") do
+    with_env('PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL', 'info') do
       # env var overrides the default level
       assert_equal Logger::INFO,
-                   @logger.level_of("app.models.user"), "PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL is info"
+                   @logger.level_of('app.models.user'), 'PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL is info'
 
       @logger.set_config_client(MockConfigClient.new({}))
       assert_equal Logger::WARN,
-                   @logger.level_of("app.models.user"), "default is warn"
+                   @logger.level_of('app.models.user'), 'default is warn'
 
-      @logger.set_config_client(MockConfigClient.new("log-level.app" => :INFO))
+      @logger.set_config_client(MockConfigClient.new('log-level.app' => :INFO))
       assert_equal Logger::INFO,
-                   @logger.level_of("app.models.user")
+                   @logger.level_of('app.models.user')
 
-      @logger.set_config_client(MockConfigClient.new("log-level.app" => :DEBUG))
+      @logger.set_config_client(MockConfigClient.new('log-level.app' => :DEBUG))
       assert_equal Logger::DEBUG,
-                   @logger.level_of("app.models.user")
+                   @logger.level_of('app.models.user')
 
-      @logger.set_config_client(MockConfigClient.new("log-level.app" => :DEBUG,
-                                                     "log-level.app.models" => :ERROR))
+      @logger.set_config_client(MockConfigClient.new('log-level.app' => :DEBUG,
+                                                     'log-level.app.models' => :ERROR))
       assert_equal Logger::ERROR,
-                   @logger.level_of("app.models.user"), "test leveling"
+                   @logger.level_of('app.models.user'), 'test leveling'
     end
   end
 
   def test_log_internal
     logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : test message/)
-    logger.log_internal("test message", "test.path", "", Logger::WARN)
+    logger.log_internal('test message', 'test.path', '', Logger::WARN)
     mock_logdev.verify
   end
 
   def test_log_internal_unknown
     logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- cloud.prefab.client.test.path: : test message/)
-    logger.log_internal("test message", "test.path", "", Logger::UNKNOWN)
+    logger.log_internal('test message', 'test.path', '', Logger::UNKNOWN)
     mock_logdev.verify
   end
 
@@ -85,30 +85,30 @@ class TestCLogger < Minitest::Test
     logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/,
                                                 calls: 2)
     logger.silence do
-      logger.log_internal("should not log", "test.path", "", Logger::WARN)
+      logger.log_internal('should not log', 'test.path', '', Logger::WARN)
     end
-    logger.log_internal("should log", "test.path", "", Logger::WARN)
+    logger.log_internal('should log', 'test.path', '', Logger::WARN)
     mock_logdev.verify
   end
 
   def test_log
     logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : test message/)
-    logger.log("test message", "test.path", "", Logger::WARN)
+    logger.log('test message', 'test.path', '', Logger::WARN)
     mock_logdev.verify
   end
 
   def test_log_unknown
     logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- test.path: : test message/)
-    logger.log("test message", "test.path", "", Logger::UNKNOWN)
+    logger.log('test message', 'test.path', '', Logger::UNKNOWN)
     mock_logdev.verify
   end
 
   def test_log_silencing
     logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : should log/, calls: 2)
     logger.silence do
-      logger.log("should not log", "test.path", "", Logger::WARN)
+      logger.log('should not log', 'test.path', '', Logger::WARN)
     end
-    logger.log("should log", "test.path", "", Logger::WARN)
+    logger.log('should log', 'test.path', '', Logger::WARN)
     mock_logdev.verify
   end
 
@@ -126,11 +126,11 @@ class TestCLogger < Minitest::Test
 
   def test_logging_without_a_progname
     prefab, io = captured_logger
-    message = "MY MESSAGE"
+    message = 'MY MESSAGE'
 
     prefab.log.error message
 
-    assert_logged io, 'ERROR', "test.test_logger.test_logging_without_a_progname", message
+    assert_logged io, 'ERROR', 'test.test_logger.test_logging_without_a_progname', message
   end
 
   def test_logging_without_a_progname_or_message
@@ -138,35 +138,35 @@ class TestCLogger < Minitest::Test
 
     prefab.log.error
 
-    assert_logged io, 'ERROR', "test.test_logger.test_logging_without_a_progname_or_message", ""
+    assert_logged io, 'ERROR', 'test.test_logger.test_logging_without_a_progname_or_message', ''
   end
 
   def test_logging_with_a_progname
     prefab, io = captured_logger
-    message = "MY MESSAGE"
+    message = 'MY MESSAGE'
 
-    prefab.log.progname = "MY_PROGNAME"
+    prefab.log.progname = 'MY_PROGNAME'
     prefab.log.error message
 
-    assert_logged io, 'ERROR', "MY_PROGNAME test.test_logger.test_logging_with_a_progname", message
+    assert_logged io, 'ERROR', 'MY_PROGNAME test.test_logger.test_logging_with_a_progname', message
   end
 
   def test_logging_with_a_progname_and_no_message
     prefab, io = captured_logger
 
-    prefab.log.progname = "MY_PROGNAME"
+    prefab.log.progname = 'MY_PROGNAME'
     prefab.log.error
 
-    assert_logged io, 'ERROR', "MY_PROGNAME test.test_logger.test_logging_with_a_progname_and_no_message", "MY_PROGNAME"
+    assert_logged io, 'ERROR', 'MY_PROGNAME test.test_logger.test_logging_with_a_progname_and_no_message', 'MY_PROGNAME'
   end
 
   private
 
   def assert_logged(logged_io, level, path, message)
-    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-\+]?\d+: #{path}: #{message}\n/, logged_io.string)
+    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d+: #{path}: #{message}\n/, logged_io.string)
   end
 
-  def mock_logger_expecting pattern, configs = {}, calls: 1
+  def mock_logger_expecting(pattern, configs = {}, calls: 1)
     mock_logdev = Minitest::Mock.new
     mock_logdev.expect :write, nil do |arg|
       pattern.match(arg)
@@ -190,6 +190,6 @@ class TestCLogger < Minitest::Test
     ))
     prefab = Prefab::Client.new(options)
 
-    return [prefab, io]
+    [prefab, io]
   end
 end

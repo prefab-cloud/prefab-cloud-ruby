@@ -19,7 +19,7 @@ module Prefab
     attr_reader :prefab_envs
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
-      "#{severity.ljust(5)} #{datetime}:#{" " if progname}#{progname} #{msg}\n"
+      "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
     }
 
     module ON_INITIALIZATION_FAILURE
@@ -42,20 +42,20 @@ module Prefab
       logdev: $stdout,
       stats: NoopStats.new, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
       shared_cache: NoopCache.new, # Something that quacks like Rails.cache ideally memcached
-      namespace: "",
+      namespace: '',
       log_formatter: DEFAULT_LOG_FORMATTER,
       log_prefix: nil,
-      prefab_api_url: ENV["PREFAB_API_URL"] || 'https://api.prefab.cloud',
-      prefab_grpc_url: ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443',
+      prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
+      prefab_grpc_url: ENV['PREFAB_GRPC_URL'] || 'grpc.prefab.cloud:443',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, # options :unlock_and_continue, :lock_and_keep_trying, :raise
       # new_config_callback: nil, #callback method
       # live_override_url: nil,
-      prefab_datasources: ENV['PREFAB_DATASOURCES'] == "LOCAL_ONLY" ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
+      prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
-      prefab_config_classpath_dir: ".",
-      prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(",")
+      prefab_config_classpath_dir: '.',
+      prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(',')
     )
       # debugger
       @api_key = api_key
@@ -82,7 +82,7 @@ module Prefab
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
     def url_for_api_cdn
-      ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, "-")}.global.ssl.fastly.net"
+      ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, '-')}.global.ssl.fastly.net"
     end
   end
 end

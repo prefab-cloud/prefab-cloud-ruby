@@ -2,7 +2,7 @@
 
 module Prefab
   class AuthInterceptor < GRPC::ClientInterceptor
-    VERSION = File.exist?('VERSION') ? File.read('VERSION').chomp : ""
+    VERSION = File.exist?('VERSION') ? File.read('VERSION').chomp : ''
     CLIENT = "prefab-cloud-ruby.#{VERSION}".freeze
 
     def initialize(api_key)

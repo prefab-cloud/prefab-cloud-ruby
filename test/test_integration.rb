@@ -6,11 +6,11 @@ require 'integration_test'
 require 'yaml'
 
 class TestIntegration < Minitest::Test
-  IntegrationTestHelpers.find_integration_tests().map do |test_file|
-    tests = YAML.load(File.read(test_file))["tests"]
+  IntegrationTestHelpers.find_integration_tests.map do |test_file|
+    tests = YAML.load(File.read(test_file))['tests']
 
     tests.each do |test|
-      define_method(:"test_#{test["name"]}") do
+      define_method(:"test_#{test['name']}") do
         it = IntegrationTest.new(test)
 
         case it.test_type
