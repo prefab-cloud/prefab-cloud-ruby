@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 class Murmur3
   ## MurmurHash3 was written by Austin Appleby, and is placed in the public
   ## domain. The author hereby disclaims copyright to this source code.
@@ -8,7 +9,6 @@ class Murmur3
   def self.murmur3_32_rotl(x, r)
     ((x << r) | (x >> (32 - r))) & MASK32
   end
-
 
   def self.murmur3_32_fmix(h)
     h &= MASK32
@@ -25,7 +25,7 @@ class Murmur3
     (k1 * 0x1b873593) & MASK32
   end
 
-  def self.murmur3_32(str, seed=0)
+  def self.murmur3_32(str, seed = 0)
     h1 = seed
     numbers = str.unpack('V*C*')
     tailn = str.length % 4
@@ -33,7 +33,7 @@ class Murmur3
     for k1 in numbers
       h1 ^= murmur3_32__mmix(k1)
       h1 = murmur3_32_rotl(h1, 13)
-      h1 = (h1*5 + 0xe6546b64) & MASK32
+      h1 = (h1 * 5 + 0xe6546b64) & MASK32
     end
 
     unless tail.empty?
@@ -47,5 +47,4 @@ class Murmur3
     h1 ^= str.length
     murmur3_32_fmix(h1)
   end
-
 end

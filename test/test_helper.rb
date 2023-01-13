@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'minitest/autorun'
 require "minitest/focus"
 require 'prefab-cloud-ruby'
@@ -30,14 +31,14 @@ class MockBaseClient
   def config_value key
     @config_values[key]
   end
-
 end
 
 class MockConfigClient
   def initialize(config_values = {})
     @config_values = config_values
   end
-  def get(key, default=nil)
+
+  def get(key, default = nil)
     @config_values.fetch(key, default)
   end
 
@@ -54,7 +55,6 @@ class MockConfigLoader
   def calc_config
   end
 end
-
 
 private
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class InternalLogger < Logger
     def initialize(path, logger)

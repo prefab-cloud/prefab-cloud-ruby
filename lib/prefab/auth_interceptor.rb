@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class AuthInterceptor < GRPC::ClientInterceptor
     VERSION = File.exist?('VERSION') ? File.read('VERSION').chomp : ""

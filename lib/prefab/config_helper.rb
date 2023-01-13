@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   module ConfigHelper
     def value_of(config_value)
@@ -25,6 +26,7 @@ module Prefab
       return feature_flag_variant.int if feature_flag_variant.has_int?
       return feature_flag_variant.double if feature_flag_variant.has_double?
       return feature_flag_variant.bool if feature_flag_variant.has_bool?
+
       return nil
     end
   end

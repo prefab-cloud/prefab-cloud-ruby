@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class FeatureFlagClient
     include Prefab::ConfigHelper
@@ -22,7 +23,7 @@ module Prefab
       return is_on?(_get(feature_name, lookup_key, attributes, default: false))
     end
 
-    def get(feature_name, lookup_key=nil, attributes={}, default: false)
+    def get(feature_name, lookup_key = nil, attributes = {}, default: false)
       variant = _get(feature_name, lookup_key, attributes, default: default)
 
       value_of_variant_or_nil(variant, default)
@@ -38,7 +39,7 @@ module Prefab
       end
     end
 
-    def _get(feature_name, lookup_key=nil, attributes={}, default:)
+    def _get(feature_name, lookup_key = nil, attributes = {}, default:)
       feature_obj = @base_client.config_client.get(feature_name, default)
       config_obj = @base_client.config_client.get_config_obj(feature_name)
 
@@ -72,7 +73,7 @@ module Prefab
         return get_variant_obj(variants, feature_obj.inactive_variant_idx)
       end
 
-      #default to inactive
+      # default to inactive
       variant_weights = [Prefab::VariantWeight.new(variant_idx: feature_obj.inactive_variant_idx, weight: 1)]
 
       # if rules.match
@@ -96,6 +97,7 @@ module Prefab
     def get_variant_obj(variants, idx)
       # our array is 0 based, but the idx are 1 based so the protos are clearly set
       return variants[idx - 1] if variants.length >= idx
+
       nil
     end
 
@@ -173,4 +175,3 @@ module Prefab
     end
   end
 end
-

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class ConfigClient
     include Prefab::ConfigHelper
@@ -47,6 +48,7 @@ module Prefab
     def upsert(key, config_value, namespace = nil, previous_key = nil)
       raise "Key must not contain ':' set namespaces separately" if key.include? ":"
       raise "Namespace must not contain ':'" if namespace&.include?(":")
+
       config_delta = Prefab::ConfigClient.value_to_delta(key, config_value, namespace)
       upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
       upsert_req.previous_key = previous_key if previous_key&.present?
@@ -72,7 +74,7 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
-    def get(key, default=Prefab::Client::NO_DEFAULT_PROVIDED)
+    def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED)
       config = _get(key)
       config ? value_of(config[:value]) : handle_default(key, default)
     end
@@ -101,7 +103,8 @@ module Prefab
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
         if @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
-          @base_client.log_internal Logger::WARN, "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
+          @base_client.log_internal Logger::WARN,
+                                    "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
           @initialization_lock.release_write_lock
         else
           raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
@@ -187,9 +190,11 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        @base_client.log_internal Logger::INFO, "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
+        @base_client.log_internal Logger::INFO,
+                                  "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
-        @base_client.log_internal Logger::DEBUG, "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "load_configs"
+        @base_client.log_internal Logger::DEBUG,
+                                  "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", "load_configs"
       end
       @base_client.stats.increment("prefab.config.checkpoint.load")
       @config_resolver.update
@@ -198,7 +203,6 @@ module Prefab
 
     # A thread that checks for a checkpoint
     def start_checkpointing_thread
-
       Thread.new do
         loop do
           begin
@@ -246,4 +250,3 @@ module Prefab
     end
   end
 end
-

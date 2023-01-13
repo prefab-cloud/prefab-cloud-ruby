@@ -1,11 +1,11 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 require 'integration_test_helpers'
 require 'integration_test'
 require 'yaml'
 
 class TestIntegration < Minitest::Test
-
   IntegrationTestHelpers.find_integration_tests().map do |test_file|
     tests = YAML.load(File.read(test_file))["tests"]
 
@@ -31,4 +31,3 @@ class TestIntegration < Minitest::Test
     end
   end
 end
-

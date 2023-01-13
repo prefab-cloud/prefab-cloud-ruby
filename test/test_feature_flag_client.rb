@@ -1,15 +1,15 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 
 class TestFeatureFlagClient < Minitest::Test
-
   def setup
     super
     @mock_base_client = MockBaseClient.new
     @client = Prefab::FeatureFlagClient.new(@mock_base_client)
-    Prefab::FeatureFlagClient.send(:public, :is_on?) #publicize for testing
-    Prefab::FeatureFlagClient.send(:public, :segment_match?) #publicize for testing
-    Prefab::FeatureFlagClient.send(:public, :get_variant) #publicize for testing
+    Prefab::FeatureFlagClient.send(:public, :is_on?) # publicize for testing
+    Prefab::FeatureFlagClient.send(:public, :segment_match?) # publicize for testing
+    Prefab::FeatureFlagClient.send(:public, :get_variant) # publicize for testing
   end
 
   def test_pct
@@ -27,9 +27,9 @@ class TestFeatureFlagClient < Minitest::Test
           criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
           variant_weights: [
             Prefab::VariantWeight.new(weight: 86,
-                                      variant_idx: 2), #true
+                                      variant_idx: 2), # true
             Prefab::VariantWeight.new(weight: 14,
-                                      variant_idx: 1), #false
+                                      variant_idx: 1), # false
           ]
         )
       ]
@@ -43,7 +43,6 @@ class TestFeatureFlagClient < Minitest::Test
     # "FlagNamehashes low" hashes to 42.7934% through dist
     assert_equal true,
                  evaluate(feature, "hashes low", [], flag, variants)
-
   end
 
   def test_basic_active_inactive
@@ -113,7 +112,6 @@ class TestFeatureFlagClient < Minitest::Test
                  evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
                  evaluate(feature, "user:2", [], flag, variants)
-
   end
 
   def test_property_is_one_of
@@ -157,7 +155,6 @@ class TestFeatureFlagClient < Minitest::Test
                  evaluate(feature, "user:2", { email: "b@example.com" }, flag, variants)
     assert_equal "rule target",
                  evaluate(feature, "user:2", { "email" => "b@example.com" }, flag, variants)
-
   end
 
   def test_segment_match?
@@ -190,8 +187,7 @@ class TestFeatureFlagClient < Minitest::Test
                                                            values: ["user:1"]
                                                          )
                                                        ]
-                                                     )
-    )
+                                                     ))
 
     feature = "FlagName"
     variants = [
@@ -228,7 +224,6 @@ class TestFeatureFlagClient < Minitest::Test
                  evaluate(feature, "user:1", [], flag, variants)
     assert_equal "default",
                  evaluate(feature, "user:2", [], flag, variants)
-
   end
 
   def test_in_multiple_segments_has_or_behavior
@@ -241,8 +236,7 @@ class TestFeatureFlagClient < Minitest::Test
                                                            values: ["user:1", "user:2"]
                                                          )
                                                        ]
-                                                     )
-    )
+                                                     ))
     segment_key_two = "prefab-segment-segment-2"
     @mock_base_client.config_client.mock_this_config(segment_key_two,
                                                      Prefab::Segment.new(
@@ -252,8 +246,7 @@ class TestFeatureFlagClient < Minitest::Test
                                                            values: ["user:3", "user:4"]
                                                          )
                                                        ]
-                                                     )
-    )
+                                                     ))
 
     feature = "FlagName"
     variants = [
@@ -296,7 +289,6 @@ class TestFeatureFlagClient < Minitest::Test
                  evaluate(feature, "user:4", [], flag, variants)
     assert_equal "default",
                  evaluate(feature, "user:5", [], flag, variants)
-
   end
 
   def test_prop_ends_with_one_of
@@ -322,8 +314,8 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal false, evaluate(feature, "user:0", {}, flag, variants)
-    assert_equal true, evaluate(feature, "user:0", {email: "test@example.com"}, flag, variants)
-    assert_equal true, evaluate(feature, "user:0", {"email" => "test@example.com"}, flag, variants)
+    assert_equal true, evaluate(feature, "user:0", { email: "test@example.com" }, flag, variants)
+    assert_equal true, evaluate(feature, "user:0", { "email" => "test@example.com" }, flag, variants)
   end
 
   def test_prop_does_not_end_with_one_of
@@ -355,8 +347,8 @@ class TestFeatureFlagClient < Minitest::Test
     )
 
     assert_equal true, evaluate(feature, "user:0", {}, flag, variants)
-    assert_equal false, evaluate(feature, "user:0", {email: "test@example.com"}, flag, variants)
-    assert_equal false, evaluate(feature, "user:0", {"email" => "test@example.com"}, flag, variants)
+    assert_equal false, evaluate(feature, "user:0", { email: "test@example.com" }, flag, variants)
+    assert_equal false, evaluate(feature, "user:0", { "email" => "test@example.com" }, flag, variants)
   end
 
   def evaluate(feature_name, lookup_key, attributes, flag, variants)

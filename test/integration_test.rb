@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 class IntegrationTest
-
   attr_reader :func, :input, :expected, :test_client
 
   def initialize(test_data)
