@@ -1,14 +1,17 @@
 # frozen_string_literal: true
 
 require 'minitest/autorun'
-require "minitest/focus"
+require 'minitest/focus'
 require 'prefab-cloud-ruby'
 
 class MockBaseClient
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
-  attr_reader :namespace, :logger, :config_client, :options
+  attr_reader :namespace
+  attr_reader :logger
+  attr_reader :config_client
+  attr_reader :options
 
   def initialize(options = Prefab::Options.new)
     @options = options
@@ -25,10 +28,9 @@ class MockBaseClient
     @logger
   end
 
-  def log_internal level, message
-  end
+  def log_internal(level, message); end
 
-  def config_value key
+  def config_value(key)
     @config_values[key]
   end
 end
@@ -46,14 +48,13 @@ class MockConfigClient
     Prefab::Config.new(value: @config_values[key], key: key)
   end
 
-  def mock_this_config key, config_value
+  def mock_this_config(key, config_value)
     @config_values[key] = config_value
   end
 end
 
 class MockConfigLoader
-  def calc_config
-  end
+  def calc_config; end
 end
 
 private
@@ -81,9 +82,9 @@ end
 
 def new_client(overrides = {})
   options = Prefab::Options.new(**{
-    prefab_config_override_dir: "none",
-    prefab_config_classpath_dir: "test",
-    prefab_envs: ["unit_tests"],
+    prefab_config_override_dir: 'none',
+    prefab_config_classpath_dir: 'test',
+    prefab_envs: ['unit_tests'],
     prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
   }.merge(overrides))
 

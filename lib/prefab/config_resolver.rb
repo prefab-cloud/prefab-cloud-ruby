@@ -3,7 +3,7 @@
 module Prefab
   class ConfigResolver
     include Prefab::ConfigHelper
-    NAMESPACE_DELIMITER = "."
+    NAMESPACE_DELIMITER = '.'
 
     attr_accessor :project_env_id # this will be set by the config_client when it gets an API response
 
@@ -23,7 +23,7 @@ module Prefab
           v = @local_store[k]
           elements = [k.slice(0..49).ljust(50)]
           if v.nil?
-            elements << "tombstone"
+            elements << 'tombstone'
           else
             value = v[:value]
             elements << value_of(value).to_s.slice(0..34).ljust(35)
@@ -31,7 +31,7 @@ module Prefab
             elements << "Match: #{v[:match]}".slice(0..29).ljust(30)
             elements << "Source: #{v[:source]}"
           end
-          str += elements.join(" | ") << "\n"
+          str += elements.join(' | ') << "\n"
         end
       end
       str
@@ -81,14 +81,14 @@ module Prefab
             if row.project_env_id == @project_env_id
               if !row.namespace.empty?
                 (starts_with, count) = starts_with_ns?(row.namespace, @namespace)
-                # rubocop:disable BlockNesting
+                # rubocop:disable Metrics/BlockNesting
                 { sortable: 2 + count, match: "nm:#{row.namespace}", value: row.value, config: config } if starts_with
               else
                 { sortable: 1, match: "env:#{row.project_env_id}", value: row.value, config: config }
               end
             end
           else
-            match = config_resolver_obj[:match] || "default"
+            match = config_resolver_obj[:match] || 'default'
             { sortable: 0, match: match, value: row.value, config: config }
           end
         end.compact

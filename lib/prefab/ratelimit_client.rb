@@ -9,14 +9,14 @@ module Prefab
 
     def pass?(group)
       result = acquire([group], 1)
-      return result.passed
+      result.passed
     end
 
     def acquire(groups, acquire_amount, allow_partial_response: false, on_error: :log_and_pass)
-      expiry_cache_key = "prefab.ratelimit.expiry:#{groups.join(".")}"
+      expiry_cache_key = "prefab.ratelimit.expiry:#{groups.join('.')}"
       expiry = @base_client.shared_cache.read(expiry_cache_key)
       if !expiry.nil? && Integer(expiry) > Time.now.utc.to_f * 1000
-        @base_client.stats.increment("prefab.ratelimit.limitcheck.expirycache.hit", tags: [])
+        @base_client.stats.increment('prefab.ratelimit.limitcheck.expirycache.hit', tags: [])
         return Prefab::LimitResponse.new(passed: false, amount: 0)
       end
 
@@ -33,11 +33,11 @@ module Prefab
       reset = result.limit_reset_at
       @base_client.shared_cache.write(expiry_cache_key, reset) unless reset < 1 # protobuf default int to 0
 
-      @base_client.stats.increment("prefab.ratelimit.limitcheck",
+      @base_client.stats.increment('prefab.ratelimit.limitcheck',
                                    tags: ["policy_group:#{result.policy_group}", "pass:#{result.passed}"])
 
       result
-    rescue => e
+    rescue StandardError => e
       handle_error(e, on_error, groups)
     end
 
@@ -49,9 +49,7 @@ module Prefab
         limit: limit,
         burst: burst
       )
-      unless safety_level.nil?
-        limit_definition.safety_level = safety_level
-      end
+      limit_definition.safety_level = safety_level unless safety_level.nil?
       config_value = Prefab::ConfigValue.new(limit_definition: limit_definition)
       config_delta = Prefab::ConfigClient.value_to_delta(key, config_value)
       upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
@@ -62,7 +60,7 @@ module Prefab
     private
 
     def handle_error(e, on_error, groups)
-      @base_client.stats.increment("prefab.ratelimit.error", tags: ["type:limit"])
+      @base_client.stats.increment('prefab.ratelimit.error', tags: ['type:limit'])
 
       message = "ratelimit for #{groups} error: #{e.message}"
       case on_error

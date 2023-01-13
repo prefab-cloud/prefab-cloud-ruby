@@ -6,7 +6,13 @@ module Prefab
     BASE_SLEEP_SEC = 0.5
     NO_DEFAULT_PROVIDED = :no_default_provided
 
-    attr_reader :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options
+    attr_reader :shared_cache
+    attr_reader :stats
+    attr_reader :namespace
+    attr_reader :interceptor
+    attr_reader :api_key
+    attr_reader :prefab_api_url
+    attr_reader :options
 
     def initialize(options = Prefab::Options.new)
       @options = options
@@ -16,10 +22,10 @@ module Prefab
       @stubs = {}
 
       if @options.local_only?
-        log_internal Logger::INFO, "Prefab Running in Local Mode"
+        log_internal Logger::INFO, 'Prefab Running in Local Mode'
       else
         @api_key = @options.api_key
-        raise Prefab::Errors::InvalidApiKeyError.new(@api_key) if @api_key.nil? || @api_key.empty? || api_key.count("-") < 1
+        raise Prefab::Errors::InvalidApiKeyError, @api_key if @api_key.nil? || @api_key.empty? || api_key.count('-') < 1
 
         @interceptor = Prefab::AuthInterceptor.new(@api_key)
         @prefab_api_url = @options.prefab_api_url
@@ -66,16 +72,14 @@ module Prefab
 
       begin
         attempts += 1
-        return stub_for(service, opts[:timeout]).send(method, *params)
-      rescue => exception
-        log_internal Logger::WARN, exception
+        stub_for(service, opts[:timeout]).send(method, *params)
+      rescue StandardError => e
+        log_internal Logger::WARN, e
 
-        if Time.now - start_time > opts[:timeout]
-          raise exception
-        end
+        raise e if Time.now - start_time > opts[:timeout]
 
         sleep_seconds = [BASE_SLEEP_SEC * (2**(attempts - 1)), MAX_SLEEP_SEC].min
-        sleep_seconds = sleep_seconds * (0.5 * (1 + rand()))
+        sleep_seconds *= (0.5 * (1 + rand))
         sleep_seconds = [BASE_SLEEP_SEC, sleep_seconds].max
         log_internal Logger::INFO, "Sleep #{sleep_seconds} and Reset #{service} #{method}"
         sleep sleep_seconds
@@ -106,7 +110,7 @@ module Prefab
     private
 
     def http_secure?
-      ENV["PREFAB_CLOUD_HTTP"] != "true"
+      ENV['PREFAB_CLOUD_HTTP'] != 'true'
     end
 
     def stub_for(service, timeout)
@@ -122,7 +126,7 @@ module Prefab
     end
 
     def ssl_certs
-      ssl_certs = ""
+      ssl_certs = ''
       Dir["#{OpenSSL::X509::DEFAULT_CERT_DIR}/*.pem"].each do |cert|
         ssl_certs += File.open(cert).read
       end
@@ -130,7 +134,7 @@ module Prefab
         ssl_certs += File.open(OpenSSL::X509::DEFAULT_CERT_FILE).read
       end
       ssl_certs
-    rescue => e
+    rescue StandardError => e
       log.warn("Issue loading SSL certs #{e.message}")
       ssl_certs
     end

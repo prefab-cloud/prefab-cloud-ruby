@@ -5,7 +5,7 @@ module Prefab
     class InvalidApiKeyError < Prefab::Error
       def initialize(key)
         if key.nil? || key.empty?
-          message = "No API key. Set PREFAB_API_KEY env var or use PREFAB_DATASOURCES=LOCAL_ONLY"
+          message = 'No API key. Set PREFAB_API_KEY env var or use PREFAB_DATASOURCES=LOCAL_ONLY'
 
           super(message)
         else

@@ -27,7 +27,7 @@ module Prefab
       return feature_flag_variant.double if feature_flag_variant.has_double?
       return feature_flag_variant.bool if feature_flag_variant.has_bool?
 
-      return nil
+      nil
     end
   end
 end

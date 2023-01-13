@@ -2,10 +2,10 @@
 
 module Prefab
   class LoggerClient < Logger
-    SEP = "."
-    BASE_KEY = "log-level"
-    UNKNOWN_PATH = "unknown."
-    INTERNAL_PREFIX = "cloud.prefab.client"
+    SEP = '.'
+    BASE_KEY = 'log-level'
+    UNKNOWN_PATH = 'unknown.'
+    INTERNAL_PREFIX = 'cloud.prefab.client'
 
     LOG_LEVEL_LOOKUPS = {
       Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
@@ -33,20 +33,18 @@ module Prefab
     end
 
     def log_internal(message, path = nil, progname, severity, &block)
-      if path
-        path = "#{INTERNAL_PREFIX}.#{path}"
-      else
-        path = INTERNAL_PREFIX
-      end
+      path = if path
+               "#{INTERNAL_PREFIX}.#{path}"
+             else
+               INTERNAL_PREFIX
+             end
 
       log(message, path, progname, severity, &block)
     end
 
-    def log(message, path, progname, severity, &block)
+    def log(message, path, progname, severity)
       severity ||= Logger::UNKNOWN
-      if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
-        return true
-      end
+      return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
       progname = "#{path}: #{progname || @progname}"
 
@@ -86,23 +84,23 @@ module Prefab
     end
 
     def debug?
-      true;
+      true
     end
 
     def info?
-      true;
+      true
     end
 
     def warn?
-      true;
+      true
     end
 
     def error?
-      true;
+      true
     end
 
     def fatal?
-      true;
+      true
     end
 
     def level
@@ -129,13 +127,10 @@ module Prefab
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
       closest_log_level_match = @config_client.get(BASE_KEY, :WARN)
-      path.split(SEP).inject([BASE_KEY]) do |memo, n|
+      path.split(SEP).each_with_object([BASE_KEY]) do |n, memo|
         memo << n
         val = @config_client.get(memo.join(SEP), nil)
-        unless val.nil?
-          closest_log_level_match = val
-        end
-        memo
+        closest_log_level_match = val unless val.nil?
       end
       closest_log_level_match_int = Prefab::LogLevel.resolve(closest_log_level_match)
       LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
@@ -151,10 +146,10 @@ module Prefab
     def get_path(absolute_path, base_label)
       path = (absolute_path || UNKNOWN_PATH).dup
       path.slice! Dir.pwd
-      path.gsub!(/(.*)?(?=\/lib)/im, "") # replace everything before first lib
+      path.gsub!(%r{(.*)?(?=/lib)}im, '') # replace everything before first lib
 
-      path = path.gsub("/", SEP).gsub(/.rb.*/, "") + SEP + base_label
-      path.slice! ".lib"
+      path = path.gsub('/', SEP).gsub(/.rb.*/, '') + SEP + base_label
+      path.slice! '.lib'
       path.slice! SEP
       path
     end
@@ -163,8 +158,8 @@ module Prefab
   # StubConfigClient to be used while config client initializes
   # since it may log
   class BootstrappingConfigClient
-    def get(key, default = nil)
-      ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"] ? ENV["PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL"].upcase.to_sym : default
+    def get(_key, default = nil)
+      ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].upcase.to_sym : default
     end
   end
 end

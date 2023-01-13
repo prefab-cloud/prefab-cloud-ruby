@@ -3,7 +3,7 @@
 module Prefab
   class FeatureFlagClient
     include Prefab::ConfigHelper
-    MAX_32_FLOAT = 4294967294.0
+    MAX_32_FLOAT = 4_294_967_294.0
 
     def initialize(base_client)
       @base_client = base_client
@@ -18,9 +18,9 @@ module Prefab
     end
 
     def feature_is_on_for?(feature_name, lookup_key, attributes: {})
-      @base_client.stats.increment("prefab.featureflag.on", tags: ["feature:#{feature_name}"])
+      @base_client.stats.increment('prefab.featureflag.on', tags: ["feature:#{feature_name}"])
 
-      return is_on?(_get(feature_name, lookup_key, attributes, default: false))
+      is_on?(_get(feature_name, lookup_key, attributes, default: false))
     end
 
     def get(feature_name, lookup_key = nil, attributes = {}, default: false)
@@ -45,33 +45,25 @@ module Prefab
 
       return nil if feature_obj.nil? || config_obj.nil?
 
-      if feature_obj == !!feature_obj
-        return feature_obj
-      end
+      return feature_obj if feature_obj == !!feature_obj
 
       variants = config_obj.variants
       get_variant(feature_name, lookup_key, attributes, feature_obj, variants)
     end
 
     def is_on?(variant)
-      if variant.nil?
-        return false
-      end
+      return false if variant.nil?
 
-      if variant == !!variant
-        return variant
-      end
+      return variant if variant == !!variant
 
       variant.bool
-    rescue
+    rescue StandardError
       @base_client.log.info("is_on? methods only work for boolean feature flags variants. This feature flags variant is '#{variant}'. Returning false")
       false
     end
 
     def get_variant(feature_name, lookup_key, attributes, feature_obj, variants)
-      if !feature_obj.active
-        return get_variant_obj(variants, feature_obj.inactive_variant_idx)
-      end
+      return get_variant_obj(variants, feature_obj.inactive_variant_idx) unless feature_obj.active
 
       # default to inactive
       variant_weights = [Prefab::VariantWeight.new(variant_idx: feature_obj.inactive_variant_idx, weight: 1)]
@@ -84,14 +76,12 @@ module Prefab
         end
       end
 
-      percent_through_distribution = rand()
-      if lookup_key
-        percent_through_distribution = get_user_pct(feature_name, lookup_key)
-      end
+      percent_through_distribution = rand
+      percent_through_distribution = get_user_pct(feature_name, lookup_key) if lookup_key
 
       variant_idx = get_variant_idx_from_weights(variant_weights, percent_through_distribution, feature_name)
 
-      return get_variant_obj(variants, variant_idx)
+      get_variant_obj(variants, variant_idx)
     end
 
     def get_variant_obj(variants, idx)
@@ -106,15 +96,13 @@ module Prefab
       bucket = distrubution_space * percent_through_distribution
       sum = 0
       variant_weights.each do |variant_weight|
-        if bucket < sum + variant_weight.weight
-          return variant_weight.variant_idx
-        else
-          sum += variant_weight.weight
-        end
+        return variant_weight.variant_idx if bucket < sum + variant_weight.weight
+
+        sum += variant_weight.weight
       end
       # variants didn't add up to 100%
       @base_client.log.info("Variants of #{feature_name} did not add to 100%")
-      return variant_weights.last.variant_idx
+      variant_weights.last.variant_idx
     end
 
     def get_user_pct(feature, lookup_key)
@@ -159,7 +147,7 @@ module Prefab
       segment_keys.any? do |segment_key|
         segment = @base_client.config_client.get(segment_key)
         if segment.nil?
-          @base_client.log.info("Missing Segment")
+          @base_client.log.info('Missing Segment')
           false
         else
           segment_match?(segment, lookup_key, attributes)

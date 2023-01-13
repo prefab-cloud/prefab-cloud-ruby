@@ -9,20 +9,20 @@ module Prefab
     end
 
     def cancel
-      @call.instance_variable_get("@wrapped").instance_variable_get("@call").cancel
+      @call.instance_variable_get('@wrapped').instance_variable_get('@call').cancel
       i = 0
-      while (i < WAIT_SEC) do
-        if @call.instance_variable_get("@wrapped").cancelled?
-          @base_client.log_internal Logger::DEBUG, "Cancelled streaming."
+      while i < WAIT_SEC
+        if @call.instance_variable_get('@wrapped').cancelled?
+          @base_client.log_internal Logger::DEBUG, 'Cancelled streaming.'
           return
         else
-          @base_client.log_internal Logger::DEBUG, "Unable to cancel streaming. Trying again"
-          @call.instance_variable_get("@wrapped").instance_variable_get("@call").cancel
+          @base_client.log_internal Logger::DEBUG, 'Unable to cancel streaming. Trying again'
+          @call.instance_variable_get('@wrapped').instance_variable_get('@call').cancel
           i += 1
           sleep(1)
         end
       end
-      @base_client.log_internal Logger::INFO, "Unable to cancel streaming."
+      @base_client.log_internal Logger::INFO, 'Unable to cancel streaming.'
     end
 
     def request_response(request:, call:, method:, metadata:, &block)
