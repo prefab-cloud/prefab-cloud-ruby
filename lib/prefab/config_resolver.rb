@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class ConfigResolver
     include Prefab::ConfigHelper
@@ -81,14 +82,14 @@ module Prefab
               if !row.namespace.empty?
                 (starts_with, count) = starts_with_ns?(row.namespace, @namespace)
                 # rubocop:disable BlockNesting
-                { sortable: 2 + count, match: "nm:#{row.namespace}", value: row.value, config: config} if starts_with
+                { sortable: 2 + count, match: "nm:#{row.namespace}", value: row.value, config: config } if starts_with
               else
-                { sortable: 1, match: "env:#{row.project_env_id}", value: row.value, config: config}
+                { sortable: 1, match: "env:#{row.project_env_id}", value: row.value, config: config }
               end
             end
           else
             match = config_resolver_obj[:match] || "default"
-            { sortable: 0, match: match, value: row.value, config: config}
+            { sortable: 0, match: match, value: row.value, config: config }
           end
         end.compact
         to_store = sortable.sort_by { |h| h[:sortable] }.last

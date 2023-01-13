@@ -1,7 +1,7 @@
 # frozen_string_literal: true
+
 module Prefab
   class LoggerClient < Logger
-
     SEP = "."
     BASE_KEY = "log-level"
     UNKNOWN_PATH = "unknown."
@@ -60,7 +60,8 @@ module Prefab
       end
 
       @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message))
+        format_message(format_severity(severity), Time.now, progname, message)
+      )
       true
     end
 
@@ -167,4 +168,3 @@ module Prefab
     end
   end
 end
-

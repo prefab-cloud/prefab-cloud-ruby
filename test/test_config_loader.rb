@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 
 class TestConfigLoader < Minitest::Test
@@ -43,26 +44,44 @@ class TestConfigLoader < Minitest::Test
 
   def test_highwater
     assert_equal 0, @loader.highwater_mark
-    @loader.set(Prefab::Config.new(id: 1, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 1, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]), "test"
+    )
     assert_equal 1, @loader.highwater_mark
 
-    @loader.set(Prefab::Config.new(id: 5, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 5, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]), "test"
+    )
     assert_equal 5, @loader.highwater_mark
-    @loader.set(Prefab::Config.new(id: 2, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 2, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]), "test"
+    )
     assert_equal 5, @loader.highwater_mark
   end
 
   def test_keeps_most_recent
     assert_equal 0, @loader.highwater_mark
-    @loader.set(Prefab::Config.new(id: 1, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 1))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 1, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 1))]), "test"
+    )
     assert_equal 1, @loader.highwater_mark
     should_be :int, 1, "sample_int"
 
-    @loader.set(Prefab::Config.new(id: 4, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 4))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 4, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 4))]), "test"
+    )
     assert_equal 4, @loader.highwater_mark
     should_be :int, 4, "sample_int"
 
-    @loader.set(Prefab::Config.new(id: 2, key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 2))]),"test")
+    @loader.set(
+      Prefab::Config.new(id: 2, key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 2))]), "test"
+    )
     assert_equal 4, @loader.highwater_mark
     should_be :int, 4, "sample_int"
   end
@@ -70,7 +89,10 @@ class TestConfigLoader < Minitest::Test
   def test_api_precedence
     should_be :int, 123, "sample_int"
 
-    @loader.set(Prefab::Config.new(key: "sample_int", rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]), "test")
+    @loader.set(
+      Prefab::Config.new(key: "sample_int",
+                         rows: [Prefab::ConfigRow.new(value: Prefab::ConfigValue.new(int: 456))]), "test"
+    )
     should_be :int, 456, "sample_int"
   end
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
+
 module Prefab
   class RateLimitClient
-
     def initialize(base_client, timeout)
       @timeout = timeout
       @base_client = base_client
@@ -27,15 +27,16 @@ module Prefab
         allow_partial_response: allow_partial_response
       )
 
-      result = @base_client.request Prefab::RateLimitService, :limit_check, req_options: {timeout: @timeout}, params: req
+      result = @base_client.request Prefab::RateLimitService, :limit_check, req_options: { timeout: @timeout },
+                                                                            params: req
 
       reset = result.limit_reset_at
       @base_client.shared_cache.write(expiry_cache_key, reset) unless reset < 1 # protobuf default int to 0
 
-      @base_client.stats.increment("prefab.ratelimit.limitcheck", tags: ["policy_group:#{result.policy_group}", "pass:#{result.passed}"])
+      @base_client.stats.increment("prefab.ratelimit.limitcheck",
+                                   tags: ["policy_group:#{result.policy_group}", "pass:#{result.passed}"])
 
       result
-
     rescue => e
       handle_error(e, on_error, groups)
     end
@@ -77,4 +78,3 @@ module Prefab
     end
   end
 end
-

@@ -82,7 +82,8 @@ class TestCLogger < Minitest::Test
   end
 
   def test_log_internal_silencing
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/, calls: 2)
+    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/,
+                                                calls: 2)
     logger.silence do
       logger.log_internal("should not log", "test.path", "", Logger::WARN)
     end

@@ -26,10 +26,12 @@ module Prefab
       RAISE = 1
       RETURN = 2
     end
+
     module ON_NO_DEFAULT
       RAISE = 1
       RETURN_NIL = 2
     end
+
     module DATASOURCES
       ALL = 1
       LOCAL_ONLY = 2
@@ -47,13 +49,13 @@ module Prefab
       prefab_grpc_url: ENV["PREFAB_GRPC_URL"] || 'grpc.prefab.cloud:443',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
-      on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, #options :unlock_and_continue, :lock_and_keep_trying, :raise
+      on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, # options :unlock_and_continue, :lock_and_keep_trying, :raise
       # new_config_callback: nil, #callback method
       # live_override_url: nil,
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == "LOCAL_ONLY" ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: ".",
-      prefab_envs:  ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(",")
+      prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(",")
     )
       # debugger
       @api_key = api_key

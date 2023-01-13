@@ -1,8 +1,8 @@
 # frozen_string_literal: true
+
 require 'test_helper'
 
 class TestConfigResolver < Minitest::Test
-
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
@@ -54,7 +54,6 @@ class TestConfigResolver < Minitest::Test
     }
 
     @loader.stub :calc_config, loaded_values do
-
       @resolverA = resolver_for_namespace("", @loader, project_env_id: PRODUCTION_ENV_ID)
       assert_equal "value_no_env_default", @resolverA.get("key")
 
@@ -106,7 +105,6 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_special_ff_variant_copying
-
     @loader = MockConfigLoader.new
     loaded_values = {
       "ff" => { source: 'test',
@@ -128,8 +126,7 @@ class TestConfigResolver < Minitest::Test
                         rules: default_ff_rule(2),
                       )) }
                   ]
-                )
-      }
+                ) }
     }
     @loader.stub :calc_config, loaded_values do
       resolver = Prefab::ConfigResolver.new(MockBaseClient.new, @loader)
@@ -159,7 +156,6 @@ class TestConfigResolver < Minitest::Test
     }
 
     @loader.stub :calc_config, loaded_values do
-
       r = resolver_for_namespace("foo", @loader)
       assert_nil r.get("apikey")
 
@@ -200,5 +196,4 @@ class TestConfigResolver < Minitest::Test
     resolver.update
     resolver
   end
-
 end

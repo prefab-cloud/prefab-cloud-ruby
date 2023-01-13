@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Prefab
   class Client
     MAX_SLEEP_SEC = 10
@@ -19,10 +20,12 @@ module Prefab
       else
         @api_key = @options.api_key
         raise Prefab::Errors::InvalidApiKeyError.new(@api_key) if @api_key.nil? || @api_key.empty? || api_key.count("-") < 1
+
         @interceptor = Prefab::AuthInterceptor.new(@api_key)
         @prefab_api_url = @options.prefab_api_url
         @prefab_grpc_url = @options.prefab_grpc_url
-        log_internal Logger::INFO, "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
+        log_internal Logger::INFO,
+                     "Prefab Connecting to: #{@prefab_api_url} and #{@prefab_grpc_url} Secure: #{http_secure?}"
         at_exit do
           channel.destroy
         end
@@ -65,13 +68,13 @@ module Prefab
         attempts += 1
         return stub_for(service, opts[:timeout]).send(method, *params)
       rescue => exception
-
         log_internal Logger::WARN, exception
 
         if Time.now - start_time > opts[:timeout]
           raise exception
         end
-        sleep_seconds = [BASE_SLEEP_SEC * (2 ** (attempts - 1)), MAX_SLEEP_SEC].min
+
+        sleep_seconds = [BASE_SLEEP_SEC * (2**(attempts - 1)), MAX_SLEEP_SEC].min
         sleep_seconds = sleep_seconds * (0.5 * (1 + rand()))
         sleep_seconds = [BASE_SLEEP_SEC, sleep_seconds].max
         log_internal Logger::INFO, "Sleep #{sleep_seconds} and Reset #{service} #{method}"
@@ -86,11 +89,11 @@ module Prefab
       @_channel = nil
     end
 
-    def enabled?(feature_name, lookup_key=nil, attributes={})
+    def enabled?(feature_name, lookup_key = nil, attributes = {})
       feature_flag_client.feature_is_on_for?(feature_name, lookup_key, attributes: attributes)
     end
 
-    def get(key, default_or_lookup_key=NO_DEFAULT_PROVIDED, attributes={}, ff_default=NO_DEFAULT_PROVIDED)
+    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, attributes = {}, ff_default = NO_DEFAULT_PROVIDED)
       result = config_client.get(key, default_or_lookup_key)
 
       if result.is_a?(Prefab::FeatureFlag)
@@ -131,7 +134,5 @@ module Prefab
       log.warn("Issue loading SSL certs #{e.message}")
       ssl_certs
     end
-
   end
 end
-
