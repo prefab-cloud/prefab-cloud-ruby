@@ -92,7 +92,8 @@ module Prefab
     def in_segment?(criterion, properties)
       segment_criteria = @resolver.raw(criterion.value_to_match.string)
 
-      return false if segment_criteria.nil? # TODO: right?
+      # This shouldn't happen, but just in case
+      return false if segment_criteria.nil?
 
       resolver = CriteriaEvaluator.new(segment_criteria, project_env_id: @project_env_id, resolver: @resolver,
                                                          base_client: @base_client)
