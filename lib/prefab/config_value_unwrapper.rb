@@ -10,15 +10,11 @@ module Prefab
         config_value.public_send(config_value.type)
       when :string_list
         config_value.string_list.values
-      when :bytes
-        raise 'TODO: bytes'
       when :weighted_values
         lookup_key = properties[Prefab::CriteriaEvaluator::LOOKUP_KEY]
         weights = config_value.weighted_values.weighted_values
         value = Prefab::WeightedValueResolver.new(weights, config_key, lookup_key).resolve
         unwrap(value.value, config_key, properties)
-      when :limit_definition
-        raise 'TODO: limit_definition'
       else
         raise "Unknown type: #{config_value.type}"
       end

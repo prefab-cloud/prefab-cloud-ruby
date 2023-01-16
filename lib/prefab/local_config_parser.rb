@@ -101,7 +101,6 @@ module Prefab
       end
 
       def parse_value_to_match(values)
-        # TODO: handle more value types
         raise "Can't handle #{values}" unless values.instance_of?(Array)
 
         Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))

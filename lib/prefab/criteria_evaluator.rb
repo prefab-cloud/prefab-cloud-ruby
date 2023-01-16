@@ -18,12 +18,10 @@ module Prefab
       props = properties.transform_keys(&:to_s)
 
       matching_environment_row_values.each do |conditional_value|
-        # TODO: merge in properties from the environment_row?
         return conditional_value.value if all_criteria_match?(conditional_value.criteria, props)
       end
 
       default_row_values.each do |conditional_value|
-        # TODO: merge in properties from the environment_row?
         return conditional_value.value if all_criteria_match?(conditional_value.criteria, props)
       end
 
