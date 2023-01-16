@@ -18,17 +18,19 @@ module Prefab
       props = properties.transform_keys(&:to_s)
 
       matching_environment_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value.criteria, props)
+        return conditional_value.value if all_criteria_match?(conditional_value, props)
       end
 
       default_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value.criteria, props)
+        return conditional_value.value if all_criteria_match?(conditional_value, props)
       end
 
       nil
     end
 
-    def all_criteria_match?(criteria, props)
+    def all_criteria_match?(conditional_value, props)
+      criteria = conditional_value.value.segment ? conditional_value.value.segment.criteria : conditional_value.criteria
+
       criteria.all? do |criterion|
         evaluate_criteron(criterion, props)
       end
@@ -43,15 +45,9 @@ module Prefab
       when :LOOKUP_KEY_NOT_IN, :PROP_IS_NOT_ONE_OF
         !matches?(criterion, value_from_properites, properties)
       when :IN_SEG
-        segment_criteria = @resolver.segment_criteria(criterion.value_to_match.string)
-        return true if segment_criteria.nil? # TODO: right?
-
-        all_criteria_match?(segment_criteria, properties)
+        in_segment?(criterion, properties)
       when :NOT_IN_SEG
-        segment_criteria = @resolver.segment_criteria(criterion.value_to_match.string)
-        return false if segment_criteria.nil? # TODO: right?
-
-        !all_criteria_match?(segment_criteria, properties)
+        !in_segment?(criterion, properties)
       when :PROP_ENDS_WITH_ONE_OF
         return false unless value_from_properites
 
@@ -91,6 +87,16 @@ module Prefab
 
     def default_row_values
       @config.rows.find { |row| row.project_env_id != @project_env_id }&.values || NO_MATCHING_ROWS
+    end
+
+    def in_segment?(criterion, properties)
+      segment_criteria = @resolver.raw(criterion.value_to_match.string)
+
+      return false if segment_criteria.nil? # TODO: right?
+
+      resolver = CriteriaEvaluator.new(segment_criteria, project_env_id: @project_env_id, resolver: @resolver,
+                                                         base_client: @base_client)
+      resolver.evaluate(properties)
     end
   end
 end

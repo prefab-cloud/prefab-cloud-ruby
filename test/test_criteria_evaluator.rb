@@ -4,9 +4,11 @@ require 'test_helper'
 
 class TestCriteriaEvaluator < Minitest::Test
   PROJECT_ENV_ID = 1
+  TEST_ENV_ID = 2
   KEY = 'key'
-  DEFAULT_VALUE = 'value_no_env_default'
+  DEFAULT_VALUE = 'default_value'
   DESIRED_VALUE = 'desired_value'
+  WRONG_ENV_VALUE = 'wrong_env_value'
 
   DEFAULT_ROW = Prefab::ConfigRow.new(
     values: [
@@ -220,10 +222,29 @@ class TestCriteriaEvaluator < Minitest::Test
         )
       ]
     )
+
     config = Prefab::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
+
+        # wrong env
+        Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: WRONG_ENV_VALUE)
+            )
+          ]
+        ),
+
+        # correct env
         Prefab::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
@@ -383,17 +404,16 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   class FakeResolver
-    def initialize(segments)
-      @segments = segments
+    def initialize(config)
+      @config = config
     end
 
-    def segment_criteria(key)
-      segment = @segments[key]
-      segment.rows[0].values[0].value.segment.criteria
+    def raw(key)
+      @config[key]
     end
   end
 
-  def resolver_fake(segments)
-    FakeResolver.new(segments)
+  def resolver_fake(config)
+    FakeResolver.new(config)
   end
 end

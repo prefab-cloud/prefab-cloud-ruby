@@ -60,14 +60,6 @@ module Prefab
                                     project_env_id: @project_env_id, resolver: self, base_client: @base_client).evaluate(props)
     end
 
-    def segment_criteria(key)
-      segment = raw(key)
-
-      return nil unless segment
-
-      segment.rows[0].values[0].value.segment.criteria
-    end
-
     def update
       make_local
     end

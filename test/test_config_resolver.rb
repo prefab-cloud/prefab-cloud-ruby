@@ -10,6 +10,7 @@ class TestConfigResolver < Minitest::Test
   CONFIG_KEY = 'config_key'
   DEFAULT_VALUE = 'default_value'
   IN_SEGMENT_VALUE = 'in_segment_value'
+  WRONG_ENV_VALUE = 'wrong_env_value'
   NOT_IN_SEGMENT_VALUE = 'not_in_segment_value'
 
   def test_resolution
@@ -168,7 +169,29 @@ class TestConfigResolver < Minitest::Test
     config = Prefab::Config.new(
       key: CONFIG_KEY,
       rows: [
+        # wrong env
         Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: WRONG_ENV_VALUE)
+            ),
+            Prefab::ConditionalValue.new(
+              criteria: [],
+              value: Prefab::ConfigValue.new(string: DEFAULT_VALUE)
+            )
+          ]
+        ),
+
+        # correct env
+        Prefab::ConfigRow.new(
+          project_env_id: PRODUCTION_ENV_ID,
           values: [
             Prefab::ConditionalValue.new(
               criteria: [
@@ -198,6 +221,7 @@ class TestConfigResolver < Minitest::Test
     loader.stub :calc_config, loaded_values do
       options = Prefab::Options.new
       resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
+      resolver.project_env_id = PRODUCTION_ENV_ID
 
       assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@something-else.com' }).string
       assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@hotmail.com' }).string
