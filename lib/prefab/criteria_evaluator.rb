@@ -70,17 +70,6 @@ module Prefab
 
     private
 
-    def matches?(criterion, value_from_properites, properties)
-      criterion_value_or_values = Prefab::ConfigValueUnwrapper.unwrap(criterion.value_to_match, @config.key, properties)
-
-      case criterion_value_or_values
-      when Google::Protobuf::RepeatedField
-        criterion_value_or_values.include?(value_from_properites)
-      else
-        criterion_value_or_values == value_from_properites
-      end
-    end
-
     def matching_environment_row_values
       @config.rows.find { |row| row.project_env_id == @project_env_id }&.values || NO_MATCHING_ROWS
     end
@@ -98,6 +87,17 @@ module Prefab
       resolver = CriteriaEvaluator.new(segment_criteria, project_env_id: @project_env_id, resolver: @resolver,
                                                          base_client: @base_client)
       resolver.evaluate(properties)
+    end
+
+    def matches?(criterion, value_from_properites, properties)
+      criterion_value_or_values = Prefab::ConfigValueUnwrapper.unwrap(criterion.value_to_match, @config.key, properties)
+
+      case criterion_value_or_values
+      when Google::Protobuf::RepeatedField
+        criterion_value_or_values.include?(value_from_properites)
+      else
+        criterion_value_or_values == value_from_properites
+      end
     end
   end
 end
