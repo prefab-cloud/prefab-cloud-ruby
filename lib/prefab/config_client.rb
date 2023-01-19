@@ -72,7 +72,6 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
-    # TODO: this call signature has changed, update docs
     def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED, properties = {}, lookup_key = nil)
       value = _get(key, lookup_key, properties)
       value ? Prefab::ConfigValueUnwrapper.unwrap(value, key, properties) : handle_default(key, default)
