@@ -77,7 +77,7 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      @resolver.get(criterion.value_to_match.string, "", properties)
+      @resolver.get(criterion.value_to_match.string, "", properties).bool
     end
 
     def matches?(criterion, value_from_properites, properties)
