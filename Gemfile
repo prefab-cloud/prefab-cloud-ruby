@@ -14,7 +14,6 @@ group :development do
   gem 'juwelier', '~> 2.4.9'
   gem 'rdoc'
   gem 'simplecov', '>= 0'
-  gem 'thin'
 end
 
 group :test do
