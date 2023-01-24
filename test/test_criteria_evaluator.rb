@@ -201,14 +201,6 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_in_seg
     segment_key = 'segment_key'
 
-    segment = Prefab::Segment.new(criteria: [
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
-                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                                      property_name: 'email'
-                                    )
-                                  ])
-
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
       key: segment_key,
@@ -216,7 +208,17 @@ class TestCriteriaEvaluator < Minitest::Test
         Prefab::ConfigRow.new(
           values: [
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(segment: segment)
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(bool: false)
             )
           ]
         )
@@ -274,14 +276,6 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_not_in_seg
     segment_key = 'segment_key'
 
-    segment = Prefab::Segment.new(criteria: [
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
-                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                                      property_name: 'email'
-                                    )
-                                  ])
-
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
       key: segment_key,
@@ -289,8 +283,17 @@ class TestCriteriaEvaluator < Minitest::Test
         Prefab::ConfigRow.new(
           values: [
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(segment: segment)
-            )
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(bool: false))
           ]
         )
       ]
@@ -329,20 +332,6 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_multiple_conditions
     segment_key = 'segment_key'
 
-    segment = Prefab::Segment.new(criteria: [
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
-                                      value_to_match: string_list(['prefab.cloud', 'gmail.com']),
-                                      property_name: 'email'
-                                    ),
-
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
-                                      value_to_match: Prefab::ConfigValue.new(bool: true),
-                                      property_name: 'admin'
-                                    )
-                                  ])
-
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
       key: segment_key,
@@ -350,7 +339,23 @@ class TestCriteriaEvaluator < Minitest::Test
         Prefab::ConfigRow.new(
           values: [
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(segment: segment)
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['prefab.cloud', 'gmail.com']),
+                  property_name: 'email'
+                ),
+
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: Prefab::ConfigValue.new(bool: true),
+                  property_name: 'admin'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(bool: false)
             )
           ]
         )
@@ -410,6 +415,11 @@ class TestCriteriaEvaluator < Minitest::Test
 
     def raw(key)
       @config[key]
+    end
+
+    def get(key, lookup_key, properties = {})
+      # This only gets called for segments, so we don't need to pass in a resolver
+      Prefab::CriteriaEvaluator.new(@config[key], project_env_id: nil, resolver: nil, base_client: nil).evaluate(properties)
     end
   end
 

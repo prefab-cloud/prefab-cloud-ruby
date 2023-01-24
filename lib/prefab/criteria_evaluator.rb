@@ -29,9 +29,7 @@ module Prefab
     end
 
     def all_criteria_match?(conditional_value, props)
-      criteria = conditional_value.value.segment ? conditional_value.value.segment.criteria : conditional_value.criteria
-
-      criteria.all? do |criterion|
+      conditional_value.criteria.all? do |criterion|
         evaluate_criteron(criterion, props)
       end
     end
@@ -79,14 +77,7 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      segment_criteria = @resolver.raw(criterion.value_to_match.string)
-
-      # This shouldn't happen, but just in case
-      return false if segment_criteria.nil?
-
-      resolver = CriteriaEvaluator.new(segment_criteria, project_env_id: @project_env_id, resolver: @resolver,
-                                                         base_client: @base_client)
-      resolver.evaluate(properties)
+      @resolver.get(criterion.value_to_match.string, "", properties)
     end
 
     def matches?(criterion, value_from_properites, properties)

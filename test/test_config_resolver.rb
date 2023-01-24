@@ -144,13 +144,6 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_resolving_in_segment
-    segment = Prefab::Segment.new(criteria: [
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
-                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                                      property_name: 'email'
-                                    )
-                                  ])
 
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
@@ -159,8 +152,16 @@ class TestConfigResolver < Minitest::Test
         Prefab::ConfigRow.new(
           values: [
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(segment: segment)
-            )
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(value: Prefab::ConfigValue.new(bool: false))
           ]
         )
       ]
@@ -229,13 +230,6 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_resolving_not_in_segment
-    segment = Prefab::Segment.new(criteria: [
-                                    Prefab::Criterion.new(
-                                      operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
-                                      value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                                      property_name: 'email'
-                                    )
-                                  ])
 
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
@@ -244,8 +238,16 @@ class TestConfigResolver < Minitest::Test
         Prefab::ConfigRow.new(
           values: [
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(segment: segment)
-            )
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(value: Prefab::ConfigValue.new(bool: false))
           ]
         )
       ]
