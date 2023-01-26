@@ -97,17 +97,21 @@ module Prefab
       feature_flag_client.feature_is_on_for?(feature_name, lookup_key, attributes: attributes)
     end
 
-    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, attributes = {}, ff_default = NO_DEFAULT_PROVIDED)
-      result = config_client.get(key, default_or_lookup_key)
-
-      if result.is_a?(Prefab::FeatureFlag)
-        feature_flag_client.get(key, default_or_lookup_key, attributes, default: ff_default)
+    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = {}, ff_default = nil)
+      if is_ff?(key)
+        feature_flag_client.get(key, default_or_lookup_key, properties, default: ff_default)
       else
-        result
+        config_client.get(key, default_or_lookup_key, properties)
       end
     end
 
     private
+
+    def is_ff?(key)
+      raw = config_client.send(:raw, key)
+
+      raw && raw.allowable_values.any?
+    end
 
     def http_secure?
       ENV['PREFAB_CLOUD_HTTP'] != 'true'

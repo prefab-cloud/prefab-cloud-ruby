@@ -9,8 +9,9 @@ sample: test sample value
 enabled_flag: true
 disabled_flag: false
 flag_with_a_value: { "feature_flag": "true", value: "all-features" }
-in_lookup_key: { "feature_flag": "true", value: true, criteria: { operator: LOOKUP_KEY_IN, values: [ "abc123", "xyz987" ] } }
-just_my_domain: { "feature_flag": "true", value: "new-version", criteria: { operator: PROP_IS_ONE_OF, property: "domain", values: [ "prefab.cloud", "example.com" ] } }
+in_lookup_key: { "feature_flag": "true", value: true, criterion: { operator: LOOKUP_KEY_IN, values: [ "abc123", "xyz987" ] } }
+just_my_domain: { "feature_flag": "true", value: "new-version", criterion: { operator: PROP_IS_ONE_OF, property: "domain", values: [ "prefab.cloud", "example.com" ] } }
+
 nested:
   values:
     _: top level
