@@ -18,6 +18,30 @@ class TestCriteriaEvaluator < Minitest::Test
     ]
   )
 
+  def test_always_true
+    config = Prefab::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        Prefab::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(operator: Prefab::Criterion::CriterionOperator::ALWAYS_TRUE)
+              ],
+              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil)
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate({}).string
+  end
+
   def test_lookup_key_in
     config = Prefab::Config.new(
       key: KEY,
@@ -293,7 +317,8 @@ class TestCriteriaEvaluator < Minitest::Test
               ]
             ),
             Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: false))
+              value: Prefab::ConfigValue.new(bool: false)
+            )
           ]
         )
       ]
@@ -418,7 +443,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['prefab.cloud', 'gmail.com']),
                   property_name: 'email'
-                ),
+                )
               ]
             ),
             Prefab::ConditionalValue.new(
@@ -472,7 +497,7 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate({}).string
     assert_equal DESIRED_VALUE, evaluator.evaluate({ email: 'example@prefab.cloud' }).string
-    assert_equal DESIRED_VALUE, evaluator.evaluate({ admin: true}).string
+    assert_equal DESIRED_VALUE, evaluator.evaluate({ admin: true }).string
     assert_equal DESIRED_VALUE, evaluator.evaluate({ email: 'example@prefab.cloud', admin: true }).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate({ email: 'example@prefab.cloud', admin: true, deleted: true }).string
     assert_equal DESIRED_VALUE, evaluator.evaluate({ email: 'example@gmail.com' }).string
@@ -495,9 +520,10 @@ class TestCriteriaEvaluator < Minitest::Test
       @config[key]
     end
 
-    def get(key, lookup_key, properties = {})
+    def get(key, _lookup_key, properties = {})
       # This only gets called for segments, so we don't need to pass in a resolver
-      Prefab::CriteriaEvaluator.new(@config[key], project_env_id: nil, resolver: nil, base_client: nil).evaluate(properties)
+      Prefab::CriteriaEvaluator.new(@config[key], project_env_id: nil, resolver: nil,
+                                                  base_client: nil).evaluate(properties)
     end
   end
 

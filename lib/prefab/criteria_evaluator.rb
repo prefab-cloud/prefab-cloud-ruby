@@ -60,8 +60,10 @@ module Prefab
         end
       when :HIERARCHICAL_MATCH
         value_from_properites.start_with?(criterion.value_to_match.string)
+      when :ALWAYS_TRUE
+        true
       else
-        @base_client.log.info("Unknown Operator: #{criteria.operator}")
+        @base_client.log.info("Unknown Operator: #{criterion.operator}")
         false
       end
     end
@@ -77,7 +79,7 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      @resolver.get(criterion.value_to_match.string, "", properties).bool
+      @resolver.get(criterion.value_to_match.string, '', properties).bool
     end
 
     def matches?(criterion, value_from_properites, properties)
