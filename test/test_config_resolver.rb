@@ -110,7 +110,6 @@ class TestConfigResolver < Minitest::Test
           )
         ]
       ) }
-
     }
 
     @loader.stub :calc_config, loaded_values do
@@ -144,7 +143,6 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_resolving_in_segment
-
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
       key: SEGMENT_KEY,
@@ -230,7 +228,6 @@ class TestConfigResolver < Minitest::Test
   end
 
   def test_resolving_not_in_segment
-
     segment_config = Prefab::Config.new(
       config_type: Prefab::ConfigType::SEGMENT,
       key: SEGMENT_KEY,
@@ -294,6 +291,75 @@ class TestConfigResolver < Minitest::Test
 
       assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@hotmail.com' }).string
       assert_equal NOT_IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, { email: 'test@something-else.com' }).string
+    end
+  end
+
+  def test_resolving_in_segment_with_lookup_key
+    segment_config = Prefab::Config.new(
+      config_type: Prefab::ConfigType::SEGMENT,
+      key: SEGMENT_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(bool: true),
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::LOOKUP_KEY_IN,
+                  value_to_match: string_list(['user:1234', 'user:4567']),
+                  property_name: 'LOOKUP'
+                )
+              ]
+            ),
+            Prefab::ConditionalValue.new(value: Prefab::ConfigValue.new(bool: false))
+          ]
+        )
+      ]
+    )
+
+    config = Prefab::Config.new(
+      key: CONFIG_KEY,
+      rows: [
+        Prefab::ConfigRow.new(
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: IN_SEGMENT_VALUE)
+            ),
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::NOT_IN_SEG,
+                  value_to_match: Prefab::ConfigValue.new(string: SEGMENT_KEY)
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: NOT_IN_SEGMENT_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    loaded_values = {
+      SEGMENT_KEY => { config: segment_config },
+      CONFIG_KEY => { config: config }
+    }
+
+    loader = MockConfigLoader.new
+
+    loader.stub :calc_config, loaded_values do
+      options = Prefab::Options.new
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
+
+      assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, 'user:1234', {}).string
+      assert_equal IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, 'user:4567', {}).string
+      assert_equal NOT_IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, nil, {}).string
+      assert_equal NOT_IN_SEGMENT_VALUE, resolver.get(CONFIG_KEY, 'user:9999', {}).string
     end
   end
 
