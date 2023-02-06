@@ -79,8 +79,7 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      # passing lookup key as nil here because it has already been merged into the properties
-      @resolver.get(criterion.value_to_match.string, nil, properties).bool
+      @resolver.get(criterion.value_to_match.string, properties[LOOKUP_KEY], properties).bool
     end
 
     def matches?(criterion, value_from_properites, properties)

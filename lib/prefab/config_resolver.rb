@@ -53,8 +53,7 @@ module Prefab
     end
 
     def evaluate(config, lookup_key, properties = {})
-      props = properties.merge(@additional_properties)
-      props[Prefab::CriteriaEvaluator::LOOKUP_KEY] ||= lookup_key
+      props = properties.merge(@additional_properties).merge(Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup_key)
 
       Prefab::CriteriaEvaluator.new(config,
                                     project_env_id: @project_env_id, resolver: self, base_client: @base_client).evaluate(props)
