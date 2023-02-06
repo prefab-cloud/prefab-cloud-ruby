@@ -11,11 +11,6 @@ class TestIntegration < Minitest::Test
 
     tests.each do |test|
       define_method(:"test_#{test['name']}") do
-        puts "TODO: #{test}"
-
-        # TODO: handle this
-        return
-
         it = IntegrationTest.new(test)
 
         case it.test_type
