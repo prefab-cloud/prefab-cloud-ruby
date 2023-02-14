@@ -35,31 +35,31 @@ module Prefab
     end
 
     def evaluate_criteron(criterion, properties)
-      value_from_properites = properties[criterion.property_name]
+      value_from_properties = properties[criterion.property_name]
 
       case criterion.operator
       when :LOOKUP_KEY_IN, :PROP_IS_ONE_OF
-        matches?(criterion, value_from_properites, properties)
+        matches?(criterion, value_from_properties, properties)
       when :LOOKUP_KEY_NOT_IN, :PROP_IS_NOT_ONE_OF
-        !matches?(criterion, value_from_properites, properties)
+        !matches?(criterion, value_from_properties, properties)
       when :IN_SEG
         in_segment?(criterion, properties)
       when :NOT_IN_SEG
         !in_segment?(criterion, properties)
       when :PROP_ENDS_WITH_ONE_OF
-        return false unless value_from_properites
+        return false unless value_from_properties
 
         criterion.value_to_match.string_list.values.any? do |ending|
-          value_from_properites.end_with?(ending)
+          value_from_properties.end_with?(ending)
         end
       when :PROP_DOES_NOT_END_WITH_ONE_OF
-        return true unless value_from_properites
+        return true unless value_from_properties
 
         criterion.value_to_match.string_list.values.none? do |ending|
-          value_from_properites.end_with?(ending)
+          value_from_properties.end_with?(ending)
         end
       when :HIERARCHICAL_MATCH
-        value_from_properites.start_with?(criterion.value_to_match.string)
+        value_from_properties.start_with?(criterion.value_to_match.string)
       when :ALWAYS_TRUE
         true
       else
@@ -82,14 +82,14 @@ module Prefab
       @resolver.get(criterion.value_to_match.string, properties[LOOKUP_KEY], properties).bool
     end
 
-    def matches?(criterion, value_from_properites, properties)
+    def matches?(criterion, value_from_properties, properties)
       criterion_value_or_values = Prefab::ConfigValueUnwrapper.unwrap(criterion.value_to_match, @config.key, properties)
 
       case criterion_value_or_values
       when Google::Protobuf::RepeatedField
-        criterion_value_or_values.include?(value_from_properites)
+        criterion_value_or_values.include?(value_from_properties)
       else
-        criterion_value_or_values == value_from_properites
+        criterion_value_or_values == value_from_properties
       end
     end
   end
