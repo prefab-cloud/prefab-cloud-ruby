@@ -48,7 +48,7 @@ class MockConfigClient
     @variants = {}
   end
 
-  def get(key, default = nil)
+  def get(key, default = nil, _attributes = nil, _lookup_key = nil)
     @config_values.fetch(key, default)
   end
 
