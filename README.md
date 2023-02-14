@@ -41,7 +41,7 @@ end
 ```
 
 ## Logging & Debugging
-In classpath or ~/.prefab.overrides.config.yaml set
+In classpath or ~/.prefab.default.config.yaml set
 
 ```
 log-level:
