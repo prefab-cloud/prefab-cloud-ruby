@@ -3,18 +3,20 @@ Ruby Client for Prefab FeatureFlags, Config as a Service: https://www.prefab.clo
 
 ```ruby
 client = Prefab::Client.new
-@feature_flags = client.feature_flag_client
 
-# Create a flag that is on for 10% of traffic, the entire beta group and user:1
-@feature_flags.upsert(Prefab::FeatureFlag.new(feature: "MyFeature", pct: 0.1, whitelisted: ["betas", "user:1"]))
+lookup_key = "user-123"
+identity_attributes = {
+  team_id: 432,
+  user_id: 123,
+  subscription_level: 'pro',
+  email: "alice@example.com"
+}
 
-# Use Flags By Themselves
-puts @feature_flags.feature_is_on? "MyFeature"  # returns yes 10 pct of the time
+result = client.enabled? "my-first-feature-flag", lookup_key, identity_attributes
 
-# A single user should get the same result each time
-puts @feature_flags.feature_is_on? "MyFeature", "user:1123"
+puts "my-first-feature-flag is: #{result} for #{lookup_key}"
 ```
-See full documentation https://www.prefab.cloud/documentation/installation
+See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 
 ## Supports
 
@@ -74,5 +76,5 @@ REMOTE_BRANCH=main LOCAL_BRANCH=main bundle exec rake release
 
 ## Copyright
 
-Copyright (c) 2022 Jeff Dwyer. See LICENSE.txt for
+Copyright (c) 2023 Jeff Dwyer. See LICENSE.txt for
 further details.

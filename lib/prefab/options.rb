@@ -17,6 +17,7 @@ module Prefab
     attr_reader :prefab_config_override_dir
     attr_reader :prefab_config_classpath_dir
     attr_reader :prefab_envs
+    attr_reader :collect_sync_interval
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
@@ -37,6 +38,9 @@ module Prefab
       LOCAL_ONLY = 2
     end
 
+    DEFAULT_MAX_PATHS = 1_000
+    DEFAULT_SYNC_INTERVAL = 60
+
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
       logdev: $stdout,
@@ -55,9 +59,11 @@ module Prefab
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: '.',
-      prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(',')
+      prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
+      collect_logs: true,
+      collect_max_paths: DEFAULT_MAX_PATHS,
+      collect_sync_interval: DEFAULT_SYNC_INTERVAL
     )
-      # debugger
       @api_key = api_key
       @logdev = logdev
       @stats = stats
@@ -74,6 +80,9 @@ module Prefab
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
+      @collect_logs = collect_logs
+      @collect_max_paths = collect_max_paths
+      @collect_sync_interval = collect_sync_interval
     end
 
     def initialize(options = {})
@@ -82,6 +91,12 @@ module Prefab
 
     def local_only?
       @prefab_datasources == DATASOURCES::LOCAL_ONLY
+    end
+
+    def collect_max_paths
+      return 0 if !@collect_logs || local_only?
+
+      @collect_max_paths
     end
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net

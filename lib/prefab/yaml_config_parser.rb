@@ -21,10 +21,10 @@ module Prefab
 
     def load
       if File.exist?(@file)
-        @client.log_internal Logger::INFO, "Load #{@file}"
+        @client.log_internal ::Logger::INFO, "Load #{@file}"
         YAML.load_file(@file)
       else
-        @client.log_internal Logger::INFO, "No file #{@file}"
+        @client.log_internal ::Logger::INFO, "No file #{@file}"
         {}
       end
     end

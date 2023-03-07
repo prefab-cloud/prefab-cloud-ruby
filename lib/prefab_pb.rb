@@ -181,6 +181,23 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :sequence_name, :string, 3
       optional :size, :int64, 4
     end
+    add_message "prefab.Loggers" do
+      repeated :loggers, :message, 1, "prefab.Logger"
+      optional :start_at, :int64, 2
+      optional :end_at, :int64, 3
+      optional :instance_hash, :string, 4
+    end
+    add_message "prefab.Logger" do
+      optional :logger_name, :string, 1
+      proto3_optional :traces, :int64, 2
+      proto3_optional :debugs, :int64, 3
+      proto3_optional :infos, :int64, 4
+      proto3_optional :warns, :int64, 5
+      proto3_optional :errors, :int64, 6
+      proto3_optional :fatals, :int64, 7
+    end
+    add_message "prefab.LoggerReportResponse" do
+    end
     add_enum "prefab.ConfigType" do
       value :NOT_SET_CONFIG_TYPE, 0
       value :CONFIG, 1
@@ -236,6 +253,9 @@ module Prefab
   CreationResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.CreationResponse").msgclass
   IdBlock = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlock").msgclass
   IdBlockRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlockRequest").msgclass
+  Loggers = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Loggers").msgclass
+  Logger = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Logger").msgclass
+  LoggerReportResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LoggerReportResponse").msgclass
   ConfigType = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigType").enummodule
   LogLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LogLevel").enummodule
   OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule

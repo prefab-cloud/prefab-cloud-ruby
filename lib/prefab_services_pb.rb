@@ -63,4 +63,18 @@ module Prefab
 
     Stub = Service.rpc_stub_class
   end
+  module LoggerReportingService
+    class Service
+
+      include ::GRPC::GenericService
+
+      self.marshal_class_method = :encode
+      self.unmarshal_class_method = :decode
+      self.service_name = 'prefab.LoggerReportingService'
+
+      rpc :Send, ::Prefab::Loggers, ::Prefab::LoggerReportResponse
+    end
+
+    Stub = Service.rpc_stub_class
+  end
 end
