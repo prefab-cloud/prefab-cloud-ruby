@@ -84,6 +84,30 @@ class TestClient < Minitest::Test
     assert certs.length > 1
   end
 
+  def test_initialization_with_an_options_object
+    options_hash = {
+      namespace: 'test-namespace',
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+    }
+
+    options = Prefab::Options.new(options_hash)
+
+    client = Prefab::Client.new(options)
+
+    assert_equal client.namespace, 'test-namespace'
+  end
+
+  def test_initialization_with_a_hash
+    options_hash = {
+      namespace: 'test-namespace',
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+    }
+
+    client = Prefab::Client.new(options_hash)
+
+    assert_equal client.namespace, 'test-namespace'
+  end
+
   private
 
   def new_client(overrides = {})

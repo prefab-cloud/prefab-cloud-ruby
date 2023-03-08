@@ -15,7 +15,7 @@ module Prefab
     attr_reader :options
 
     def initialize(options = Prefab::Options.new)
-      @options = options
+      @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
       @shared_cache = @options.shared_cache
       @stats = @options.stats
       @namespace = @options.namespace
