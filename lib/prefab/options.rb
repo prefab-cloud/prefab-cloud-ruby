@@ -37,7 +37,7 @@ module Prefab
       LOCAL_ONLY = 2
     end
 
-    def initialize(
+    private def init(
       api_key: ENV['PREFAB_API_KEY'],
       logdev: $stdout,
       stats: NoopStats.new, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
@@ -74,6 +74,10 @@ module Prefab
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
+    end
+
+    def initialize(options = {})
+      init(**options)
     end
 
     def local_only?
