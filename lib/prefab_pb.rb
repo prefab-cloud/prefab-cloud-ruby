@@ -186,6 +186,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :start_at, :int64, 2
       optional :end_at, :int64, 3
       optional :instance_hash, :string, 4
+      proto3_optional :namespace, :string, 5
     end
     add_message "prefab.Logger" do
       optional :logger_name, :string, 1

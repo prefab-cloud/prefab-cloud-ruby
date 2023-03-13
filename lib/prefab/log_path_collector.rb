@@ -68,7 +68,8 @@ module Prefab
           loggers: aggregate.values,
           start_at: start_at_was,
           end_at: now,
-          instance_hash: @client.instance_hash
+          instance_hash: @client.instance_hash,
+          namespace: @client.namespace
         )
 
         @client.request Prefab::LoggerReportingService, :send, req_options: {}, params: loggers

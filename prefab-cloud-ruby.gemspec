@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2023-03-08"
+  s.date = "2023-03-13"
   s.description = "RateLimits & Config as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.extra_rdoc_files = [
@@ -75,7 +75,9 @@ Gem::Specification.new do |s|
     "test/test_helper.rb",
     "test/test_integration.rb",
     "test/test_local_config_parser.rb",
+    "test/test_log_path_collector.rb",
     "test/test_logger.rb",
+    "test/test_options.rb",
     "test/test_weighted_value_resolver.rb"
   ]
   s.homepage = "http://github.com/prefab-cloud/prefab-cloud-ruby".freeze
