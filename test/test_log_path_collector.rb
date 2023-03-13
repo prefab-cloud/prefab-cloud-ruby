@@ -49,6 +49,7 @@ class TestLogPathCollector < Minitest::Test
       prefab_config_override_dir: 'none',
       prefab_config_classpath_dir: 'test',
       prefab_envs: ['unit_tests'],
+      api_key: '123-development-yourapikey-SDK',
       collect_sync_interval: 1000 # we'll trigger sync manually in our test
     }.merge(overrides))
 
