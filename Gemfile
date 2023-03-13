@@ -6,6 +6,7 @@ gem 'googleapis-common-protos-types', platforms: :ruby
 gem 'google-protobuf', platforms: :ruby
 gem 'grpc', platforms: :ruby
 gem 'ld-eventsource'
+gem 'uuid'
 
 group :development do
   gem 'benchmark-ips'
@@ -20,4 +21,5 @@ group :test do
   gem 'minitest'
   gem 'minitest-focus'
   gem 'minitest-reporters'
+  gem 'timecop'
 end

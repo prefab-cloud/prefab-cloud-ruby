@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Prefab
-  class InternalLogger < Logger
+  class InternalLogger < ::Logger
     def initialize(path, logger)
       @path = path
       @logger = logger

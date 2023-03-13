@@ -1,33 +1,39 @@
 # frozen_string_literal: true
 
+require 'prefab/log_path_collector'
+
 module Prefab
-  class LoggerClient < Logger
+  class LoggerClient < ::Logger
     SEP = '.'
     BASE_KEY = 'log-level'
     UNKNOWN_PATH = 'unknown.'
     INTERNAL_PREFIX = 'cloud.prefab.client'
 
     LOG_LEVEL_LOOKUPS = {
-      Prefab::LogLevel::NOT_SET_LOG_LEVEL => Logger::DEBUG,
-      Prefab::LogLevel::TRACE => Logger::DEBUG,
-      Prefab::LogLevel::DEBUG => Logger::DEBUG,
-      Prefab::LogLevel::INFO => Logger::INFO,
-      Prefab::LogLevel::WARN => Logger::WARN,
-      Prefab::LogLevel::ERROR => Logger::ERROR,
-      Prefab::LogLevel::FATAL => Logger::FATAL
+      Prefab::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
+      Prefab::LogLevel::TRACE => ::Logger::DEBUG,
+      Prefab::LogLevel::DEBUG => ::Logger::DEBUG,
+      Prefab::LogLevel::INFO => ::Logger::INFO,
+      Prefab::LogLevel::WARN => ::Logger::WARN,
+      Prefab::LogLevel::ERROR => ::Logger::ERROR,
+      Prefab::LogLevel::FATAL => ::Logger::FATAL
     }
 
-    def initialize(logdev, formatter: nil, prefix: nil)
+    def initialize(logdev, log_path_collector: nil, formatter: nil, prefix: nil)
       super(logdev)
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
       @silences = Concurrent::Map.new(initial_capacity: 2)
-      @prefix = prefix
+      @prefix = "#{prefix}#{prefix && '.'}"
+
+      @log_path_collector = log_path_collector
     end
 
     def add(severity, message = nil, progname = nil, loc, &block)
-      path = get_loc_path(loc)
-      path = "#{@prefix}#{@prefix && '.'}#{path}"
+      path_loc = get_loc_path(loc)
+      path = @prefix + path_loc
+
+      @log_path_collector&.push(path_loc, severity)
 
       log(message, path, progname, severity, &block)
     end
@@ -43,7 +49,8 @@ module Prefab
     end
 
     def log(message, path, progname, severity)
-      severity ||= Logger::UNKNOWN
+      severity ||= ::Logger::UNKNOWN
+
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
       progname = "#{path}: #{progname || @progname}"

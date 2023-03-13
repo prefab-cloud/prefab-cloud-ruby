@@ -29,7 +29,7 @@ module Prefab
         @api_config.delete(config.key)
       else
         if @api_config[config.key]
-          @base_client.log_internal Logger::DEBUG,
+          @base_client.log_internal ::Logger::DEBUG,
                                     "Replace #{config.key} with value from #{source} #{@api_config[config.key][:config].id} -> #{config.id}"
         end
         @api_config[config.key] = { source: source, config: config }

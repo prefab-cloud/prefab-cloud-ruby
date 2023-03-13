@@ -10,7 +10,7 @@ module Prefab
     def initialize(base_client, timeout)
       @base_client = base_client
       @options = base_client.options
-      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient'
+      @base_client.log_internal ::Logger::DEBUG, 'Initialize ConfigClient'
       @timeout = timeout
 
       @stream_lock = Concurrent::ReadWriteLock.new
@@ -21,9 +21,9 @@ module Prefab
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
       @initialization_lock = Concurrent::ReadWriteLock.new
-      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient: AcquireWriteLock'
+      @base_client.log_internal ::Logger::DEBUG, 'Initialize ConfigClient: AcquireWriteLock'
       @initialization_lock.acquire_write_lock
-      @base_client.log_internal Logger::DEBUG, 'Initialize ConfigClient: AcquiredWriteLock'
+      @base_client.log_internal ::Logger::DEBUG, 'Initialize ConfigClient: AcquiredWriteLock'
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
       @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
@@ -99,7 +99,7 @@ module Prefab
           raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
         end
 
-        @base_client.log_internal Logger::WARN,
+        @base_client.log_internal ::Logger::WARN,
                                   "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
         @initialization_lock.release_write_lock
 
@@ -119,13 +119,13 @@ module Prefab
 
       return if success
 
-      @base_client.log_internal Logger::INFO, 'LoadCheckpoint: Fallback to GRPC API'
+      @base_client.log_internal ::Logger::INFO, 'LoadCheckpoint: Fallback to GRPC API'
 
       success = load_checkpoint_from_grpc_api
 
       return if success
 
-      @base_client.log_internal Logger::WARN, 'No success loading checkpoints'
+      @base_client.log_internal ::Logger::WARN, 'No success loading checkpoints'
     end
 
     def load_checkpoint_from_grpc_api
@@ -135,9 +135,9 @@ module Prefab
       load_configs(resp, :remote_api_grpc)
       true
     rescue GRPC::Unauthenticated
-      @base_client.log_internal Logger::WARN, 'Unauthenticated'
+      @base_client.log_internal ::Logger::WARN, 'Unauthenticated'
     rescue StandardError => e
-      @base_client.log_internal Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
+      @base_client.log_internal ::Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
       false
     end
 
@@ -162,11 +162,11 @@ module Prefab
         load_configs(configs, source)
         true
       else
-        @base_client.log_internal Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
+        @base_client.log_internal ::Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
         false
       end
     rescue StandardError => e
-      @base_client.log_internal Logger::WARN, "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
+      @base_client.log_internal ::Logger::WARN, "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
       false
     end
 
@@ -180,10 +180,10 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        @base_client.log_internal Logger::INFO,
+        @base_client.log_internal ::Logger::INFO,
                                   "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
-        @base_client.log_internal Logger::DEBUG,
+        @base_client.log_internal ::Logger::DEBUG,
                                   "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", 'load_configs'
       end
       @base_client.stats.increment('prefab.config.checkpoint.load')
@@ -201,7 +201,7 @@ module Prefab
           delta = @checkpoint_freq_secs - (Time.now - started_at)
           sleep(delta) if delta > 0
         rescue StandardError => e
-          @base_client.log_internal Logger::INFO, "Issue Checkpointing #{e.message}"
+          @base_client.log_internal ::Logger::INFO, "Issue Checkpointing #{e.message}"
         end
       end
     end
@@ -209,10 +209,10 @@ module Prefab
     def finish_init!(source)
       return unless @initialization_lock.write_locked?
 
-      @base_client.log_internal Logger::INFO, "Unlocked Config via #{source}"
+      @base_client.log_internal ::Logger::INFO, "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
       @base_client.log.set_config_client(self)
-      @base_client.log_internal Logger::INFO, to_s
+      @base_client.log_internal ::Logger::INFO, to_s
     end
 
     def start_sse_streaming_connection_thread(start_at_id)
@@ -223,7 +223,7 @@ module Prefab
         "Authorization": "Basic #{auth_string}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      @base_client.log_internal Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
+      @base_client.log_internal ::Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
