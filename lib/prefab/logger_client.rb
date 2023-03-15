@@ -45,6 +45,7 @@ module Prefab
                INTERNAL_PREFIX
              end
 
+      puts "log-internal: #{message} #{path} #{progname} #{severity}"
       log(message, path, progname, severity, &block)
     end
 

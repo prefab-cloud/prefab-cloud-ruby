@@ -18,14 +18,6 @@ module Prefab
       @client = client
       @start_at = now
 
-      @pool = Concurrent::ThreadPoolExecutor.new(
-        fallback_policy: :discard,
-        max_queue: 5,
-        max_threads: 4,
-        min_threads: 1,
-        name: 'prefab-log-paths'
-      )
-
       @paths = Concurrent::Map.new
 
       start_periodic_sync
@@ -63,43 +55,36 @@ module Prefab
 
       log_internal "Flushing #{to_ship.size} paths"
 
-      @pool.post do
-        log_internal "Uploading stats for #{to_ship.size} paths"
+      log_internal "Uploading stats for #{to_ship.size} paths"
 
-        aggregate = Hash.new { |h, k| h[k] = Prefab::Logger.new }
+      aggregate = Hash.new { |h, k| h[k] = Prefab::Logger.new }
 
-        to_ship.each do |(path, severity), count|
-          aggregate[path][SEVERITY_KEY[severity]] = count
-          aggregate[path]['logger_name'] = path
-        end
-
-        loggers = Prefab::Loggers.new(
-          loggers: aggregate.values,
-          start_at: start_at_was,
-          end_at: now,
-          instance_hash: @client.instance_hash,
-          namespace: @client.namespace
-        )
-
-        log_internal "Sending loggers to server loggers=#{loggers.inspect}"
-
-        @client.request Prefab::LoggerReportingService, :send, req_options: {}, params: loggers
+      to_ship.each do |(path, severity), count|
+        aggregate[path][SEVERITY_KEY[severity]] = count
+        aggregate[path]['logger_name'] = path
       end
+
+      loggers = Prefab::Loggers.new(
+        loggers: aggregate.values,
+        start_at: start_at_was,
+        end_at: now,
+        instance_hash: @client.instance_hash,
+        namespace: @client.namespace
+      )
+
+      log_internal "Sending loggers to server loggers=#{loggers.inspect}"
+
+      @client.request Prefab::LoggerReportingService, :send, req_options: {}, params: loggers
     end
 
     def start_periodic_sync
       Thread.new do
         log_internal "Initialized log path collector instance_hash=#{@client.instance_hash} max_paths=#{@max_paths} sync_interval=#{@sync_interval}"
-
-        loop do
-          log_internal "Sleeping for #{@sync_interval} seconds"
-          sleep @sync_interval
-          log_internal 'Attempting sync'
-          sync
-        end
-      rescue StandardError => e
-        log_internal "Error in log path collector thread: #{e.message} | #{e.backtrace.join("\n")} | #{e.inspect}"
       end
+
+      Concurrent::TimerTask.new(execution_interval: @sync_interval) do
+        sync
+      end.execute
     end
 
     def log_internal(message)

@@ -17,8 +17,6 @@ class TestLogPathCollector < Minitest::Test
         requests.push(params)
       end
 
-      client.log_path_collector.send(:sync)
-
       # let the flush thread run
       sleep 0.01 while requests.length == 0
 
@@ -48,7 +46,7 @@ class TestLogPathCollector < Minitest::Test
       prefab_config_classpath_dir: 'test',
       prefab_envs: ['unit_tests'],
       api_key: '123-development-yourapikey-SDK',
-      collect_sync_interval: 1000 # we'll trigger sync manually in our test
+      collect_sync_interval: 0.1
     }.merge(overrides))
 
     Prefab::Client.new(options)
