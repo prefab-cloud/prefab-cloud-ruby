@@ -97,6 +97,8 @@ module Prefab
           log_internal 'Attempting sync'
           sync
         end
+      rescue StandardError => e
+        log_internal "Error in log path collector thread: #{e.message} | #{e.backtrace.join("\n")} | #{e.inspect}"
       end
     end
 
