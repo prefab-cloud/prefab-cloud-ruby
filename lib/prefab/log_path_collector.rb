@@ -32,15 +32,22 @@ module Prefab
     end
 
     def push(path, severity)
+      log_internal "Pushing path=#{path} severity=#{severity}"
       return unless @paths.size < @max_paths
 
       @paths.compute([path, severity], &INCREMENT)
+      log_internal "Pushed path=#{path} severity=#{severity} -- #{@paths[[path, severity]]}"
     end
 
     private
 
     def sync
-      return if @paths.size.zero?
+      log_internal "Checking should sync w/ #{@paths.size} paths"
+
+      if @paths.size.zero?
+        log_internal 'Nothing to sync'
+        return
+      end
 
       log_internal "Syncing #{@paths.size} paths"
 
@@ -53,6 +60,8 @@ module Prefab
 
       start_at_was = @start_at
       @start_at = now
+
+      log_internal "Flushing #{to_ship.size} paths"
 
       @pool.post do
         log_internal "Uploading stats for #{to_ship.size} paths"
@@ -72,6 +81,8 @@ module Prefab
           namespace: @client.namespace
         )
 
+        log_internal "Sending loggers to server loggers=#{loggers.inspect}"
+
         @client.request Prefab::LoggerReportingService, :send, req_options: {}, params: loggers
       end
     end
@@ -81,7 +92,9 @@ module Prefab
         log_internal "Initialized log path collector instance_hash=#{@client.instance_hash} max_paths=#{@max_paths} sync_interval=#{@sync_interval}"
 
         loop do
+          log_internal "Sleeping for #{@sync_interval} seconds"
           sleep @sync_interval
+          log_internal 'Attempting sync'
           sync
         end
       end
