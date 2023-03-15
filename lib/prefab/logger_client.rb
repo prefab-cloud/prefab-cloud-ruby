@@ -131,14 +131,26 @@ module Prefab
 
     private
 
+    NO_DEFAULT = nil
+
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
-      closest_log_level_match = @config_client.get(BASE_KEY, :WARN)
+      properties = Thread.current[:prefab_log_properties] || {}
+      lookup_key = Thread.current[:prefab_log_lookup_key] || nil
+
+      closest_log_level_match = nil
+
       path.split(SEP).each_with_object([BASE_KEY]) do |n, memo|
         memo << n
-        val = @config_client.get(memo.join(SEP), nil)
+        val = @config_client.get(memo.join(SEP), NO_DEFAULT, properties, lookup_key)
         closest_log_level_match = val unless val.nil?
       end
+
+      if closest_log_level_match.nil?
+        # get the top-level setting or default to WARN
+        closest_log_level_match = @config_client.get(BASE_KEY, :WARN, properties, lookup_key)
+      end
+
       closest_log_level_match_int = Prefab::LogLevel.resolve(closest_log_level_match)
       LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
     end
@@ -165,7 +177,7 @@ module Prefab
   # StubConfigClient to be used while config client initializes
   # since it may log
   class BootstrappingConfigClient
-    def get(_key, default = nil)
+    def get(_key, default = nil, _properties = {}, _lookup_key = nil)
       ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].upcase.to_sym : default
     end
   end

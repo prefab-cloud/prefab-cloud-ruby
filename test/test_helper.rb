@@ -43,7 +43,7 @@ class MockConfigClient
     @config_values = config_values
   end
 
-  def get(key, default = nil)
+  def get(key, default = nil, _, _)
     @config_values.fetch(key, default)
   end
 
@@ -92,4 +92,20 @@ def new_client(overrides = {})
   }.merge(overrides))
 
   Prefab::Client.new(options)
+end
+
+def string_list(values)
+  Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
+end
+
+def inject_config(client, config)
+  resolver = client.config_client.instance_variable_get('@config_resolver')
+  store = resolver.instance_variable_get('@local_store')
+
+  store[config.key] = { config: config }
+end
+
+def inject_project_env_id(client, project_env_id)
+  resolver = client.config_client.instance_variable_get('@config_resolver')
+  resolver.project_env_id = project_env_id
 end
