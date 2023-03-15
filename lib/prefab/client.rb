@@ -42,9 +42,14 @@ module Prefab
       end
     end
 
-    def set_thread_log_context(lookup_key, properties)
+    def with_log_context(lookup_key, properties)
       Thread.current[:prefab_log_lookup_key] = lookup_key
       Thread.current[:prefab_log_properties] = properties
+
+      yield
+    ensure
+      Thread.current[:prefab_log_lookup_key] = nil
+      Thread.current[:prefab_log_properties] = {}
     end
 
     def channel

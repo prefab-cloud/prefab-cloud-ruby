@@ -228,44 +228,44 @@ class TestLogger < Minitest::Test
     inject_project_env_id(prefab, PROJECT_ENV_ID)
 
     # without any context, the level should be the default for the env (info)
-    prefab.set_thread_log_context(nil, {})
+    prefab.with_log_context(nil, {}) do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    refute_logged io, 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
 
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.set_thread_log_context('user:1234', email_suffix: 'yahoo.com')
+    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    refute_logged io, 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
 
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.set_thread_log_context('user:1234', email_suffix: 'hotmail.com')
+    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
   end
 
   def test_logging_with_criteria_on_key_path
@@ -333,58 +333,58 @@ class TestLogger < Minitest::Test
     inject_project_env_id(prefab, PROJECT_ENV_ID)
 
     # without any context, the level should be the default for the env (info)
-    prefab.set_thread_log_context(nil, {})
+    prefab.with_log_context(nil, {}) do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    refute_logged io, 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
 
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.set_thread_log_context('user:1234', email_suffix: 'yahoo.com')
+    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    refute_logged io, 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
 
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.set_thread_log_context('user:1234', email_suffix: 'hotmail.com')
+    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
 
     reset_io(io)
 
     # with the correct lookup key
-    prefab.set_thread_log_context('user:4567', email_suffix: 'example.com')
+    prefab.with_log_context('user:4567', email_suffix: 'example.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 
-    prefab.log.debug 'Test debug'
-    assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
 
-    prefab.log.info 'Test info'
-    assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
-
-    prefab.log.error 'Test error'
-    assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
   end
 
   private
@@ -420,8 +420,6 @@ class TestLogger < Minitest::Test
       prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
     ))
     prefab = Prefab::Client.new(options)
-
-    prefab.set_thread_log_context('NO_LOOKUP_KEY_SET', no_properties_set: true)
 
     [prefab, io]
   end
