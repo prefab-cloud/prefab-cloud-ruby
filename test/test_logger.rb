@@ -2,7 +2,22 @@
 
 require 'test_helper'
 
-class TestCLogger < Minitest::Test
+class TestLogger < Minitest::Test
+  TEST_ENV_ID = 2
+  DEFAULT_VALUE = 'FATAL'
+  DEFAULT_ENV_VALUE = 'INFO'
+  DESIRED_VALUE = 'DEBUG'
+  WRONG_ENV_VALUE = 'ERROR'
+  PROJECT_ENV_ID = 1
+
+  DEFAULT_ROW = Prefab::ConfigRow.new(
+    values: [
+      Prefab::ConditionalValue.new(
+        value: Prefab::ConfigValue.new(log_level: DEFAULT_VALUE)
+      )
+    ]
+  )
+
   def setup
     Prefab::LoggerClient.send(:public, :get_path)
     Prefab::LoggerClient.send(:public, :get_loc_path)
@@ -160,10 +175,226 @@ class TestCLogger < Minitest::Test
     assert_logged io, 'ERROR', 'MY_PROGNAME test.test_logger.test_logging_with_a_progname_and_no_message', 'MY_PROGNAME'
   end
 
+  def test_logging_with_criteria_on_top_level_key
+    prefix = 'my.own.prefix'
+
+    config = Prefab::Config.new(
+      key: 'log-level',
+      rows: [
+        DEFAULT_ROW,
+
+        # wrong env
+        Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email_suffix'
+                )
+              ],
+              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+            )
+          ]
+        ),
+
+        # correct env
+        Prefab::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email_suffix'
+                )
+              ],
+              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+            ),
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    prefab, io = captured_logger(log_prefix: prefix)
+
+    inject_config(prefab, config)
+    inject_project_env_id(prefab, PROJECT_ENV_ID)
+
+    # without any context, the level should be the default for the env (info)
+    prefab.with_log_context(nil, {}) do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
+
+    reset_io(io)
+
+    # with the wrong context, the level should be the default for the env (info)
+    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
+
+    reset_io(io)
+
+    # with the correct context, the level should be the desired value (debug)
+    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test error'
+    end
+  end
+
+  def test_logging_with_criteria_on_key_path
+    prefix = 'my.own.prefix'
+
+    config = Prefab::Config.new(
+      key: 'log-level.my.own.prefix.test.test_logger',
+      rows: [
+        DEFAULT_ROW,
+
+        # wrong env
+        Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email_suffix'
+                )
+              ],
+              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+            )
+          ]
+        ),
+
+        # correct env
+        Prefab::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'email_suffix'
+                )
+              ],
+              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+            ),
+
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::LOOKUP_KEY_IN,
+                  value_to_match: string_list(%w[user:4567]),
+                  property_name: Prefab::CriteriaEvaluator::LOOKUP_KEY
+                )
+              ],
+              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+            ),
+
+            Prefab::ConditionalValue.new(
+              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    prefab, io = captured_logger(log_prefix: prefix)
+
+    inject_config(prefab, config)
+    inject_project_env_id(prefab, PROJECT_ENV_ID)
+
+    # without any context, the level should be the default for the env (info)
+    prefab.with_log_context(nil, {}) do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
+
+    reset_io(io)
+
+    # with the wrong context, the level should be the default for the env (info)
+    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+      prefab.log.debug 'Test debug'
+      refute_logged io, 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
+
+    reset_io(io)
+
+    # with the correct context, the level should be the desired value (debug)
+    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
+
+    reset_io(io)
+
+    # with the correct lookup key
+    prefab.with_log_context('user:4567', email_suffix: 'example.com') do
+      prefab.log.debug 'Test debug'
+      assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
+
+      prefab.log.info 'Test info'
+      assert_logged io, 'INFO', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test info'
+
+      prefab.log.error 'Test error'
+      assert_logged io, 'ERROR', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test error'
+    end
+  end
+
   private
 
   def assert_logged(logged_io, level, path, message)
-    assert_match(/#{level} \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d+: #{path}: #{message}\n/, logged_io.string)
+    assert_match(/#{level}\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d+:\s+#{path}: #{message}\n/, logged_io.string)
+  end
+
+  def refute_logged(logged_io, message)
+    refute_match(/#{message}/, logged_io.string)
   end
 
   def mock_logger_expecting(pattern, configs = {}, calls: 1)
@@ -191,5 +422,12 @@ class TestCLogger < Minitest::Test
     prefab = Prefab::Client.new(options)
 
     [prefab, io]
+  end
+
+  def reset_io(io)
+    io.close
+    io.reopen
+
+    assert_equal '', io.string
   end
 end

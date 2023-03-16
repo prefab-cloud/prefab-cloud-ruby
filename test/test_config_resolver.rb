@@ -374,8 +374,4 @@ class TestConfigResolver < Minitest::Test
     resolver.update
     resolver
   end
-
-  def string_list(values)
-    Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
-  end
 end
