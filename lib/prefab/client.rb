@@ -82,6 +82,15 @@ module Prefab
                                                                    log_path_collector: log_path_collector)
     end
 
+    def set_rails_loggers
+      Rails.logger = log
+      ActionView::Base.logger = log
+      ActionController::Base.logger = log
+      ActiveJob::Base.logger = log
+      ActiveRecord::Base.logger = log
+      ActiveStorage.logger = log
+    end
+
     def log_internal(level, msg, path = nil)
       log.log_internal msg, path, nil, level
     end
