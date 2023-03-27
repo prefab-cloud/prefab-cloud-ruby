@@ -40,6 +40,7 @@ module Prefab
           channel.destroy
         end
       end
+      config_client
     end
 
     def with_log_context(lookup_key, properties)
