@@ -40,6 +40,7 @@ module Prefab
           channel.destroy
         end
       end
+      # start config client
       config_client
     end
 
