@@ -90,7 +90,7 @@ module Prefab
       ActionController::Base.logger = log
       ActiveJob::Base.logger = log
       ActiveRecord::Base.logger = log
-      ActiveStorage.logger = log
+      ActiveStorage.logger = log if defined?(ActiveStorage)
     end
 
     def log_internal(level, msg, path = nil)
