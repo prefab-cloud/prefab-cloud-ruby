@@ -34,6 +34,8 @@ module Prefab
         end
       end
       str
+    rescue StandardError => e
+      "Error printing resolved config: #{e.message}"
     end
 
     def raw(key)
