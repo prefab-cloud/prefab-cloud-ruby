@@ -88,7 +88,7 @@ module Prefab
     end
 
     def log_internal(message)
-      @client.log.log_internal message, 'log_path_collector', nil, ::Logger::INFO
+      @client.log.log_internal message, 'log_path_collector', nil, ::Logger::DEBUG
     end
 
     def now
