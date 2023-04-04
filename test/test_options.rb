@@ -5,6 +5,18 @@ require 'test_helper'
 class TestOptions < Minitest::Test
   API_KEY = 'abcdefg'
 
+  def test_prefab_api_url
+    assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+
+    with_env 'PREFAB_API_URL', 'https://api.prefab.cloud' do
+      assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+    end
+
+    with_env 'PREFAB_API_URL', 'https://api.prefab.cloud/' do
+      assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+    end
+  end
+
   def test_works_with_named_arguments
     assert_equal API_KEY, Prefab::Options.new(api_key: API_KEY).api_key
   end
