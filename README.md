@@ -1,5 +1,6 @@
 # prefab-cloud-ruby
-Ruby Client for Prefab FeatureFlags, Config as a Service: https://www.prefab.cloud
+
+Ruby Client for Prefab Feature Flags, Dynamic log levels, and Config as a Service: https://www.prefab.cloud
 
 ```ruby
 client = Prefab::Client.new
@@ -20,25 +21,36 @@ See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 
 ## Supports
 
-* [FeatureFlags](https://www.prefab.cloud/documentation/feature_flags) as a Service
-* Millions of individual limits sharing the same policies
-* WebUI for tweaking limits & feature flags
-* Infinite retention for [deduplication workflows](https://www.prefab.cloud/documentation/once_and_only_once)
+* Feature Flags
+* Dynamic log levels
+* Live Config
+* WebUI for tweaking config, log levels, and feature flags
 
 ## Important note about Forking and realtime updates
-Many ruby web servers fork. GRPC does not like to be forked. You should manually start gRPC streaming in the on_worker_boot or after_fork hook of your server. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
+
+Many ruby web servers fork. GRPC does not like to be forked. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
+
+If you're using Puma or Unicorn, you can do the following.
 
 ```ruby
-
 #config/initializers/prefab.rb
 $prefab = Prefab::Client.new
-Rails.logger = $prefab.log
+$prefab.set_rails_loggers
 ```
 
 ```ruby
 #puma.rb
 on_worker_boot do
-  $prefab.config_client.start_streaming
+  $prefab = Prefab::Client.new
+  $prefab.set_rails_loggers
+end
+```
+
+```ruby
+# unicorn.rb
+after_fork do |server, worker|
+  $prefab = Prefab::Client.new(options)
+  $prefab.set_rails_loggers
 end
 ```
 
@@ -76,5 +88,4 @@ REMOTE_BRANCH=main LOCAL_BRANCH=main bundle exec rake release
 
 ## Copyright
 
-Copyright (c) 2023 Jeff Dwyer. See LICENSE.txt for
-further details.
+Copyright (c) 2023 Jeff Dwyer. See LICENSE.txt for further details.
