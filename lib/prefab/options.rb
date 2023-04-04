@@ -71,7 +71,7 @@ module Prefab
       @namespace = namespace
       @log_formatter = log_formatter
       @log_prefix = log_prefix
-      @prefab_api_url = prefab_api_url
+      @prefab_api_url = remove_trailing_slash(prefab_api_url)
       @prefab_grpc_url = prefab_grpc_url
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec
@@ -102,6 +102,12 @@ module Prefab
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
     def url_for_api_cdn
       ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, '-')}.global.ssl.fastly.net"
+    end
+
+    private
+
+    def remove_trailing_slash(url)
+      url.end_with?('/') ? url[0..-2] : url
     end
   end
 end
