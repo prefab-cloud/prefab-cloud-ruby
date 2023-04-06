@@ -2,7 +2,7 @@
 
 module Prefab
   class ConfigValueUnwrapper
-    def self.unwrap(config_value, config_key, properties)
+    def self.unwrap(config_value, config_key, context)
       return nil unless config_value
 
       case config_value.type
@@ -11,10 +11,11 @@ module Prefab
       when :string_list
         config_value.string_list.values
       when :weighted_values
-        lookup_key = properties[Prefab::CriteriaEvaluator::LOOKUP_KEY]
+        key = "#{context[config_value.weighted_values.hash_by_property_name]}-#{config_key}"
+
         weights = config_value.weighted_values.weighted_values
-        value = Prefab::WeightedValueResolver.new(weights, config_key, lookup_key).resolve
-        unwrap(value.value, config_key, properties)
+        value = Prefab::WeightedValueResolver.new(weights, config_key, key).resolve
+        unwrap(value.value, config_key, context)
       else
         raise "Unknown type: #{config_value.type}"
       end

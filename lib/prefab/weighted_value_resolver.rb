@@ -4,14 +4,14 @@ module Prefab
   class WeightedValueResolver
     MAX_32_FLOAT = 4_294_967_294.0
 
-    def initialize(weights, config_key, lookup_key)
+    def initialize(weights, config_key, key)
       @weights = weights
       @config_key = config_key
-      @lookup_key = lookup_key
+      @key = key
     end
 
     def resolve
-      percent = @lookup_key ? user_percent : rand
+      percent = @key ? user_percent : rand
 
       index = variant_index(percent)
 
@@ -19,7 +19,7 @@ module Prefab
     end
 
     def user_percent
-      to_hash = "#{@config_key}#{@lookup_key}"
+      to_hash = "#{@config_key}#{@key}"
       int_value = Murmur3.murmur3_32(to_hash)
       int_value / MAX_32_FLOAT
     end

@@ -192,7 +192,7 @@ class TestLogger < Minitest::Test
                 Prefab::Criterion.new(
                   operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                  property_name: 'email_suffix'
+                  property_name: 'user.email_suffix'
                 )
               ],
               value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
@@ -209,7 +209,7 @@ class TestLogger < Minitest::Test
                 Prefab::Criterion.new(
                   operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                  property_name: 'email_suffix'
+                  property_name: 'user.email_suffix'
                 )
               ],
               value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
@@ -228,7 +228,7 @@ class TestLogger < Minitest::Test
     inject_project_env_id(prefab, PROJECT_ENV_ID)
 
     # without any context, the level should be the default for the env (info)
-    prefab.with_log_context(nil, {}) do
+    prefab.with_context({}) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -242,7 +242,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -256,7 +256,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test debug'
 
@@ -302,7 +302,7 @@ class TestLogger < Minitest::Test
                 Prefab::Criterion.new(
                   operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
-                  property_name: 'email_suffix'
+                  property_name: 'user.email_suffix'
                 )
               ],
               value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
@@ -311,9 +311,9 @@ class TestLogger < Minitest::Test
             Prefab::ConditionalValue.new(
               criteria: [
                 Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::LOOKUP_KEY_IN,
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[user:4567]),
-                  property_name: Prefab::CriteriaEvaluator::LOOKUP_KEY
+                  property_name: 'user.tracking_id'
                 )
               ],
               value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
@@ -333,7 +333,7 @@ class TestLogger < Minitest::Test
     inject_project_env_id(prefab, PROJECT_ENV_ID)
 
     # without any context, the level should be the default for the env (info)
-    prefab.with_log_context(nil, {}) do
+    prefab.with_context({}) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -347,7 +347,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_log_context('user:1234', email_suffix: 'yahoo.com') do
+    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -361,7 +361,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_log_context('user:1234', email_suffix: 'hotmail.com') do
+    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 
@@ -375,7 +375,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct lookup key
-    prefab.with_log_context('user:4567', email_suffix: 'example.com') do
+    prefab.with_context(user: { tracking_id: 'user:4567' }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 

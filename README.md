@@ -5,18 +5,20 @@ Ruby Client for Prefab Feature Flags, Dynamic log levels, and Config as a Servic
 ```ruby
 client = Prefab::Client.new
 
-lookup_key = "user-123"
-identity_attributes = {
-  team_id: 432,
-  user_id: 123,
-  subscription_level: 'pro',
-  email: "alice@example.com"
+context = {
+  user: {
+    team_id: 432,
+    id: 123,
+    subscription_level: 'pro',
+    email: "alice@example.com"
+  }
 }
 
-result = client.enabled? "my-first-feature-flag", lookup_key, identity_attributes
+result = client.enabled? "my-first-feature-flag", context
 
-puts "my-first-feature-flag is: #{result} for #{lookup_key}"
+puts "my-first-feature-flag is: #{result}"
 ```
+
 See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 
 ## Supports

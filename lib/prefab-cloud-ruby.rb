@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+module Prefab
+  NO_DEFAULT_PROVIDED = :no_default_provided
+end
+
 require 'concurrent/atomics'
 require 'concurrent'
 require 'faraday'
@@ -23,6 +27,7 @@ require 'prefab/local_config_parser'
 require 'prefab/yaml_config_parser'
 require 'prefab/config_resolver'
 require 'prefab/http_connection'
+require 'prefab/context'
 require 'prefab/client'
 require 'prefab/config_client'
 require 'prefab/feature_flag_client'

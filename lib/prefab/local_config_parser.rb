@@ -60,14 +60,7 @@ module Prefab
           values: [
             Prefab::ConditionalValue.new(
               criteria: [criterion].compact,
-              value: Prefab::ConfigValue.new(
-                weighted_values: Prefab::WeightedValues.new(weighted_values: [
-                                                              Prefab::WeightedValue.new(
-                                                                weight: 1000,
-                                                                value: variant
-                                                              )
-                                                            ])
-              )
+              value: variant
             )
           ]
         )
@@ -88,16 +81,8 @@ module Prefab
 
       def parse_criterion(criterion)
         Prefab::Criterion.new(operator: criterion['operator'],
-                              property_name: parse_property(criterion),
+                              property_name: criterion['property'],
                               value_to_match: parse_value_to_match(criterion['values']))
-      end
-
-      def parse_property(criterion)
-        if criterion['operator'] == 'LOOKUP_KEY_IN'
-          Prefab::CriteriaEvaluator::LOOKUP_KEY
-        else
-          criterion['property']
-        end
       end
 
       def parse_value_to_match(values)

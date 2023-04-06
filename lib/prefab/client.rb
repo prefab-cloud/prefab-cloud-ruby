@@ -6,16 +6,8 @@ module Prefab
   class Client
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
-    NO_DEFAULT_PROVIDED = :no_default_provided
 
-    attr_reader :shared_cache
-    attr_reader :stats
-    attr_reader :namespace
-    attr_reader :interceptor
-    attr_reader :api_key
-    attr_reader :prefab_api_url
-    attr_reader :options
-    attr_reader :instance_hash
+    attr_reader :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
 
     def initialize(options = Prefab::Options.new)
       @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
@@ -34,18 +26,23 @@ module Prefab
         @prefab_api_url = @options.prefab_api_url
         log_internal ::Logger::INFO, "Prefab Connecting to: #{@prefab_api_url}"
       end
+
+      context.clear
       # start config client
       config_client
     end
 
-    def with_log_context(lookup_key, properties)
-      Thread.current[:prefab_log_lookup_key] = lookup_key
-      Thread.current[:prefab_log_properties] = properties
+    def with_log_context(_lookup_key, properties, &block)
+      warn '[DEPRECATION] `$prefab.with_log_context` is deprecated.  Please use `with_context` instead.'
+      with_context(properties, &block)
+    end
 
-      yield
-    ensure
-      Thread.current[:prefab_log_lookup_key] = nil
-      Thread.current[:prefab_log_properties] = {}
+    def with_context(properties, &block)
+      Prefab::Context.with_context(properties, &block)
+    end
+
+    def context
+      Prefab::Context.current
     end
 
     def config_client(timeout: 5.0)
@@ -82,20 +79,28 @@ module Prefab
       log.log_internal msg, path, nil, level
     end
 
-    def enabled?(feature_name, lookup_key = nil, attributes = {})
-      feature_flag_client.feature_is_on_for?(feature_name, lookup_key, attributes: attributes)
+    def enabled?(feature_name, lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
+      _, properties = handle_positional_arguments(lookup_key, properties, :enabled?)
+
+      feature_flag_client.feature_is_on_for?(feature_name, properties)
     end
 
-    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = {}, ff_default = nil)
+    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED, ff_default = nil)
+      default, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
+
       if is_ff?(key)
-        feature_flag_client.get(key, default_or_lookup_key, properties, default: ff_default)
+        feature_flag_client.get(key, properties, default: ff_default)
       else
-        config_client.get(key, default_or_lookup_key, properties)
+        config_client.get(key, default, properties)
       end
     end
 
     def post(path, body)
       Prefab::HttpConnection.new(@options.prefab_api_url, @api_key).post(path, body)
+    end
+
+    def inspect
+      "#<Prefab::Client:#{object_id} namespace=#{namespace}>"
     end
 
     private
@@ -104,6 +109,27 @@ module Prefab
       raw = config_client.send(:raw, key)
 
       raw && raw.allowable_values.any?
+    end
+
+    # The goal here is to ease transition from the old API to the new one. The
+    # old API had a lookup_key parameter that is deprecated. This method
+    # handles the transition by checking if the first parameter is a string and
+    # if so, it is assumed to be the lookup_key and a deprecation warning is
+    # issued and we know the second argument is the properties. If the first
+    # parameter is a hash, you're on the new API and no further action is
+    # required.
+    def handle_positional_arguments(lookup_key, properties, method)
+      # handle JIT context
+      if lookup_key.is_a?(Hash) && properties == NO_DEFAULT_PROVIDED
+        properties = lookup_key
+        lookup_key = nil
+      end
+
+      if lookup_key.is_a?(String)
+        warn "[DEPRECATION] `$prefab.#{method}`'s lookup_key argument is deprecated. Please use remove it or use context instead."
+      end
+
+      [lookup_key, properties]
     end
   end
 end

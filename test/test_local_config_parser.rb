@@ -34,14 +34,13 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values.size
 
     value_row = config.rows[0].values[0]
-    assert_equal Prefab::WeightedValues, value_row.value.weighted_values.class
     assert_equal 'all-features', Prefab::ConfigValueUnwrapper.unwrap(value_row.value, key, {})
   end
 
-  def test_flag_in_lookup_key
-    key = :flag_in_lookup_key
-    value = stringify_keys({ "feature_flag": 'true', value: true,
-                             criterion: { operator: 'LOOKUP_KEY_IN', values: %w[abc123 xyz987] } })
+  def test_flag_in_user_key
+    key = :flag_in_user_key
+    value = stringify_keys({ 'feature_flag': 'true', value: true,
+                             criterion: { operator: 'PROP_IS_ONE_OF', property: 'user.key', values: %w[abc123 xyz987] } })
     parsed = Prefab::LocalConfigParser.parse(key, value, {}, FILE_NAME)[key]
     config = parsed[:config]
 
@@ -54,11 +53,10 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values[0].criteria.size
 
     value_row = config.rows[0].values[0]
-    assert_equal Prefab::WeightedValues, value_row.value.weighted_values.class
     assert_equal true, Prefab::ConfigValueUnwrapper.unwrap(value_row.value, key, {})
 
-    assert_equal Prefab::CriteriaEvaluator::LOOKUP_KEY, value_row.criteria[0].property_name
-    assert_equal :LOOKUP_KEY_IN, value_row.criteria[0].operator
+    assert_equal 'user.key', value_row.criteria[0].property_name
+    assert_equal :PROP_IS_ONE_OF, value_row.criteria[0].operator
     assert_equal %w[abc123 xyz987], value_row.criteria[0].value_to_match.string_list.values
   end
 
