@@ -14,9 +14,13 @@ module Prefab
 
     def initialize(client:, max_paths:, sync_interval:)
       @max_paths = max_paths
-      @sync_interval = sync_interval
       @client = client
       @start_at = now
+      @sync_interval = if sync_interval.is_a?(Numeric)
+                         proc { sync_interval }
+                       else
+                         sync_interval || ExponentialBackoff.new(initial_delay: 8, max_delay: 60 * 10)
+                       end
 
       @pool = Concurrent::ThreadPoolExecutor.new(
         fallback_policy: :discard,
@@ -78,10 +82,10 @@ module Prefab
 
     def start_periodic_sync
       Thread.new do
-        log_internal "Initialized log path collector instance_hash=#{@client.instance_hash} max_paths=#{@max_paths} sync_interval=#{@sync_interval}"
+        log_internal "Initialized log path collector instance_hash=#{@client.instance_hash} max_paths=#{@max_paths}"
 
         loop do
-          sleep @sync_interval
+          sleep @sync_interval.call
           sync
         end
       end

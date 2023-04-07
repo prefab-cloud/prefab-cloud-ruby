@@ -39,7 +39,6 @@ module Prefab
     end
 
     DEFAULT_MAX_PATHS = 1_000
-    DEFAULT_SYNC_INTERVAL = 60
 
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
@@ -62,7 +61,7 @@ module Prefab
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
       collect_logs: true,
       collect_max_paths: DEFAULT_MAX_PATHS,
-      collect_sync_interval: DEFAULT_SYNC_INTERVAL
+      collect_sync_interval: nil
     )
       @api_key = api_key
       @logdev = logdev
