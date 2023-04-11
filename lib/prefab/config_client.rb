@@ -26,8 +26,6 @@ module Prefab
       @base_client.log_internal ::Logger::DEBUG, 'Initialize ConfigClient: AcquiredWriteLock'
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
-      @cancellable_interceptor = Prefab::CancellableInterceptor.new(@base_client)
-
       if @options.local_only?
         finish_init!(:local_only)
       else
@@ -56,11 +54,6 @@ module Prefab
       @config_loader.set(config_delta, :upsert)
       @config_loader.rm(previous_key) if previous_key&.present?
       @config_resolver.update
-    end
-
-    def reset
-      @base_client.reset!
-      @_stub = nil
     end
 
     def to_s
@@ -108,52 +101,26 @@ module Prefab
       @config_resolver.get(key, lookup_key, properties)
     end
 
-    def stub
-      @_stub = Prefab::ConfigService::Stub.new(nil,
-                                               nil,
-                                               channel_override: @base_client.channel,
-                                               interceptors: [@base_client.interceptor, @cancellable_interceptor])
-    end
-
     def load_checkpoint
       success = load_checkpoint_api_cdn
 
       return if success
 
-      @base_client.log_internal ::Logger::INFO, 'LoadCheckpoint: Fallback to GRPC API'
-
-      success = load_checkpoint_from_grpc_api
+      success = load_checkpoint_api
 
       return if success
 
       @base_client.log_internal ::Logger::WARN, 'No success loading checkpoints'
     end
 
-    def load_checkpoint_from_grpc_api
-      config_req = Prefab::ConfigServicePointer.new(start_at_id: @config_loader.highwater_mark)
-
-      resp = stub.get_all_config(config_req)
-      load_configs(resp, :remote_api_grpc)
-      true
-    rescue GRPC::Unauthenticated
-      @base_client.log_internal ::Logger::WARN, 'Unauthenticated'
-    rescue StandardError => e
-      @base_client.log_internal ::Logger::WARN, "Unexpected grpc_api problem loading checkpoint #{e}"
-      false
+    def load_checkpoint_api_cdn
+      conn = Prefab::HttpConnection.new("#{@options.url_for_api_cdn}/api/v1/configs/0", @base_client.api_key)
+      load_url(conn, :remote_cdn_api)
     end
 
-    def load_checkpoint_api_cdn
-      url = "#{@options.url_for_api_cdn}/api/v1/configs/0"
-      conn = if Faraday::VERSION[0].to_i >= 2
-               Faraday.new(url) do |conn|
-                 conn.request :authorization, :basic, AUTH_USER, @base_client.api_key
-               end
-             else
-               Faraday.new(url) do |conn|
-                 conn.request :basic_auth, AUTH_USER, @base_client.api_key
-               end
-             end
-      load_url(conn, :remote_cdn_api)
+    def load_checkpoint_api
+      conn = Prefab::HttpConnection.new("#{@options.prefab_api_url}/api/v1/configs/0", @base_client.api_key)
+      load_url(conn, :remote_api)
     end
 
     def load_url(conn, source)

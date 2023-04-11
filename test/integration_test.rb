@@ -91,8 +91,7 @@ class IntegrationTest
       prefab_envs: ['unit_tests'],
       prefab_datasources: Prefab::Options::DATASOURCES::ALL,
       api_key: ENV['PREFAB_INTEGRATION_TEST_API_KEY'],
-      prefab_api_url: 'https://api.staging-prefab.cloud',
-      prefab_grpc_url: 'grpc.staging-prefab.cloud:443'
+      prefab_api_url: 'https://api.staging-prefab.cloud'
     }.merge(@client_overrides))
   end
 end

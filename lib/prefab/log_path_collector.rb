@@ -76,7 +76,7 @@ module Prefab
           namespace: @client.namespace
         )
 
-        @client.request Prefab::LoggerReportingService, :send, req_options: {}, params: loggers
+        @client.post('/api/v1/known-loggers', loggers)
       end
     end
 

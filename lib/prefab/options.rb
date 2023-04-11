@@ -10,7 +10,6 @@ module Prefab
     attr_reader :shared_cache
     attr_reader :namespace
     attr_reader :prefab_api_url
-    attr_reader :prefab_grpc_url
     attr_reader :on_no_default
     attr_reader :initialization_timeout_sec
     attr_reader :on_init_failure
@@ -49,7 +48,6 @@ module Prefab
       log_formatter: DEFAULT_LOG_FORMATTER,
       log_prefix: nil,
       prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
-      prefab_grpc_url: ENV['PREFAB_GRPC_URL'] || 'grpc.prefab.cloud:443',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, # options :unlock_and_continue, :lock_and_keep_trying, :raise
@@ -71,7 +69,6 @@ module Prefab
       @log_formatter = log_formatter
       @log_prefix = log_prefix
       @prefab_api_url = remove_trailing_slash(prefab_api_url)
-      @prefab_grpc_url = prefab_grpc_url
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure

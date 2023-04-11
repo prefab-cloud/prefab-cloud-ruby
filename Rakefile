@@ -17,7 +17,7 @@ Juwelier::Tasks.new do |gem|
   gem.homepage = 'http://github.com/prefab-cloud/prefab-cloud-ruby'
   gem.license = 'MIT'
   gem.summary = %(Prefab Ruby Infrastructure)
-  gem.description = %(RateLimits & Config as a service)
+  gem.description = %(Feature Flags, Live Config, and Dynamic Log Levels as a service)
   gem.email = 'jdwyer@prefab.cloud'
   gem.authors = ['Jeff Dwyer']
 
