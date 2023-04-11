@@ -56,10 +56,6 @@ module Prefab
       @config_resolver.update
     end
 
-    def reset
-      @base_client.reset!
-    end
-
     def to_s
       @config_resolver.to_s
     end
