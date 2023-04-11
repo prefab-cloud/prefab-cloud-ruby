@@ -28,9 +28,7 @@ See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 
 ## Important note about Forking and realtime updates
 
-Many ruby web servers fork. GRPC does not like to be forked. See some details on GRPC and forking: https://github.com/grpc/grpc/issues/7951#issuecomment-335998583
-
-If you're using Puma or Unicorn, you can do the following.
+Many ruby web servers fork. When the process is forked, the current realtime update stream is disconnected. If you're using Puma or Unicorn, do the following.
 
 ```ruby
 #config/initializers/prefab.rb

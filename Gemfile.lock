@@ -33,10 +33,6 @@ GEM
     google-protobuf (3.22.2)
     googleapis-common-protos-types (1.5.0)
       google-protobuf (~> 3.14)
-    grpc (1.53.0)
-      google-protobuf (~> 3.21)
-      googleapis-common-protos-types (~> 1.0)
-    grpc-tools (1.43.1)
     hashie (3.6.0)
     highline (2.0.3)
     http (5.0.1)
@@ -124,8 +120,6 @@ DEPENDENCIES
   faraday
   google-protobuf
   googleapis-common-protos-types
-  grpc
-  grpc-tools
   juwelier (~> 2.4.9)
   ld-eventsource
   minitest
