@@ -505,6 +505,43 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DEFAULT_VALUE, evaluator.evaluate({ email: 'example@gmail.com', admin: true, deleted: true }).string
   end
 
+  def test_stringifying_property_values_and_names
+    config = Prefab::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        Prefab::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(%w[1 true hello]),
+                  property_name: 'team_name'
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
+                                                      base_client: nil)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate({}).string
+    assert_equal DEFAULT_VALUE, evaluator.evaluate({ team_name: 'prefab.cloud' }).string
+
+    [1, true, :hello].each do |value|
+      [:team_name, 'team_name'].each do |property_name|
+        assert_equal DESIRED_VALUE, evaluator.evaluate({ property_name => value }).string
+        assert_equal DESIRED_VALUE, evaluator.evaluate({ property_name => value.to_s }).string
+      end
+    end
+  end
+
   private
 
   def string_list(values)

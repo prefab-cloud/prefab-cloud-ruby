@@ -87,7 +87,9 @@ module Prefab
 
       case criterion_value_or_values
       when Google::Protobuf::RepeatedField
-        criterion_value_or_values.include?(value_from_properties)
+        # we to_s the value from properties for comparison because the
+        # criterion_value_or_values is a list of strings
+        criterion_value_or_values.include?(value_from_properties.to_s)
       else
         criterion_value_or_values == value_from_properties
       end
