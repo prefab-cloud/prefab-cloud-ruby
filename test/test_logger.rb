@@ -387,6 +387,21 @@ class TestLogger < Minitest::Test
     end
   end
 
+  def test_logging_with_a_block
+    prefab, io = captured_logger
+    message = 'MY MESSAGE'
+
+    prefab.log.error do
+      message
+    end
+
+    prefab.log.info do
+      raise 'THIS WILL NEVER BE EVALUATED'
+    end
+
+    assert_logged io, 'ERROR', 'test.test_logger.test_logging_with_a_block', ' ' + message
+  end
+
   private
 
   def assert_logged(logged_io, level, path, message)
