@@ -1,18 +1,14 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
 
-gem 'concurrent-ruby', '~> 1.0', '>= 1.0.5'
-gem 'faraday'
-gem 'googleapis-common-protos-types', platforms: :ruby
-gem 'google-protobuf', platforms: :ruby
-gem 'ld-eventsource'
-gem 'uuid'
+source "https://rubygems.org"
+
+# Specify your gem's dependencies in prefab-cloud-ruby.gemspec
+gemspec
 
 group :development do
-  gem 'benchmark-ips'
-  gem 'bundler'
-  gem 'juwelier', '~> 2.4.9'
-  gem 'rdoc'
-  gem 'simplecov', '>= 0'
+  gem "benchmark-ips"
+  gem "bundler"
+  gem "rdoc"
 end
 
 group :test do
@@ -20,4 +16,5 @@ group :test do
   gem 'minitest-focus'
   gem 'minitest-reporters'
   gem 'timecop'
+  gem "simplecov"
 end

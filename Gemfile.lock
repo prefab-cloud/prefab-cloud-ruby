@@ -1,112 +1,81 @@
+PATH
+  remote: .
+  specs:
+    prefab-cloud-ruby (0.23.6)
+      concurrent-ruby (~> 1.0, >= 1.0.5)
+      faraday
+      google-protobuf
+      googleapis-common-protos-types
+      ld-eventsource
+      uuid
+
 GEM
   remote: https://rubygems.org/
   specs:
-    addressable (2.8.0)
-      public_suffix (>= 2.0.2, < 5.0)
+    addressable (2.8.4)
+      public_suffix (>= 2.0.2, < 6.0)
     ansi (1.5.0)
-    benchmark-ips (2.10.0)
+    benchmark-ips (2.12.0)
     builder (3.2.4)
-    concurrent-ruby (1.1.10)
-    descendants_tracker (0.0.4)
-      thread_safe (~> 0.3, >= 0.3.1)
-    docile (1.3.5)
+    concurrent-ruby (1.2.2)
+    docile (1.4.0)
     domain_name (0.5.20190701)
       unf (>= 0.0.5, < 1.0.0)
-    faraday (1.3.0)
-      faraday-net_http (~> 1.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
-    faraday-net_http (1.0.1)
+    faraday (2.7.4)
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
     ffi (1.15.5)
     ffi-compiler (1.0.1)
       ffi (>= 1.0.0)
       rake
-    git (1.13.0)
-      addressable (~> 2.8)
-      rchardet (~> 1.8)
-    github_api (0.19.0)
-      addressable (~> 2.4)
-      descendants_tracker (~> 0.0.4)
-      faraday (>= 0.8, < 2)
-      hashie (~> 3.5, >= 3.5.2)
-      oauth2 (~> 1.0)
-    google-protobuf (3.22.2)
+    google-protobuf (3.22.3)
     googleapis-common-protos-types (1.5.0)
       google-protobuf (~> 3.14)
-    hashie (3.6.0)
-    highline (2.0.3)
-    http (5.0.1)
-      addressable (~> 2.3)
+    http (5.1.1)
+      addressable (~> 2.8)
       http-cookie (~> 1.0)
       http-form_data (~> 2.2)
-      llhttp-ffi (~> 0.3.0)
-    http-cookie (1.0.4)
+      llhttp-ffi (~> 0.4.0)
+    http-cookie (1.0.5)
       domain_name (~> 0.5)
     http-form_data (2.3.0)
-    juwelier (2.4.9)
-      builder
-      bundler
-      git
-      github_api
-      highline
-      kamelcase (~> 0)
-      nokogiri
-      psych
-      rake
-      rdoc
-      semver2
-    jwt (2.2.2)
-    kamelcase (0.0.2)
-      semver2 (~> 3)
-    ld-eventsource (2.2.0)
+    ld-eventsource (2.2.2)
       concurrent-ruby (~> 1.0)
       http (>= 4.4.1, < 6.0.0)
-    llhttp-ffi (0.3.1)
+    llhttp-ffi (0.4.0)
       ffi-compiler (~> 1.0)
       rake (~> 13.0)
     macaddr (1.7.2)
       systemu (~> 2.6.5)
-    mini_portile2 (2.8.0)
-    minitest (5.16.2)
+    minitest (5.18.0)
     minitest-focus (1.3.1)
       minitest (>= 4, < 6)
-    minitest-reporters (1.5.0)
+    minitest-reporters (1.6.0)
       ansi
       builder
       minitest (>= 5.0)
       ruby-progressbar
-    multi_json (1.15.0)
-    multi_xml (0.6.0)
-    multipart-post (2.1.1)
-    nokogiri (1.13.10)
-      mini_portile2 (~> 2.8.0)
-      racc (~> 1.4)
-    oauth2 (1.4.11)
-      faraday (>= 0.17.3, < 3.0)
-      jwt (>= 1.0, < 3.0)
-      multi_json (~> 1.3)
-      multi_xml (~> 0.5)
-      rack (>= 1.2, < 4)
-    psych (3.3.1)
-    public_suffix (4.0.6)
-    racc (1.6.1)
-    rack (3.0.6.1)
+    psych (5.1.0)
+      stringio
+    public_suffix (5.0.1)
     rake (13.0.6)
-    rchardet (1.8.0)
-    rdoc (6.3.3)
-    ruby-progressbar (1.11.0)
-    ruby2_keywords (0.0.4)
-    semver2 (3.4.2)
-    simplecov (0.18.5)
+    rdoc (6.5.0)
+      psych (>= 4.0.0)
+    ruby-progressbar (1.13.0)
+    ruby2_keywords (0.0.5)
+    simplecov (0.22.0)
       docile (~> 1.1)
       simplecov-html (~> 0.11)
+      simplecov_json_formatter (~> 0.1)
     simplecov-html (0.12.3)
+    simplecov_json_formatter (0.1.4)
+    stringio (3.0.6)
     systemu (2.6.5)
-    thread_safe (0.3.6)
-    timecop (0.9.4)
+    timecop (0.9.6)
     unf (0.1.4)
       unf_ext
-    unf_ext (0.0.8)
+    unf_ext (0.0.8.2)
     uuid (2.3.9)
       macaddr (~> 1.0)
 
@@ -116,19 +85,13 @@ PLATFORMS
 DEPENDENCIES
   benchmark-ips
   bundler
-  concurrent-ruby (~> 1.0, >= 1.0.5)
-  faraday
-  google-protobuf
-  googleapis-common-protos-types
-  juwelier (~> 2.4.9)
-  ld-eventsource
   minitest
   minitest-focus
   minitest-reporters
+  prefab-cloud-ruby!
   rdoc
   simplecov
   timecop
-  uuid
 
 BUNDLED WITH
    2.3.5
