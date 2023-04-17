@@ -68,7 +68,12 @@ module Prefab
     def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED, properties = {}, lookup_key = nil)
       value = _get(key, lookup_key, properties)
 
-      value ? Prefab::ConfigValueUnwrapper.unwrap(value, key, properties.merge(Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup_key)) : handle_default(key, default)
+      if value
+        lookup = lookup_key == Prefab::Client::NO_DEFAULT_PROVIDED ? nil : lookup_key
+        Prefab::ConfigValueUnwrapper.unwrap(value, key, properties.merge(Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup))
+      else
+        handle_default(key, default)
+      end
     end
 
     private
