@@ -46,10 +46,10 @@ class TestConfigValueUnwrapper < Minitest::Test
 
     # multiple values, evenly distributed
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 1], ['ghi', 1]]))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:123'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:000'))
     assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:203'))
-    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:012'))
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
+    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:888'))
 
     # multiple values, unevenly distributed
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 99], ['ghi', 1]]))
@@ -57,8 +57,8 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:012'))
-    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:396'))
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:367'))
+    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:428'))
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:548'))
   end
 
   private

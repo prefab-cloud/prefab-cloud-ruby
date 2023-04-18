@@ -36,7 +36,7 @@ class TestContext < Minitest::Test
 
   def test_initialize_with_invalid_hash
     assert_raises(ArgumentError) do
-      context = Prefab::Context.new({ foo: 'bar', baz: 'qux' })
+      Prefab::Context.new({ foo: 'bar', baz: 'qux' })
     end
   end
 

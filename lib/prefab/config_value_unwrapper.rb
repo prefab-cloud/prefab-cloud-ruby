@@ -11,10 +11,12 @@ module Prefab
       when :string_list
         config_value.string_list.values
       when :weighted_values
-        key = "#{context[config_value.weighted_values.hash_by_property_name]}-#{config_key}"
+        value = Prefab::WeightedValueResolver.new(
+          config_value.weighted_values.weighted_values,
+          config_key,
+          context[config_value.weighted_values.hash_by_property_name]
+        ).resolve
 
-        weights = config_value.weighted_values.weighted_values
-        value = Prefab::WeightedValueResolver.new(weights, config_key, key).resolve
         unwrap(value.value, config_key, context)
       else
         raise "Unknown type: #{config_value.type}"
