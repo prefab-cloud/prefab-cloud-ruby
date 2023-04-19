@@ -14,8 +14,6 @@ module Prefab
     end
 
     def evaluate(properties)
-      properties = Context.new(properties) if properties.is_a?(Hash)
-
       matching_environment_row_values.each do |conditional_value|
         return conditional_value.value if all_criteria_match?(conditional_value, properties)
       end

@@ -44,7 +44,7 @@ class TestClient < Minitest::Test
     assert_equal false, @client.enabled?('flag_with_a_value')
   end
 
-  def test_ff_enabled_with_tracking_id
+  def test_ff_enabled_with_user_key_match
     assert_equal_context_and_jit(false, :enabled?, 'user_key_match', { user: { key: 'jimmy' } })
     assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'abc123' } })
     assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })

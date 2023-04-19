@@ -9,9 +9,18 @@ class TestConfigResolver < Minitest::Test
   SEGMENT_KEY = 'segment_key'
   CONFIG_KEY = 'config_key'
   DEFAULT_VALUE = 'default_value'
+  DESIRED_VALUE = 'desired_value'
   IN_SEGMENT_VALUE = 'in_segment_value'
   WRONG_ENV_VALUE = 'wrong_env_value'
   NOT_IN_SEGMENT_VALUE = 'not_in_segment_value'
+
+  DEFAULT_ROW = Prefab::ConfigRow.new(
+    values: [
+      Prefab::ConditionalValue.new(
+        value: Prefab::ConfigValue.new(string: DEFAULT_VALUE)
+      )
+    ]
+  )
 
   def test_resolution
     @loader = MockConfigLoader.new
@@ -20,13 +29,7 @@ class TestConfigResolver < Minitest::Test
       'key' => { config: Prefab::Config.new(
         key: 'key',
         rows: [
-          Prefab::ConfigRow.new(
-            values: [
-              Prefab::ConditionalValue.new(
-                value: Prefab::ConfigValue.new(string: 'value_no_env_default')
-              )
-            ]
-          ),
+          DEFAULT_ROW,
           Prefab::ConfigRow.new(
             project_env_id: TEST_ENV_ID,
             values: [
@@ -114,7 +117,7 @@ class TestConfigResolver < Minitest::Test
 
     @loader.stub :calc_config, loaded_values do
       @resolverA = resolver_for_namespace('', @loader, project_env_id: PRODUCTION_ENV_ID)
-      assert_equal_context_and_jit 'value_no_env_default', @resolverA, 'key', {}, :string
+      assert_equal_context_and_jit DEFAULT_VALUE, @resolverA, 'key', {}, :string
 
       ## below here in the test env
       @resolverA = resolver_for_namespace('', @loader)
@@ -132,8 +135,10 @@ class TestConfigResolver < Minitest::Test
       @resolverBX = resolver_for_namespace('projectB.subprojectX', @loader)
       assert_equal_context_and_jit 'valueB2', @resolverBX, 'key2', {}, :string
 
-      @resolverUndefinedSubProject = resolver_for_namespace('projectB.subprojectX.subsubQ', @loader)
-      assert_equal_context_and_jit 'projectB.subprojectX', @resolverUndefinedSubProject, 'key', {}, :string
+      @resolverUndefinedSubProject = resolver_for_namespace('projectB.subprojectX.subsubQ',
+                                                            @loader)
+      assert_equal_context_and_jit 'projectB.subprojectX', @resolverUndefinedSubProject, 'key',
+                                   {}, :string
 
       @resolverBX = resolver_for_namespace('projectC', @loader)
       assert_equal_context_and_jit 'value_none', @resolverBX, 'key', {}, :string
@@ -295,6 +300,94 @@ class TestConfigResolver < Minitest::Test
                                    :string
       assert_equal_context_and_jit NOT_IN_SEGMENT_VALUE, resolver, CONFIG_KEY, { user: { email: 'test@something-else.com' } },
                                    :string
+    end
+  end
+
+  def test_jit_context_merges_with_existing_context
+    config = Prefab::Config.new(
+      key: CONFIG_KEY,
+      rows: [
+        DEFAULT_ROW,
+        Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(%w[pro advanced]),
+                  property_name: 'team.plan'
+                ),
+
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(%w[@example.com]),
+                  property_name: 'user.email'
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    loader = MockConfigLoader.new
+
+    loader.stub :calc_config, { CONFIG_KEY => { config: config } } do
+      options = Prefab::Options.new
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
+      resolver.project_env_id = TEST_ENV_ID
+
+      Prefab::Context.with_context({ user: { email: 'test@example.com' } }) do
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).string
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).string
+        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'pro' } }).string
+      end
+    end
+  end
+
+  def test_jit_can_clobber_existing_context
+    config = Prefab::Config.new(
+      key: CONFIG_KEY,
+      rows: [
+        DEFAULT_ROW,
+        Prefab::ConfigRow.new(
+          project_env_id: TEST_ENV_ID,
+          values: [
+            Prefab::ConditionalValue.new(
+              criteria: [
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: string_list(%w[pro advanced]),
+                  property_name: 'team.plan'
+                ),
+
+                Prefab::Criterion.new(
+                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(%w[@example.com]),
+                  property_name: 'user.email'
+                )
+              ],
+              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    loader = MockConfigLoader.new
+
+    loader.stub :calc_config, { CONFIG_KEY => { config: config } } do
+      options = Prefab::Options.new
+      resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
+      resolver.project_env_id = TEST_ENV_ID
+
+      Prefab::Context.with_context({ user: { email: 'test@hotmail.com' }, team: { plan: 'pro' } }) do
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).string
+        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { user: { email: 'test@example.com' } }).string
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).string
+      end
     end
   end
 

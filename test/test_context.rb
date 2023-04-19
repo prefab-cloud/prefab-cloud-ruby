@@ -57,6 +57,28 @@ class TestContext < Minitest::Test
     assert_equal stringify(EXAMPLE_PROPERTIES), context.to_h
   end
 
+  def test_merge_with_current
+    context = Prefab::Context.new(EXAMPLE_PROPERTIES)
+    Prefab::Context.current = context
+    assert_equal stringify(EXAMPLE_PROPERTIES), context.to_h
+
+    new_context = Prefab::Context.merge_with_current({ user: { key: 'brand-new', other: 'different' },
+                                                       address: { city: 'New York' } })
+    assert_equal stringify({
+                             # Note that the user's `name` from the original
+                             # context is not included. This is because we don't _merge_ the new
+                             # properties if they collide with an existing context name. We _replace_
+                             # them.
+                             user: { key: 'brand-new', other: 'different' },
+                             team: EXAMPLE_PROPERTIES[:team],
+                             address: { city: 'New York' }
+                           }),
+                 new_context.to_h
+
+    # the original/current context is unchanged
+    assert_equal stringify(EXAMPLE_PROPERTIES), Prefab::Context.current.to_h
+  end
+
   def test_with_context
     Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
       context = Prefab::Context.current

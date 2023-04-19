@@ -73,7 +73,7 @@ module Prefab
       elsif properties.is_a?(Context)
         properties
       else
-        Context.new(properties)
+        Context.merge_with_current(properties)
       end
     end
 

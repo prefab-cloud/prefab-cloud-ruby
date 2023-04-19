@@ -48,6 +48,10 @@ module Prefab
       def clear_current
         Thread.current[THREAD_KEY] = nil
       end
+
+      def merge_with_current(new_context_properties = {})
+        new(current.to_h.merge(new_context_properties))
+      end
     end
 
     def initialize(context = {})
