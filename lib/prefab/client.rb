@@ -73,7 +73,7 @@ module Prefab
       Rails.logger = log
       ActionView::Base.logger = log
       ActionController::Base.logger = log
-      ActiveJob::Base.logger = log
+      ActiveJob::Base.logger = log if defined?(ActiveJob)
       ActiveRecord::Base.logger = log
       ActiveStorage.logger = log if defined?(ActiveStorage)
     end
