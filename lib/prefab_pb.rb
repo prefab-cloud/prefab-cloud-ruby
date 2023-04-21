@@ -32,6 +32,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     end
     add_message "prefab.WeightedValues" do
       repeated :weighted_values, :message, 1, "prefab.WeightedValue"
+      proto3_optional :hash_by_property_name, :string, 2
     end
     add_message "prefab.Configs" do
       repeated :configs, :message, 1, "prefab.Config"
@@ -59,6 +60,42 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     add_message "prefab.ConditionalValue" do
       repeated :criteria, :message, 1, "prefab.Criterion"
       optional :value, :message, 2, "prefab.ConfigValue"
+    end
+    add_message "prefab.Criterion" do
+      optional :property_name, :string, 1
+      optional :operator, :enum, 2, "prefab.Criterion.CriterionOperator"
+      optional :value_to_match, :message, 3, "prefab.ConfigValue"
+    end
+    add_enum "prefab.Criterion.CriterionOperator" do
+      value :NOT_SET, 0
+      value :LOOKUP_KEY_IN, 1
+      value :LOOKUP_KEY_NOT_IN, 2
+      value :IN_SEG, 3
+      value :NOT_IN_SEG, 4
+      value :ALWAYS_TRUE, 5
+      value :PROP_IS_ONE_OF, 6
+      value :PROP_IS_NOT_ONE_OF, 7
+      value :PROP_ENDS_WITH_ONE_OF, 8
+      value :PROP_DOES_NOT_END_WITH_ONE_OF, 9
+      value :HIERARCHICAL_MATCH, 10
+    end
+    add_message "prefab.Loggers" do
+      repeated :loggers, :message, 1, "prefab.Logger"
+      optional :start_at, :int64, 2
+      optional :end_at, :int64, 3
+      optional :instance_hash, :string, 4
+      proto3_optional :namespace, :string, 5
+    end
+    add_message "prefab.Logger" do
+      optional :logger_name, :string, 1
+      proto3_optional :traces, :int64, 2
+      proto3_optional :debugs, :int64, 3
+      proto3_optional :infos, :int64, 4
+      proto3_optional :warns, :int64, 5
+      proto3_optional :errors, :int64, 6
+      proto3_optional :fatals, :int64, 7
+    end
+    add_message "prefab.LoggerReportResponse" do
     end
     add_message "prefab.LimitResponse" do
       optional :passed, :bool, 1
@@ -94,24 +131,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :NOT_SET, 0
       value :MINIMUM, 1
       value :MAXIMUM, 2
-    end
-    add_message "prefab.Criterion" do
-      optional :property_name, :string, 1
-      optional :operator, :enum, 2, "prefab.Criterion.CriterionOperator"
-      optional :value_to_match, :message, 3, "prefab.ConfigValue"
-    end
-    add_enum "prefab.Criterion.CriterionOperator" do
-      value :NOT_SET, 0
-      value :LOOKUP_KEY_IN, 1
-      value :LOOKUP_KEY_NOT_IN, 2
-      value :IN_SEG, 3
-      value :NOT_IN_SEG, 4
-      value :ALWAYS_TRUE, 5
-      value :PROP_IS_ONE_OF, 6
-      value :PROP_IS_NOT_ONE_OF, 7
-      value :PROP_ENDS_WITH_ONE_OF, 8
-      value :PROP_DOES_NOT_END_WITH_ONE_OF, 9
-      value :HIERARCHICAL_MATCH, 10
     end
     add_message "prefab.Identity" do
       proto3_optional :lookup, :string, 1
@@ -181,24 +200,6 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       optional :sequence_name, :string, 3
       optional :size, :int64, 4
     end
-    add_message "prefab.Loggers" do
-      repeated :loggers, :message, 1, "prefab.Logger"
-      optional :start_at, :int64, 2
-      optional :end_at, :int64, 3
-      optional :instance_hash, :string, 4
-      proto3_optional :namespace, :string, 5
-    end
-    add_message "prefab.Logger" do
-      optional :logger_name, :string, 1
-      proto3_optional :traces, :int64, 2
-      proto3_optional :debugs, :int64, 3
-      proto3_optional :infos, :int64, 4
-      proto3_optional :warns, :int64, 5
-      proto3_optional :errors, :int64, 6
-      proto3_optional :fatals, :int64, 7
-    end
-    add_message "prefab.LoggerReportResponse" do
-    end
     add_enum "prefab.ConfigType" do
       value :NOT_SET_CONFIG_TYPE, 0
       value :CONFIG, 1
@@ -236,12 +237,15 @@ module Prefab
   ChangedBy = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ChangedBy").msgclass
   ConfigRow = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigRow").msgclass
   ConditionalValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConditionalValue").msgclass
+  Criterion = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criterion").msgclass
+  Criterion::CriterionOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criterion.CriterionOperator").enummodule
+  Loggers = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Loggers").msgclass
+  Logger = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Logger").msgclass
+  LoggerReportResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LoggerReportResponse").msgclass
   LimitResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse").msgclass
   LimitResponse::LimitPolicyNames = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
   LimitRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
   LimitRequest::LimitCombiner = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest.LimitCombiner").enummodule
-  Criterion = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criterion").msgclass
-  Criterion::CriterionOperator = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Criterion.CriterionOperator").enummodule
   Identity = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Identity").msgclass
   ClientConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ClientConfigValue").msgclass
   ConfigEvaluations = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigEvaluations").msgclass
@@ -254,9 +258,6 @@ module Prefab
   CreationResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.CreationResponse").msgclass
   IdBlock = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlock").msgclass
   IdBlockRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IdBlockRequest").msgclass
-  Loggers = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Loggers").msgclass
-  Logger = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Logger").msgclass
-  LoggerReportResponse = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LoggerReportResponse").msgclass
   ConfigType = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigType").enummodule
   LogLevel = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LogLevel").enummodule
   OnFailure = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.OnFailure").enummodule
