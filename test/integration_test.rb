@@ -1,18 +1,14 @@
 # frozen_string_literal: true
 
 class IntegrationTest
-  attr_reader :func
-  attr_reader :input
-  attr_reader :expected
-  attr_reader :test_client
+  attr_reader :func, :input, :expected, :test_client
 
   def initialize(test_data)
     @client_overrides = parse_client_overrides(test_data['client_overrides'])
     @func = parse_function(test_data['function'])
     @input = parse_input(test_data['input'])
     @expected = parse_expected(test_data['expected'])
-    test_client = :"#{test_data['client']}"
-    @test_client = base_client.send(test_client)
+    @test_client = base_client
   end
 
   def test_type
@@ -40,7 +36,7 @@ class IntegrationTest
   def parse_function(function)
     case function
     when 'get_or_raise' then :get
-    when 'enabled' then :feature_is_on_for?
+    when 'enabled' then :enabled?
     else :"#{function}"
     end
   end
@@ -62,7 +58,7 @@ class IntegrationTest
   end
 
   def parse_ff_input(input)
-    [input['flag'], input['lookup_key'], input['properties'] || {}]
+    [input['flag'], input['context']]
   end
 
   def parse_expected(expected)

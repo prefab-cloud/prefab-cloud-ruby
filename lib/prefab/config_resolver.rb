@@ -7,7 +7,6 @@ module Prefab
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
-      @additional_properties = { Prefab::CriteriaEvaluator::NAMESPACE_KEY => base_client.options.namespace }
       @config_loader = config_loader
       @project_env_id = 0 # we don't know this yet, it is set from the API results
       @base_client = base_client
@@ -44,21 +43,22 @@ module Prefab
       via_key ? via_key[:config] : nil
     end
 
-    def get(key, lookup_key, properties = {})
+    def get(key, properties = NO_DEFAULT_PROVIDED)
       @lock.with_read_lock do
         raw_config = raw(key)
 
         return nil unless raw_config
 
-        evaluate(raw(key), lookup_key, properties)
+        evaluate(raw(key), properties)
       end
     end
 
-    def evaluate(config, lookup_key, properties = {})
-      props = properties.merge(@additional_properties).merge(Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup_key)
-
+    def evaluate(config, properties = NO_DEFAULT_PROVIDED)
       Prefab::CriteriaEvaluator.new(config,
-                                    project_env_id: @project_env_id, resolver: self, base_client: @base_client).evaluate(props)
+                                    project_env_id: @project_env_id,
+                                    resolver: self,
+                                    namespace: @base_client.options.namespace,
+                                    base_client: @base_client).evaluate(context(properties))
     end
 
     def update
@@ -66,6 +66,16 @@ module Prefab
     end
 
     private
+
+    def context(properties)
+      if properties == NO_DEFAULT_PROVIDED
+        Context.current
+      elsif properties.is_a?(Context)
+        properties
+      else
+        Context.merge_with_current(properties)
+      end
+    end
 
     def make_local
       @lock.with_write_lock do

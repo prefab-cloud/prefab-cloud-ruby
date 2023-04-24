@@ -7,27 +7,27 @@ module Prefab
     end
 
     def feature_is_on?(feature_name)
-      feature_is_on_for?(feature_name, nil)
+      feature_is_on_for?(feature_name, {})
     end
 
-    def feature_is_on_for?(feature_name, lookup_key, attributes: {})
+    def feature_is_on_for?(feature_name, properties)
       @base_client.stats.increment('prefab.featureflag.on', tags: ["feature:#{feature_name}"])
 
-      variant = @base_client.config_client.get(feature_name, false, attributes, lookup_key)
+      variant = @base_client.config_client.get(feature_name, false, properties)
 
       is_on?(variant)
     end
 
-    def get(feature_name, lookup_key = nil, attributes = {}, default: false)
-      value = _get(feature_name, lookup_key, attributes)
+    def get(feature_name, properties, default: false)
+      value = _get(feature_name, properties)
 
       value.nil? ? default : value
     end
 
     private
 
-    def _get(feature_name, lookup_key = nil, attributes = {})
-      @base_client.config_client.get(feature_name, nil, attributes, lookup_key)
+    def _get(feature_name, properties)
+      @base_client.config_client.get(feature_name, nil, properties)
     end
 
     def is_on?(variant)

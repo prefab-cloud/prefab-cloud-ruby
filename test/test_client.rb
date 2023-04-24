@@ -44,32 +44,24 @@ class TestClient < Minitest::Test
     assert_equal false, @client.enabled?('flag_with_a_value')
   end
 
-  def test_ff_enabled_with_lookup_key
-    assert_equal false, @client.enabled?('in_lookup_key', 'jimmy')
-    assert_equal true, @client.enabled?('in_lookup_key', 'abc123')
-    assert_equal true, @client.enabled?('in_lookup_key', 'xyz987')
-  end
-
-  def test_ff_get_with_lookup_key
-    assert_nil @client.get('in_lookup_key', 'jimmy')
-    assert_equal 'DEFAULT', @client.get('in_lookup_key', 'jimmy', {}, 'DEFAULT')
-
-    assert_equal true, @client.get('in_lookup_key', 'abc123')
-    assert_equal true, @client.get('in_lookup_key', 'xyz987')
+  def test_ff_enabled_with_user_key_match
+    assert_equal_context_and_jit(false, :enabled?, 'user_key_match', { user: { key: 'jimmy' } })
+    assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'abc123' } })
+    assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })
   end
 
   def test_ff_enabled_with_attributes
-    assert_equal false, @client.enabled?('just_my_domain', 'abc123', { domain: 'gmail.com' })
-    assert_equal false, @client.enabled?('just_my_domain', 'abc123', { domain: 'prefab.cloud' })
-    assert_equal false, @client.enabled?('just_my_domain', 'abc123', { domain: 'example.com' })
+    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'gmail.com' })
+    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'prefab.cloud' })
+    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'example.com' })
   end
 
   def test_ff_get_with_attributes
-    assert_nil @client.get('just_my_domain', 'abc123', { domain: 'gmail.com' })
-    assert_equal 'DEFAULT', @client.get('just_my_domain', 'abc123', { domain: 'gmail.com' }, 'DEFAULT')
+    assert_nil @client.get('just_my_domain', 'abc123', user: { domain: 'gmail.com' })
+    assert_equal 'DEFAULT', @client.get('just_my_domain', 'abc123', { user: { domain: 'gmail.com' } }, 'DEFAULT')
 
-    assert_equal 'new-version', @client.get('just_my_domain', 'abc123', { domain: 'prefab.cloud' })
-    assert_equal 'new-version', @client.get('just_my_domain', 'abc123', { domain: 'example.com' })
+    assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'prefab.cloud' } })
+    assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'example.com' } })
   end
 
   def test_getting_feature_flag_value
@@ -103,14 +95,11 @@ class TestClient < Minitest::Test
 
   private
 
-  def new_client(overrides = {})
-    options = Prefab::Options.new(**{
-      prefab_config_override_dir: 'none',
-      prefab_config_classpath_dir: 'test',
-      prefab_envs: ['unit_tests'],
-      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
-    }.merge(overrides))
+  def assert_equal_context_and_jit(expected, method, key, context)
+    assert_equal expected, @client.send(method, key, context)
 
-    Prefab::Client.new(options)
+    Prefab::Context.with_context(context) do
+      assert_equal expected, @client.send(method, key)
+    end
   end
 end

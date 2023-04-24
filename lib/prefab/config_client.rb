@@ -65,12 +65,11 @@ module Prefab
                          rows: [Prefab::ConfigRow.new(value: config_value)])
     end
 
-    def get(key, default = Prefab::Client::NO_DEFAULT_PROVIDED, properties = {}, lookup_key = nil)
-      value = _get(key, lookup_key, properties)
+    def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
+      value = _get(key, properties)
 
       if value
-        lookup = lookup_key == Prefab::Client::NO_DEFAULT_PROVIDED ? nil : lookup_key
-        Prefab::ConfigValueUnwrapper.unwrap(value, key, properties.merge(Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup))
+        Prefab::ConfigValueUnwrapper.unwrap(value, key, properties)
       else
         handle_default(key, default)
       end
@@ -83,14 +82,14 @@ module Prefab
     end
 
     def handle_default(key, default)
-      return default if default != Prefab::Client::NO_DEFAULT_PROVIDED
+      return default if default != NO_DEFAULT_PROVIDED
 
       raise Prefab::Errors::MissingDefaultError, key if @options.on_no_default == Prefab::Options::ON_NO_DEFAULT::RAISE
 
       nil
     end
 
-    def _get(key, lookup_key, properties)
+    def _get(key, properties)
       # wait timeout sec for the initalization to be complete
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
@@ -101,9 +100,9 @@ module Prefab
         @base_client.log_internal ::Logger::WARN,
                                   "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
         @initialization_lock.release_write_lock
-
       end
-      @config_resolver.get(key, lookup_key, properties)
+
+      @config_resolver.get key, properties
     end
 
     def load_checkpoint
@@ -192,8 +191,8 @@ module Prefab
       auth = "#{AUTH_USER}:#{@base_client.api_key}"
       auth_string = Base64.strict_encode64(auth)
       headers = {
-        "x-prefab-start-at-id": start_at_id,
-        "Authorization": "Basic #{auth_string}"
+        'x-prefab-start-at-id': start_at_id,
+        'Authorization': "Basic #{auth_string}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
       @base_client.log_internal ::Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"

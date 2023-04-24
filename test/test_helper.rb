@@ -43,7 +43,7 @@ class MockConfigClient
     @config_values = config_values
   end
 
-  def get(key, default = nil, _, _)
+  def get(key, default = nil)
     @config_values.fetch(key, default)
   end
 

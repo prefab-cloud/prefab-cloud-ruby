@@ -41,34 +41,34 @@ class TestConfigValueUnwrapper < Minitest::Test
   def test_unwrapping_weighted_values
     # single value
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1]]))
+
     assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
 
     # multiple values, evenly distributed
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 1], ['ghi', 1]]))
-    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:123'))
-    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:456'))
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:789'))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:012'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:000'))
+    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
+    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:888'))
 
     # multiple values, unevenly distributed
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 99], ['ghi', 1]]))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:123'))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:456'))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:789'))
-    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:012'))
-
-    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:103'))
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, lookup_properties('user:119'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:123'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
+    assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:012'))
+    assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:428'))
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:548'))
   end
 
   private
 
-  def weighted_values(values_and_weights)
+  def weighted_values(values_and_weights, hash_by_property_name: 'user.key')
     values = values_and_weights.map do |value, weight|
       weighted_value(value, weight)
     end
 
-    Prefab::WeightedValues.new(weighted_values: values)
+    Prefab::WeightedValues.new(weighted_values: values, hash_by_property_name: hash_by_property_name)
   end
 
   def weighted_value(string, weight)
@@ -77,7 +77,7 @@ class TestConfigValueUnwrapper < Minitest::Test
     )
   end
 
-  def lookup_properties(lookup_key)
-    { Prefab::CriteriaEvaluator::LOOKUP_KEY => lookup_key }
+  def context_with_key(key)
+    Prefab::Context.new(user: { key: key })
   end
 end

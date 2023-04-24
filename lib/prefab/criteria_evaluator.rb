@@ -2,27 +2,24 @@
 
 module Prefab
   class CriteriaEvaluator
-    LOOKUP_KEY = 'LOOKUP'
     NAMESPACE_KEY = 'NAMESPACE'
     NO_MATCHING_ROWS = [].freeze
 
-    def initialize(config, project_env_id:, resolver:, base_client:)
+    def initialize(config, project_env_id:, resolver:, namespace:, base_client:)
       @config = config
       @project_env_id = project_env_id
       @resolver = resolver
+      @namespace = namespace
       @base_client = base_client
     end
 
     def evaluate(properties)
-      # TODO: optimize this and perhaps do it elsewhere
-      props = properties.transform_keys(&:to_s)
-
       matching_environment_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value, props)
+        return conditional_value.value if all_criteria_match?(conditional_value, properties)
       end
 
       default_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value, props)
+        return conditional_value.value if all_criteria_match?(conditional_value, properties)
       end
 
       nil
@@ -35,17 +32,22 @@ module Prefab
     end
 
     def evaluate_criteron(criterion, properties)
-      value_from_properties = properties[criterion.property_name]
+      case criterion.operator
+      when :IN_SEG
+        return in_segment?(criterion, properties)
+      when :NOT_IN_SEG
+        return !in_segment?(criterion, properties)
+      when :ALWAYS_TRUE
+        return true
+      end
+
+      value_from_properties = criterion.property_name === NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
 
       case criterion.operator
-      when :LOOKUP_KEY_IN, :PROP_IS_ONE_OF
+      when :PROP_IS_ONE_OF
         matches?(criterion, value_from_properties, properties)
-      when :LOOKUP_KEY_NOT_IN, :PROP_IS_NOT_ONE_OF
+      when :PROP_IS_NOT_ONE_OF
         !matches?(criterion, value_from_properties, properties)
-      when :IN_SEG
-        in_segment?(criterion, properties)
-      when :NOT_IN_SEG
-        !in_segment?(criterion, properties)
       when :PROP_ENDS_WITH_ONE_OF
         return false unless value_from_properties
 
@@ -60,8 +62,6 @@ module Prefab
         end
       when :HIERARCHICAL_MATCH
         value_from_properties.start_with?(criterion.value_to_match.string)
-      when :ALWAYS_TRUE
-        true
       else
         @base_client.log.info("Unknown Operator: #{criterion.operator}")
         false
@@ -79,7 +79,7 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      @resolver.get(criterion.value_to_match.string, properties[LOOKUP_KEY], properties).bool
+      @resolver.get(criterion.value_to_match.string, properties).bool
     end
 
     def matches?(criterion, value_from_properties, properties)
