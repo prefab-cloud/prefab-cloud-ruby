@@ -41,21 +41,6 @@ module Prefab
       end
     end
 
-    def upsert(key, config_value, namespace = nil, previous_key = nil)
-      raise "Key must not contain ':' set namespaces separately" if key.include? ':'
-      raise "Namespace must not contain ':'" if namespace&.include?(':')
-
-      config_delta = Prefab::ConfigClient.value_to_delta(key, config_value, namespace)
-      upsert_req = Prefab::UpsertRequest.new(config_delta: config_delta)
-      upsert_req.previous_key = previous_key if previous_key&.present?
-
-      @base_client.request Prefab::ConfigService, :upsert, req_options: { timeout: @timeout }, params: upsert_req
-      @base_client.stats.increment('prefab.config.upsert')
-      @config_loader.set(config_delta, :upsert)
-      @config_loader.rm(previous_key) if previous_key&.present?
-      @config_resolver.update
-    end
-
     def to_s
       @config_resolver.to_s
     end
