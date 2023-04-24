@@ -14,27 +14,11 @@ module Prefab
     end
 
     def to_s
-      str = "\n"
-      @lock.with_read_lock do
-        @local_store.keys.sort.each do |k|
-          v = @local_store[k]
-          elements = [k.slice(0..49).ljust(50)]
-          if v.nil?
-            elements << 'tombstone'
-          else
-            config = evaluate(v[:config], {})
-            value = Prefab::ConfigValueUnwrapper.unwrap(config, k, {})
-            elements << value.to_s.slice(0..34).ljust(35)
-            elements << value.class.to_s.slice(0..6).ljust(7)
-            elements << "Match: #{v[:match]}".slice(0..29).ljust(30)
-            elements << "Source: #{v[:source]}"
-          end
-          str += elements.join(' | ') << "\n"
-        end
-      end
-      str
-    rescue StandardError => e
-      "Error printing resolved config: #{e.message}"
+      presenter.to_s
+    end
+
+    def presenter
+      Prefab::ResolvedConfigPresenter.new(self, @lock, @local_store)
     end
 
     def raw(key)
@@ -63,6 +47,12 @@ module Prefab
 
     def update
       make_local
+
+      @on_update ? @on_update.call : nil
+    end
+
+    def on_update(&block)
+      @on_update = block
     end
 
     private

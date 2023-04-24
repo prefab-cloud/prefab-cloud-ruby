@@ -60,6 +60,10 @@ module Prefab
       @config_resolver.to_s
     end
 
+    def resolver
+      @config_resolver
+    end
+
     def self.value_to_delta(key, config_value, namespace = nil)
       Prefab::Config.new(key: [namespace, key].compact.join(':'),
                          rows: [Prefab::ConfigRow.new(value: config_value)])

@@ -79,7 +79,13 @@ module Prefab
     end
 
     def in_segment?(criterion, properties)
-      @resolver.get(criterion.value_to_match.string, properties).bool
+      segment = @resolver.get(criterion.value_to_match.string, properties)
+
+      if !segment
+        @base_client.log.info( "Segment #{criterion.value_to_match.string} not found")
+      end
+
+      segment&.bool
     end
 
     def matches?(criterion, value_from_properties, properties)

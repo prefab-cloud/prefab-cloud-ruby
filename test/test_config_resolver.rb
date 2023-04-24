@@ -144,6 +144,22 @@ class TestConfigResolver < Minitest::Test
       assert_equal_context_and_jit 'value_none', @resolverBX, 'key', {}, :string
 
       assert_nil @resolverBX.get('key_that_doesnt_exist', nil)
+
+      assert_equal @resolverBX.to_s.strip.split("\n").map(&:strip), [
+        'key                                                | value_none                          | String  | Match:                         | Source:',
+        'key2                                               | valueB2                             | String  | Match:                         | Source:'
+      ]
+
+      assert_equal @resolverBX.presenter.to_h, {
+        'key' => Prefab::ResolvedConfigPresenter::ConfigRow.new('key', 'value_none', nil, nil),
+        'key2' => Prefab::ResolvedConfigPresenter::ConfigRow.new('key2', 'valueB2', nil, nil)
+      }
+
+      resolved_lines = []
+      @resolverBX.presenter.each do |key, row|
+        resolved_lines << [key, row.value]
+      end
+      assert_equal resolved_lines, [%w[key value_none], %w[key2 valueB2]]
     end
   end
 
