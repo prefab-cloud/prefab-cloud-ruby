@@ -75,6 +75,10 @@ module Prefab
       ActiveStorage.logger = log if defined?(ActiveStorage)
     end
 
+    def on_update(&block)
+      resolver.on_update(&block)
+    end
+
     def log_internal(level, msg, path = nil)
       log.log_internal msg, path, nil, level
     end
@@ -101,6 +105,10 @@ module Prefab
 
     def inspect
       "#<Prefab::Client:#{object_id} namespace=#{namespace}>"
+    end
+
+    def resolver
+      config_client.resolver
     end
 
     private
