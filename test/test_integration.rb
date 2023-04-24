@@ -9,28 +9,41 @@ class TestIntegration < Minitest::Test
   IntegrationTestHelpers.find_integration_tests.map do |test_file|
     tests = YAML.load(File.read(test_file))['tests']
 
-    # TODO: We need to update the integration tests to not rely on lookup key
-    tests = []
-
     tests.each do |test|
-      define_method(:"test_#{test['name']}") do
-        it = IntegrationTest.new(test)
+      parent_context = test['context']
 
-        case it.test_type
-        when :raise
-          err = assert_raises(it.expected[:error]) do
-            it.test_client.send(it.func, *it.input)
+      test['cases'].each do |test_case|
+        define_method(:"test_#{test_case['name']}") do
+          it = IntegrationTest.new(test_case)
+
+          with_parent_context_maybe(parent_context) do
+            case it.test_type
+            when :raise
+              err = assert_raises(it.expected[:error]) do
+                it.test_client.send(it.func, *it.input)
+              end
+              assert_match(/#{it.expected[:message]}/, err.message)
+            when :nil
+              assert_nil it.test_client.send(it.func, *it.input)
+            when :feature_flag
+              flag, context = *it.input
+              assert_equal it.expected[:value], it.test_client.send(it.func, flag, context)
+            when :simple_equality
+              assert_equal it.expected[:value], it.test_client.send(it.func, *it.input)
+            end
           end
-          assert_match(/#{it.expected[:message]}/, err.message)
-        when :nil
-          assert_nil it.test_client.send(it.func, *it.input)
-        when :feature_flag
-          flag, _, attributes = *it.input
-          assert_equal it.expected[:value], it.test_client.send(it.func, flag, attributes: attributes)
-        when :simple_equality
-          assert_equal it.expected[:value], it.test_client.send(it.func, *it.input)
         end
       end
+    end
+  end
+
+  private
+
+  def with_parent_context_maybe(context, &block)
+    if context
+      Prefab::Context.with_context(context, &block)
+    else
+      yield
     end
   end
 end

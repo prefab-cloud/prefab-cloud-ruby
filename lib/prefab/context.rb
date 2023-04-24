@@ -88,6 +88,11 @@ module Prefab
     def get(property_key)
       name, key = property_key.split('.', 2)
 
+      if key.nil?
+        name = ''
+        key = property_key
+      end
+
       contexts[name] && contexts[name].get(key)
     end
 
