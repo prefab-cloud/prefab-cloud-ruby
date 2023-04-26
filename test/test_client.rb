@@ -50,18 +50,30 @@ class TestClient < Minitest::Test
     assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })
   end
 
-  def test_ff_enabled_with_attributes
+  def test_ff_enabled_with_context
     assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'gmail.com' })
     assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'prefab.cloud' })
     assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'example.com' })
   end
 
-  def test_ff_get_with_attributes
+  def test_ff_get_with_context
     assert_nil @client.get('just_my_domain', 'abc123', user: { domain: 'gmail.com' })
     assert_equal 'DEFAULT', @client.get('just_my_domain', 'abc123', { user: { domain: 'gmail.com' } }, 'DEFAULT')
 
     assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'prefab.cloud' } })
     assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'example.com' } })
+  end
+
+  def test_deprecated_no_dot_notation_ff_enabled_with_jit_context
+    # with no lookup key
+    assert_equal false, @client.enabled?('deprecated_no_dot_notation', { domain: 'gmail.com' })
+    assert_equal true, @client.enabled?('deprecated_no_dot_notation', { domain: 'prefab.cloud' })
+    assert_equal true, @client.enabled?('deprecated_no_dot_notation', { domain: 'example.com' })
+
+    # with a lookup key
+    assert_equal false, @client.enabled?('deprecated_no_dot_notation', 'some-lookup-key', { domain: 'gmail.com' })
+    assert_equal true, @client.enabled?('deprecated_no_dot_notation', 'some-lookup-key', { domain: 'prefab.cloud' })
+    assert_equal true, @client.enabled?('deprecated_no_dot_notation', 'some-lookup-key', { domain: 'example.com' })
   end
 
   def test_getting_feature_flag_value

@@ -11,6 +11,7 @@ disabled_flag: false
 flag_with_a_value: { "feature_flag": "true", value: "all-features" }
 user_key_match: { "feature_flag": "true", value: true, criterion: { operator: PROP_IS_ONE_OF, values: [ "abc123", "xyz987" ], property: "user.key" } }
 just_my_domain: { "feature_flag": "true", value: "new-version", criterion: { operator: PROP_IS_ONE_OF, property: "user.domain", values: [ "prefab.cloud", "example.com" ] } }
+deprecated_no_dot_notation: { "feature_flag": "true", value: true, criterion: { operator: PROP_IS_ONE_OF, property: "domain", values: [ "prefab.cloud", "example.com" ] } }
 
 nested:
   values:

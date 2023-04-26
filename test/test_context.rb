@@ -35,9 +35,12 @@ class TestContext < Minitest::Test
   end
 
   def test_initialize_with_invalid_hash
-    assert_raises(ArgumentError) do
+    _, err = capture_io do
       Prefab::Context.new({ foo: 'bar', baz: 'qux' })
     end
+
+    assert_match '[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash',
+                 err
   end
 
   def test_initialize_with_invalid_argument

@@ -2,6 +2,8 @@
 
 module Prefab
   class Context
+    BLANK_CONTEXT_NAME = ''
+
     class NamedContext
       attr_reader :name
 
@@ -9,14 +11,14 @@ module Prefab
         @hash = {}
         @name = name.to_s
 
-        merge(hash)
+        merge!(hash)
       end
 
       def get(parts)
         @hash[parts]
       end
 
-      def merge(other)
+      def merge!(other)
         @hash = @hash.merge(other.transform_keys(&:to_s))
       end
 
@@ -60,13 +62,15 @@ module Prefab
       if context.is_a?(NamedContext)
         @contexts[context.name] = context
       elsif context.is_a?(Hash)
-        context.map do |name, hash|
-          unless hash.is_a?(Hash)
-            raise ArgumentError,
-                  "Contexts should be a hash with a key of the context name and a value of a hash. You provided a #{hash.class} #{hash.inspect}"
-          end
+        context.map do |name, values|
+          if values.is_a?(Hash)
+            @contexts[name.to_s] = NamedContext.new(name, values)
+          else
+            warn '[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash.'
 
-          @contexts[name.to_s] = NamedContext.new(name, hash)
+            @contexts[BLANK_CONTEXT_NAME] ||= NamedContext.new(BLANK_CONTEXT_NAME, {})
+            @contexts[BLANK_CONTEXT_NAME].merge!({ name => values })
+          end
         end
       else
         raise ArgumentError, 'must be a Hash or a NamedContext'
@@ -74,7 +78,7 @@ module Prefab
     end
 
     def merge!(name, hash)
-      @contexts[name.to_s] = context(name).merge(hash)
+      @contexts[name.to_s] = context(name).merge!(hash)
     end
 
     def set(name, hash)
@@ -89,7 +93,7 @@ module Prefab
       name, key = property_key.split('.', 2)
 
       if key.nil?
-        name = ''
+        name = BLANK_CONTEXT_NAME
         key = property_key
       end
 
