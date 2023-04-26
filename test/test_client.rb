@@ -8,8 +8,12 @@ class TestClient < Minitest::Test
   end
 
   def test_get
-    assert_equal 'test sample value', @client.get('sample')
-    assert_equal 123, @client.get('sample_int')
+    _, err = capture_io do
+      assert_equal 'default', @client.get('does.not.exist', 'default')
+      assert_equal 'test sample value', @client.get('sample')
+      assert_equal 123, @client.get('sample_int')
+    end
+    assert_equal '', err
   end
 
   def test_get_with_default
