@@ -90,12 +90,12 @@ module Prefab
     end
 
     def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED, ff_default = nil)
-      default, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
-
       if is_ff?(key)
+        default, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
+
         feature_flag_client.get(key, properties, default: ff_default)
       else
-        config_client.get(key, default, properties)
+        config_client.get(key, default_or_lookup_key, properties)
       end
     end
 
@@ -134,7 +134,7 @@ module Prefab
       end
 
       if lookup_key.is_a?(String)
-        warn "[DEPRECATION] `$prefab.#{method}`'s lookup_key argument is deprecated. Please use remove it or use context instead."
+        warn "[DEPRECATION] `$prefab.#{method}`'s lookup_key argument is deprecated. Please remove it or use context instead."
       end
 
       [lookup_key, properties]
