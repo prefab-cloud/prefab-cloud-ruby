@@ -111,6 +111,15 @@ module Prefab
       config_client.resolver
     end
 
+    # When starting a forked process, use this to re-use the options
+    # on_worker_boot do
+    #   $prefab = $prefab.fork
+    #   $prefab.set_rails_loggers
+    # end
+    def fork
+      Prefab::Client.new(@options)
+    end
+
     private
 
     def is_ff?(key)

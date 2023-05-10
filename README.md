@@ -41,7 +41,7 @@ $prefab.set_rails_loggers
 ```ruby
 #puma.rb
 on_worker_boot do
-  $prefab = Prefab::Client.new
+  $prefab = $prefab.fork
   $prefab.set_rails_loggers
 end
 ```
@@ -49,7 +49,7 @@ end
 ```ruby
 # unicorn.rb
 after_fork do |server, worker|
-  $prefab = Prefab::Client.new(options)
+  $prefab = $prefab.fork
   $prefab.set_rails_loggers
 end
 ```
