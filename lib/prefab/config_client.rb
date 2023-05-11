@@ -55,10 +55,11 @@ module Prefab
     end
 
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
-      value = _get(key, properties)
+      context = @config_resolver.make_context(properties)
+      value = _get(key, context)
 
       if value
-        Prefab::ConfigValueUnwrapper.unwrap(value, key, properties)
+        Prefab::ConfigValueUnwrapper.unwrap(value, key, context)
       else
         handle_default(key, default)
       end

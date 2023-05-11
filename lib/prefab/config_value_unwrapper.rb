@@ -14,7 +14,7 @@ module Prefab
         value = Prefab::WeightedValueResolver.new(
           config_value.weighted_values.weighted_values,
           config_key,
-          context[config_value.weighted_values.hash_by_property_name]
+          context.get(config_value.weighted_values.hash_by_property_name)
         ).resolve
 
         unwrap(value.value, config_key, context)

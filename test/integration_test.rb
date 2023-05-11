@@ -12,7 +12,9 @@ class IntegrationTest
   end
 
   def test_type
-    if @expected[:status] == 'raise'
+    if @input[0] && @input[0].start_with?('log-level.')
+      :log_level
+    elsif @expected[:status] == 'raise'
       :raise
     elsif @expected[:value].nil?
       :nil

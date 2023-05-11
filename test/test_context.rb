@@ -86,7 +86,7 @@ class TestContext < Minitest::Test
     Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
       context = Prefab::Context.current
       assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
-      assert_equal('some-user-key', context['user.key'])
+      assert_equal('some-user-key', context.get('user.key'))
     end
   end
 
@@ -105,34 +105,24 @@ class TestContext < Minitest::Test
   def test_setting
     context = Prefab::Context.new({})
     context.set('user', { key: 'value' })
-    context[:other] = { key: 'different', something: 'other' }
+    context.set(:other, { key: 'different', something: 'other' })
     assert_equal(stringify({ user: { key: 'value' }, other: { key: 'different', something: 'other' } }), context.to_h)
   end
 
   def test_getting
     context = Prefab::Context.new(EXAMPLE_PROPERTIES)
     assert_equal('some-user-key', context.get('user.key'))
-    assert_equal('some-user-key', context['user.key'])
     assert_equal('pro', context.get('team.plan'))
-    assert_equal('pro', context['team.plan'])
   end
 
   def test_dot_notation_getting
     context = Prefab::Context.new({ 'user' => { 'key' => 'value' } })
     assert_equal('value', context.get('user.key'))
-    assert_equal('value', context['user.key'])
   end
 
   def test_dot_notation_getting_with_symbols
     context = Prefab::Context.new({ user: { key: 'value' } })
     assert_equal('value', context.get('user.key'))
-    assert_equal('value', context['user.key'])
-  end
-
-  def test_merge
-    context = Prefab::Context.new(EXAMPLE_PROPERTIES)
-    context.merge!(:other, { key: 'different' })
-    assert_equal(stringify(EXAMPLE_PROPERTIES.merge(other: { key: 'different' })), context.to_h)
   end
 
   def test_clear
