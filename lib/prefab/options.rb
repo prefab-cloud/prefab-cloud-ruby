@@ -21,13 +21,14 @@ module Prefab
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
     }
-    JSON_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
+    JSON_LOG_FORMATTER = proc { |severity, datetime, progname, msg, path|
       {
         type: severity,
         time: datetime,
-        logger: progname,
-        message: msg
-      }.to_json << "\n"
+        progname: progname,
+        message: msg,
+        path: path
+      }.compact.to_json << "\n"
     }
 
     module ON_INITIALIZATION_FAILURE

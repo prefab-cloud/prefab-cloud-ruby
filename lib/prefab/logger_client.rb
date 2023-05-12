@@ -174,7 +174,7 @@ module Prefab
     def format_message(severity, datetime, progname, msg, path)
       formatter = (@formatter || @default_formatter)
 
-      if formatter.method(:call).arity == 5
+      if formatter.arity == 5
         formatter.call(severity, datetime, progname, msg, path)
       else
         formatter.call(severity, datetime, join_path_and_progname(path, progname), msg)
