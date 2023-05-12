@@ -85,46 +85,47 @@ class TestLogger < Minitest::Test
   end
 
   def test_log_internal
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : test message/)
-    logger.log_internal('test message', 'test.path', '', ::Logger::WARN)
-    mock_logdev.verify
+    prefab, io = captured_logger
+    prefab.log.log_internal('test message', 'test.path', '', ::Logger::WARN)
+    assert_logged io, 'WARN', "cloud.prefab.client.test.path", "test message"
   end
 
   def test_log_internal_unknown
-    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- cloud.prefab.client.test.path: : test message/)
-    logger.log_internal('test message', 'test.path', '', ::Logger::UNKNOWN)
-    mock_logdev.verify
+    prefab, io = captured_logger
+    prefab.log.log_internal('test message', 'test.path', '', ::Logger::UNKNOWN)
+    assert_logged io, 'ANY', "cloud.prefab.client.test.path", "test message"
   end
 
   def test_log_internal_silencing
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- cloud.prefab.client.test.path: : should log/,
-                                                calls: 2)
-    logger.silence do
-      logger.log_internal('should not log', 'test.path', '', ::Logger::WARN)
+    prefab, io = captured_logger
+    prefab.log.silence do
+      prefab.log.log_internal('should not log', 'test.path', '', ::Logger::WARN)
     end
-    logger.log_internal('should log', 'test.path', '', ::Logger::WARN)
-    mock_logdev.verify
+    prefab.log.log_internal('should log', 'test.path', '', ::Logger::WARN)
+    assert_logged io, 'WARN', "cloud.prefab.client.test.path", "should log"
+    refute_logged io, 'should not log'
   end
 
   def test_log
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : test message/)
-    logger.log('test message', 'test.path', '', ::Logger::WARN)
-    mock_logdev.verify
+    prefab, io = captured_logger
+    prefab.log.log('test message', 'test.path', '', ::Logger::WARN)
+    assert_logged io, 'WARN', "test.path", "test message"
   end
 
   def test_log_unknown
-    logger, mock_logdev = mock_logger_expecting(/A, \[.*\]   ANY -- test.path: : test message/)
-    logger.log('test message', 'test.path', '', ::Logger::UNKNOWN)
-    mock_logdev.verify
+    prefab, io = captured_logger
+    prefab.log.log('test message', 'test.path', '', ::Logger::UNKNOWN)
+    assert_logged io, 'ANY', "test.path", "test message"
   end
 
   def test_log_silencing
-    logger, mock_logdev = mock_logger_expecting(/W, \[.*\]  WARN -- test.path: : should log/, calls: 2)
-    logger.silence do
-      logger.log('should not log', 'test.path', '', ::Logger::WARN)
+    prefab, io = captured_logger
+    prefab.log.silence do
+      prefab.log.log('should not log', 'test.path', '', ::Logger::WARN)
     end
-    logger.log('should log', 'test.path', '', ::Logger::WARN)
-    mock_logdev.verify
+    prefab.log.log('should log', 'test.path', '', ::Logger::WARN)
+    assert_logged io, 'WARN', "test.path", "should log"
+    refute_logged io, 'should not log'
   end
 
   def test_logging_with_prefix
@@ -163,7 +164,7 @@ class TestLogger < Minitest::Test
     prefab.log.progname = 'MY_PROGNAME'
     prefab.log.error message
 
-    assert_logged io, 'ERROR', 'MY_PROGNAME test.test_logger.test_logging_with_a_progname', message
+    assert_logged io, 'ERROR', 'MY_PROGNAME: test.test_logger.test_logging_with_a_progname', message
   end
 
   def test_logging_with_a_progname_and_no_message
@@ -172,7 +173,7 @@ class TestLogger < Minitest::Test
     prefab.log.progname = 'MY_PROGNAME'
     prefab.log.error
 
-    assert_logged io, 'ERROR', 'MY_PROGNAME test.test_logger.test_logging_with_a_progname_and_no_message', 'MY_PROGNAME'
+    assert_logged io, 'ERROR', 'MY_PROGNAME: test.test_logger.test_logging_with_a_progname_and_no_message', 'MY_PROGNAME'
   end
 
   def test_logging_with_criteria_on_top_level_key
@@ -399,33 +400,17 @@ class TestLogger < Minitest::Test
       raise 'THIS WILL NEVER BE EVALUATED'
     end
 
-    assert_logged io, 'ERROR', 'test.test_logger.test_logging_with_a_block', ' ' + message
+    assert_logged io, 'ERROR', 'test.test_logger.test_logging_with_a_block', message
   end
 
   private
 
   def assert_logged(logged_io, level, path, message)
-    assert_match(/#{level}\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d+:\s+#{path}: #{message}\n/, logged_io.string)
+    assert_match(/#{level}\s+\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} [-+]?\d+:\s+#{path} #{message}\n/, logged_io.string)
   end
 
   def refute_logged(logged_io, message)
     refute_match(/#{message}/, logged_io.string)
-  end
-
-  def mock_logger_expecting(pattern, configs = {}, calls: 1)
-    mock_logdev = Minitest::Mock.new
-    mock_logdev.expect :write, nil do |arg|
-      pattern.match(arg)
-    end
-
-    calls.times.each do
-      mock_logdev.expect(:nil?, false)
-    end
-
-    logger = Prefab::LoggerClient.new($stdout)
-    logger.instance_variable_set('@logdev', mock_logdev)
-    logger.set_config_client(MockConfigClient.new(configs))
-    [logger, mock_logdev]
   end
 
   def captured_logger(options = {})
