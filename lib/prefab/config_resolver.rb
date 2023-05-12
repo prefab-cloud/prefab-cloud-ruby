@@ -42,7 +42,7 @@ module Prefab
                                     project_env_id: @project_env_id,
                                     resolver: self,
                                     namespace: @base_client.options.namespace,
-                                    base_client: @base_client).evaluate(context(properties))
+                                    base_client: @base_client).evaluate(make_context(properties))
     end
 
     def update
@@ -55,9 +55,7 @@ module Prefab
       @on_update = block
     end
 
-    private
-
-    def context(properties)
+    def make_context(properties)
       if properties == NO_DEFAULT_PROVIDED
         Context.current
       elsif properties.is_a?(Context)
@@ -66,6 +64,8 @@ module Prefab
         Context.merge_with_current(properties)
       end
     end
+
+    private
 
     def make_local
       @lock.with_write_lock do

@@ -77,16 +77,8 @@ module Prefab
       end
     end
 
-    def merge!(name, hash)
-      @contexts[name.to_s] = context(name).merge!(hash)
-    end
-
     def set(name, hash)
       @contexts[name.to_s] = NamedContext.new(name, hash)
-    end
-
-    def []=(name, hash)
-      set(name, hash)
     end
 
     def get(property_key)
@@ -98,10 +90,6 @@ module Prefab
       end
 
       contexts[name] && contexts[name].get(key)
-    end
-
-    def [](property_key)
-      get(property_key)
     end
 
     def to_h

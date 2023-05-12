@@ -13,7 +13,7 @@ class TestIntegration < Minitest::Test
       parent_context = test['context']
 
       test['cases'].each do |test_case|
-        define_method(:"test_#{test_case['name']}") do
+        define_method(:"test_#{test['name']}_#{test_case['name']}") do
           it = IntegrationTest.new(test_case)
 
           with_parent_context_maybe(parent_context) do
@@ -30,6 +30,10 @@ class TestIntegration < Minitest::Test
               assert_equal it.expected[:value], it.test_client.send(it.func, flag, context)
             when :simple_equality
               assert_equal it.expected[:value], it.test_client.send(it.func, *it.input)
+            when :log_level
+              assert_equal it.expected[:value].to_sym, it.test_client.send(it.func, *it.input)
+            else
+              raise "Unknown test type: #{it.test_type}"
             end
           end
         end

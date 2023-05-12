@@ -4,45 +4,46 @@ require 'test_helper'
 
 class TestConfigValueUnwrapper < Minitest::Test
   CONFIG_KEY = 'config_key'
+  EMPTY_CONTEXT = Prefab::Context.new()
 
   def test_unwrapping_int
     config_value = Prefab::ConfigValue.new(int: 123)
-    assert_equal 123, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal 123, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_string
     config_value = Prefab::ConfigValue.new(string: 'abc')
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_double
     config_value = Prefab::ConfigValue.new(double: 1.23)
-    assert_equal 1.23, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal 1.23, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_bool
     config_value = Prefab::ConfigValue.new(bool: true)
-    assert_equal true, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal true, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
 
     config_value = Prefab::ConfigValue.new(bool: false)
-    assert_equal false, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal false, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_log_level
     config_value = Prefab::ConfigValue.new(log_level: :INFO)
-    assert_equal :INFO, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal :INFO, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_string_list
     config_value = Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: %w[a b c]))
-    assert_equal %w[a b c], Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal %w[a b c], Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_weighted_values
     # single value
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1]]))
 
-    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, {})
+    assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
 
     # multiple values, evenly distributed
     config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 1], ['ghi', 1]]))
