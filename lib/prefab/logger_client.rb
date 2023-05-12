@@ -53,8 +53,9 @@ module Prefab
 
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
-      progname = "#{path}: #{progname || @progname}"
-
+      if progname.nil?
+        progname = @progname
+      end
       if message.nil?
         if block_given?
           message = yield
@@ -65,7 +66,7 @@ module Prefab
       end
 
       @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message)
+        format_message(format_severity(severity), Time.now, progname, message, path)
       )
       true
     end
@@ -168,6 +169,20 @@ module Prefab
       path.slice! '.lib'
       path.slice! SEP
       path
+    end
+
+    def format_message(severity, datetime, progname, msg, path)
+      formatter = (@formatter || @default_formatter)
+
+      if formatter.method(:call).arity == 5
+        formatter.call(severity, datetime, progname, msg, path)
+      else
+        formatter.call(severity, datetime, join_path_and_progname(path, progname), msg)
+      end
+    end
+
+    def join_path_and_progname(path, progname)
+      (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
     end
   end
 
