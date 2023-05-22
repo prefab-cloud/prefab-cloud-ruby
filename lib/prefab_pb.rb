@@ -21,7 +21,12 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
         optional :limit_definition, :message, 7, "prefab.LimitDefinition"
         optional :log_level, :enum, 9, "prefab.LogLevel"
         optional :string_list, :message, 10, "prefab.StringList"
+        optional :int_range, :message, 11, "prefab.IntRange"
       end
+    end
+    add_message "prefab.IntRange" do
+      proto3_optional :start, :int64, 1
+      proto3_optional :end, :int64, 2
     end
     add_message "prefab.StringList" do
       repeated :values, :string, 1
@@ -78,6 +83,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :PROP_ENDS_WITH_ONE_OF, 8
       value :PROP_DOES_NOT_END_WITH_ONE_OF, 9
       value :HIERARCHICAL_MATCH, 10
+      value :IN_INT_RANGE, 11
     end
     add_message "prefab.Loggers" do
       repeated :loggers, :message, 1, "prefab.Logger"
@@ -131,6 +137,13 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
       value :NOT_SET, 0
       value :MINIMUM, 1
       value :MAXIMUM, 2
+    end
+    add_message "prefab.ContextSet" do
+      repeated :contexts, :message, 1, "prefab.Context"
+    end
+    add_message "prefab.Context" do
+      proto3_optional :type, :string, 1
+      map :values, :string, :message, 2, "prefab.ConfigValue"
     end
     add_message "prefab.Identity" do
       proto3_optional :lookup, :string, 1
@@ -229,6 +242,7 @@ end
 module Prefab
   ConfigServicePointer = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
   ConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
+  IntRange = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.IntRange").msgclass
   StringList = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.StringList").msgclass
   WeightedValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.WeightedValue").msgclass
   WeightedValues = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.WeightedValues").msgclass
@@ -246,6 +260,8 @@ module Prefab
   LimitResponse::LimitPolicyNames = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitResponse.LimitPolicyNames").enummodule
   LimitRequest = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest").msgclass
   LimitRequest::LimitCombiner = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.LimitRequest.LimitCombiner").enummodule
+  ContextSet = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ContextSet").msgclass
+  Context = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Context").msgclass
   Identity = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Identity").msgclass
   ClientConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ClientConfigValue").msgclass
   ConfigEvaluations = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigEvaluations").msgclass
