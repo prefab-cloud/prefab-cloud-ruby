@@ -61,9 +61,9 @@ module Prefab
     end
 
     def log
-      @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
-                                                                   prefix: @options.log_prefix,
-                                                                   log_path_collector: log_path_collector)
+      @logger_client ||= @options.logger_class.new(@options.logdev, formatter: @options.log_formatter,
+                                                                    prefix: @options.log_prefix,
+                                                                    log_path_collector: log_path_collector)
     end
 
     def set_rails_loggers
@@ -91,7 +91,7 @@ module Prefab
 
     def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED, ff_default = nil)
       if is_ff?(key)
-        default, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
+        _, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
 
         feature_flag_client.get(key, properties, default: ff_default)
       else

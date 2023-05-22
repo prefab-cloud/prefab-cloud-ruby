@@ -59,7 +59,9 @@ module Prefab
     def initialize(context = {})
       @contexts = {}
 
-      if context.is_a?(NamedContext)
+      if context.is_a?(Prefab::Context)
+        @contexts = context.contexts
+      elsif context.is_a?(NamedContext)
         @contexts[context.name] = context
       elsif context.is_a?(Hash)
         context.map do |name, values|

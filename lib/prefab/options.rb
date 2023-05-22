@@ -4,6 +4,7 @@ module Prefab
   class Options
     attr_reader :api_key
     attr_reader :logdev
+    attr_reader :logger_class
     attr_reader :log_prefix
     attr_reader :log_formatter
     attr_reader :stats
@@ -51,11 +52,12 @@ module Prefab
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
       logdev: $stdout,
+      logger_class: Prefab::LoggerClient,
+      log_formatter: DEFAULT_LOG_FORMATTER,
+      log_prefix: nil,
       stats: NoopStats.new, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
       shared_cache: NoopCache.new, # Something that quacks like Rails.cache ideally memcached
       namespace: '',
-      log_formatter: DEFAULT_LOG_FORMATTER,
-      log_prefix: nil,
       prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
@@ -72,11 +74,12 @@ module Prefab
     )
       @api_key = api_key
       @logdev = logdev
+      @logger_class = logger_class
+      @log_formatter = log_formatter
+      @log_prefix = log_prefix
       @stats = stats
       @shared_cache = shared_cache
       @namespace = namespace
-      @log_formatter = log_formatter
-      @log_prefix = log_prefix
       @prefab_api_url = remove_trailing_slash(prefab_api_url)
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec

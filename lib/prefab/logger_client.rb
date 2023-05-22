@@ -45,30 +45,11 @@ module Prefab
                INTERNAL_PREFIX
              end
 
-      log(message, path, progname, severity, &block)
+      _log(message, path, progname, severity, &block)
     end
 
-    def log(message, path, progname, severity)
-      severity ||= ::Logger::UNKNOWN
-
-      return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
-
-      if progname.nil?
-        progname = @progname
-      end
-      if message.nil?
-        if block_given?
-          message = yield
-        else
-          message = progname
-          progname = @progname
-        end
-      end
-
-      @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message, path)
-      )
-      true
+    def log(message, path, progname, severity, time = Time.now, &block)
+      _log(message, path, progname, severity, time, &block)
     end
 
     def debug(progname = nil, &block)
@@ -130,6 +111,13 @@ module Prefab
       @silences[local_log_id] = false
     end
 
+    def unsilence
+      was_silenced = @silences.delete(local_log_id)
+      yield self
+    ensure
+      @silences[local_log_id] = was_silenced
+    end
+
     private
 
     NO_DEFAULT = nil
@@ -183,6 +171,29 @@ module Prefab
 
     def join_path_and_progname(path, progname)
       (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
+    end
+
+    def _log(message, path, progname, severity, time = Time.now, &block)
+      severity ||= ::Logger::UNKNOWN
+
+      return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
+
+      if progname.nil?
+        progname = @progname
+      end
+      if message.nil?
+        if block_given?
+          message = yield
+        else
+          message = progname
+          progname = @progname
+        end
+      end
+
+      @logdev.write(
+        format_message(format_severity(severity), time, progname, message, path)
+      )
+      true
     end
   end
 
