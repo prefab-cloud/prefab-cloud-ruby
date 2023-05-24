@@ -83,11 +83,15 @@ class TestContext < Minitest::Test
   end
 
   def test_with_context
-    Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
+    returned = Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
       context = Prefab::Context.current
       assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
       assert_equal('some-user-key', context.get('user.key'))
+
+      'some-return-value'
     end
+
+    assert_equal 'some-return-value', returned
   end
 
   def test_with_context_nesting
@@ -99,6 +103,33 @@ class TestContext < Minitest::Test
 
       context = Prefab::Context.current
       assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
+    end
+  end
+
+  def test_with_context_registering
+    registry_key = 'test'
+
+    Prefab::Context.with_context(EXAMPLE_PROPERTIES, register_as: registry_key) do
+      context = Prefab::Context.current
+      assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
+      assert_equal('some-user-key', context.get('user.key'))
+    end
+
+    assert_equal ({}), Prefab::Context.current.to_h
+    assert_equal(stringify(EXAMPLE_PROPERTIES), Prefab::Context::Registry.get(registry_key).to_h)
+
+    Prefab::Context::Registry.with(registry_key) do
+      context = Prefab::Context.current
+      assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
+      assert_equal('some-user-key', context.get('user.key'))
+    end
+  end
+
+  def test_printing_current_context
+    # This shouldn't raise or segfault
+    capture_io do
+      Prefab::Context.with_context({ hi: 1 }) {}
+      puts Prefab::Context.current
     end
   end
 

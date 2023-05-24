@@ -27,6 +27,29 @@ module Prefab
       end
     end
 
+    class Registry
+      class << self
+        def get(name)
+          @contexts ||= Concurrent::Map.new
+          @contexts[name]
+        end
+
+        def set(name, context)
+          @contexts ||= Concurrent::Map.new
+          @contexts[name] = context
+        end
+
+        def with(name)
+          Prefab::Context.with_context(get(name)) { yield }
+        end
+
+        def discard(name)
+          @contexts ||= Concurrent::Map.new
+          @contexts.delete(name)
+        end
+      end
+    end
+
     THREAD_KEY = :prefab_context
     attr_reader :contexts
 
@@ -39,20 +62,28 @@ module Prefab
         Thread.current[THREAD_KEY] ||= new
       end
 
-      def with_context(context)
-        old_context = Thread.current[THREAD_KEY]
-        Thread.current[THREAD_KEY] = new(context)
+      def with_context(context, register_as: nil, &block)
+        old_context = current
+        new_context = new(context)
+
+        Registry.set(register_as, new_context) if register_as
+
+        self.current = new_context
         yield
       ensure
-        Thread.current[THREAD_KEY] = old_context
+        self.current = old_context
       end
 
       def clear_current
-        Thread.current[THREAD_KEY] = nil
+        self.current = nil
       end
 
       def merge_with_current(new_context_properties = {})
         new(current.to_h.merge(new_context_properties))
+      end
+
+      def thread_id
+        Thread.current.__id__
       end
     end
 
@@ -104,6 +135,10 @@ module Prefab
 
     def context(name)
       contexts[name.to_s] || NamedContext.new(name, {})
+    end
+
+    def to_s
+      "#<#{self.class.name}:#{object_id} contexts=#{contexts.inspect}>"
     end
   end
 end

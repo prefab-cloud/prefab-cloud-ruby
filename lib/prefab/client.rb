@@ -37,8 +37,8 @@ module Prefab
       with_context(properties, &block)
     end
 
-    def with_context(properties, &block)
-      Prefab::Context.with_context(properties, &block)
+    def with_context(context, register_as: nil, &block)
+      Prefab::Context.with_context(context, register_as: register_as, &block)
     end
 
     def context

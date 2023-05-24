@@ -243,7 +243,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
+    prefab.with_context({ user: { email_suffix: 'yahoo.com' } }) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -257,7 +257,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
+    prefab.with_context({ user: { email_suffix: 'hotmail.com' } }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_top_level_key", 'Test debug'
 
@@ -348,7 +348,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
+    prefab.with_context({ user: { email_suffix: 'yahoo.com' } }) do
       prefab.log.debug 'Test debug'
       refute_logged io, 'Test debug'
 
@@ -362,7 +362,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
+    prefab.with_context({ user: { email_suffix: 'hotmail.com' } }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 
@@ -376,7 +376,7 @@ class TestLogger < Minitest::Test
     reset_io(io)
 
     # with the correct lookup key
-    prefab.with_context(user: { tracking_id: 'user:4567' }) do
+    prefab.with_context({ user: { tracking_id: 'user:4567' } }) do
       prefab.log.debug 'Test debug'
       assert_logged io, 'DEBUG', "#{prefix}.test.test_logger.test_logging_with_criteria_on_key_path", 'Test debug'
 

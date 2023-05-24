@@ -13,10 +13,10 @@ class TestQueuedLoggerClient < Minitest::Test
   WRONG_ENV_VALUE = 'ERROR'
   PROJECT_ENV_ID = 1
 
-  DEFAULT_ROW = Prefab::ConfigRow.new(
+  DEFAULT_ROW = PrefabProto::ConfigRow.new(
     values: [
-      Prefab::ConditionalValue.new(
-        value: Prefab::ConfigValue.new(log_level: DEFAULT_VALUE)
+      PrefabProto::ConditionalValue.new(
+        value: PrefabProto::ConfigValue.new(log_level: DEFAULT_VALUE)
       )
     ]
   )
@@ -94,44 +94,44 @@ class TestQueuedLoggerClient < Minitest::Test
   def test_logging_with_criteria_on_top_level_key
     prefix = 'my.own.prefix'
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: 'log-level',
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
             )
           ]
         )
@@ -158,7 +158,7 @@ class TestQueuedLoggerClient < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
+    prefab.with_context({ user: { email_suffix: 'yahoo.com' } }) do
       prefab.log.debug 'Test debug'
       refute_logged prefab, io, 'Test debug'
 
@@ -172,7 +172,7 @@ class TestQueuedLoggerClient < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
+    prefab.with_context({ user: { email_suffix: 'hotmail.com' } }) do
       prefab.log.debug 'Test debug'
       assert_logged prefab, io, 'DEBUG', "#{prefix}.test.test_queued_logger_client.test_logging_with_criteria_on_top_level_key", 'Test debug'
 
@@ -187,56 +187,56 @@ class TestQueuedLoggerClient < Minitest::Test
   def test_logging_with_criteria_on_key_path
     prefix = 'my.own.prefix'
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: 'log-level.my.own.prefix.test.test_queued_logger_client',
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[user:4567]),
                   property_name: 'user.tracking_id'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
             )
           ]
         )
@@ -263,7 +263,7 @@ class TestQueuedLoggerClient < Minitest::Test
     reset_io(io)
 
     # with the wrong context, the level should be the default for the env (info)
-    prefab.with_context(user: { email_suffix: 'yahoo.com' }) do
+    prefab.with_context({ user: { email_suffix: 'yahoo.com' } }) do
       prefab.log.debug 'Test debug'
       refute_logged prefab, io, 'Test debug'
 
@@ -277,7 +277,7 @@ class TestQueuedLoggerClient < Minitest::Test
     reset_io(io)
 
     # with the correct context, the level should be the desired value (debug)
-    prefab.with_context(user: { email_suffix: 'hotmail.com' }) do
+    prefab.with_context({ user: { email_suffix: 'hotmail.com' } }) do
       prefab.log.debug 'Test debug'
       assert_logged prefab, io, 'DEBUG', "#{prefix}.test.test_queued_logger_client.test_logging_with_criteria_on_key_path", 'Test debug'
 
@@ -291,7 +291,7 @@ class TestQueuedLoggerClient < Minitest::Test
     reset_io(io)
 
     # with the correct lookup key
-    prefab.with_context(user: { tracking_id: 'user:4567' }) do
+    prefab.with_context({ user: { tracking_id: 'user:4567' } }) do
       prefab.log.debug 'Test debug'
       assert_logged prefab, io, 'DEBUG', "#{prefix}.test.test_queued_logger_client.test_logging_with_criteria_on_key_path", 'Test debug'
 
@@ -339,56 +339,56 @@ class TestQueuedLoggerClient < Minitest::Test
   def test_it_uses_the_context_at_logging_not_eval
     prefix = 'my.own.prefix'
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: 'log-level.my.own.prefix.test.test_queued_logger_client',
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[user:4567]),
                   property_name: 'user.tracking_id'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
             )
           ]
         )
@@ -400,7 +400,7 @@ class TestQueuedLoggerClient < Minitest::Test
     inject_config(prefab, config)
     inject_project_env_id(prefab, PROJECT_ENV_ID)
 
-    prefab.with_context(user: { tracking_id: 'user:4567' }) do
+    prefab.with_context({ user: { tracking_id: 'user:4567' } }) do
       prefab.log.debug 'Test debug'
       prefab.log.info 'Test info'
       prefab.log.error 'Test error'
