@@ -10,10 +10,10 @@ class TestLogger < Minitest::Test
   WRONG_ENV_VALUE = 'ERROR'
   PROJECT_ENV_ID = 1
 
-  DEFAULT_ROW = Prefab::ConfigRow.new(
+  DEFAULT_ROW = PrefabProto::ConfigRow.new(
     values: [
-      Prefab::ConditionalValue.new(
-        value: Prefab::ConfigValue.new(log_level: DEFAULT_VALUE)
+      PrefabProto::ConditionalValue.new(
+        value: PrefabProto::ConfigValue.new(log_level: DEFAULT_VALUE)
       )
     ]
   )
@@ -179,44 +179,44 @@ class TestLogger < Minitest::Test
   def test_logging_with_criteria_on_top_level_key
     prefix = 'my.own.prefix'
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: 'log-level',
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
             )
           ]
         )
@@ -272,56 +272,56 @@ class TestLogger < Minitest::Test
   def test_logging_with_criteria_on_key_path
     prefix = 'my.own.prefix'
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: 'log-level.my.own.prefix.test.test_logger',
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[user:4567]),
                   property_name: 'user.tracking_id'
                 )
               ],
-              value: Prefab::ConfigValue.new(log_level: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(log_level: DESIRED_VALUE)
             ),
 
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(log_level: DEFAULT_ENV_VALUE)
             )
           ]
         )

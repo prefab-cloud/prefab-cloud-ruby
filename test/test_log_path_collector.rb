@@ -34,8 +34,8 @@ class TestLogPathCollector < Minitest::Test
 
       assert_equal requests, [[
         '/api/v1/known-loggers',
-        Prefab::Loggers.new(
-          loggers: [Prefab::Logger.new(logger_name: 'test.test_log_path_collector.test_sync',
+        PrefabProto::Loggers.new(
+          loggers: [PrefabProto::Logger.new(logger_name: 'test.test_log_path_collector.test_sync',
                                        infos: 2, errors: 3)],
           start_at: (Time.now.utc.to_f * 1000).to_i,
           end_at: (Time.now.utc.to_f * 1000).to_i,

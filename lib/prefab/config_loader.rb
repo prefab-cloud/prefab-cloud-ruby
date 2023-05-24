@@ -42,7 +42,7 @@ module Prefab
     end
 
     def get_api_deltas
-      configs = Prefab::Configs.new
+      configs = PrefabProto::Configs.new
       @api_config.each_value do |config_value|
         configs.configs << config_value[:config]
       end

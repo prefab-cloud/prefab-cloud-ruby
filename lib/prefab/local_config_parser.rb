@@ -18,12 +18,12 @@ module Prefab
           config[key] = {
             source: file,
             match: 'default',
-            config: Prefab::Config.new(
+            config: PrefabProto::Config.new(
               config_type: :CONFIG,
               key: key,
               rows: [
-                Prefab::ConfigRow.new(values: [
-                                        Prefab::ConditionalValue.new(value: value_from(key, value))
+                PrefabProto::ConfigRow.new(values: [
+                                        PrefabProto::ConditionalValue.new(value: value_from(key, value))
                                       ])
               ]
             )
@@ -37,7 +37,7 @@ module Prefab
         case raw
         when String
           if key.to_s.start_with? Prefab::LoggerClient::BASE_KEY
-            prefab_log_level_resolve = Prefab::LogLevel.resolve(raw.upcase.to_sym) || Prefab::LogLevel::NOT_SET_LOG_LEVEL
+            prefab_log_level_resolve = PrefabProto::LogLevel.resolve(raw.upcase.to_sym) || PrefabProto::LogLevel::NOT_SET_LOG_LEVEL
             { log_level: prefab_log_level_resolve }
           else
             { string: raw }
@@ -54,11 +54,11 @@ module Prefab
       def feature_flag_config(file, key, value)
         criterion = (parse_criterion(value['criterion']) if value['criterion'])
 
-        variant = Prefab::ConfigValue.new(value_from(key, value['value']))
+        variant = PrefabProto::ConfigValue.new(value_from(key, value['value']))
 
-        row = Prefab::ConfigRow.new(
+        row = PrefabProto::ConfigRow.new(
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [criterion].compact,
               value: variant
             )
@@ -70,7 +70,7 @@ module Prefab
         {
           source: file,
           match: key,
-          config: Prefab::Config.new(
+          config: PrefabProto::Config.new(
             config_type: :FEATURE_FLAG,
             key: key,
             allowable_values: [variant],
@@ -80,7 +80,7 @@ module Prefab
       end
 
       def parse_criterion(criterion)
-        Prefab::Criterion.new(operator: criterion['operator'],
+        PrefabProto::Criterion.new(operator: criterion['operator'],
                               property_name: criterion['property'],
                               value_to_match: parse_value_to_match(criterion['values']))
       end
@@ -88,7 +88,7 @@ module Prefab
       def parse_value_to_match(values)
         raise "Can't handle #{values}" unless values.instance_of?(Array)
 
-        Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
+        PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: values))
       end
     end
   end

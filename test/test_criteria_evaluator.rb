@@ -10,27 +10,27 @@ class TestCriteriaEvaluator < Minitest::Test
   DESIRED_VALUE = 'desired_value'
   WRONG_ENV_VALUE = 'wrong_env_value'
 
-  DEFAULT_ROW = Prefab::ConfigRow.new(
+  DEFAULT_ROW = PrefabProto::ConfigRow.new(
     values: [
-      Prefab::ConditionalValue.new(
-        value: Prefab::ConfigValue.new(string: DEFAULT_VALUE)
+      PrefabProto::ConditionalValue.new(
+        value: PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
       )
     ]
   )
 
   def test_always_true
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(operator: Prefab::Criterion::CriterionOperator::ALWAYS_TRUE)
+                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -44,22 +44,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_nested_props_in
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[ok fine]),
                   property_name: 'user.key'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -75,22 +75,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_nested_props_not_in
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
                   value_to_match: string_list(%w[wrong bad]),
                   property_name: 'user.key'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -106,22 +106,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_prop_is_one_of
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -137,22 +137,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_prop_is_not_one_of
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -168,22 +168,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_prop_ends_with_one_of
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -199,22 +199,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_prop_does_not_end_with_one_of
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_DOES_NOT_END_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_DOES_NOT_END_WITH_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -232,63 +232,63 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_in_seg
     segment_key = 'segment_key'
 
-    segment_config = Prefab::Config.new(
-      config_type: Prefab::ConfigType::SEGMENT,
+    segment_config = PrefabProto::Config.new(
+      config_type: PrefabProto::ConfigType::SEGMENT,
       key: segment_key,
       rows: [
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           values: [
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: true),
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: true),
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email'
                 )
               ]
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: false)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: false)
             )
           ]
         )
       ]
     )
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
 
         # wrong env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: TEST_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
-                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 )
               ],
-              value: Prefab::ConfigValue.new(string: WRONG_ENV_VALUE)
+              value: PrefabProto::ConfigValue.new(string: WRONG_ENV_VALUE)
             )
           ]
         ),
 
         # correct env
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
-                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -307,45 +307,45 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_not_in_seg
     segment_key = 'segment_key'
 
-    segment_config = Prefab::Config.new(
-      config_type: Prefab::ConfigType::SEGMENT,
+    segment_config = PrefabProto::Config.new(
+      config_type: PrefabProto::ConfigType::SEGMENT,
       key: segment_key,
       rows: [
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           values: [
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: true),
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: true),
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['hotmail.com', 'gmail.com']),
                   property_name: 'user.email'
                 )
               ]
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: false)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: false)
             )
           ]
         )
       ]
     )
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::NOT_IN_SEG,
-                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::NOT_IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -364,57 +364,57 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_multiple_conditions_in_one_value
     segment_key = 'segment_key'
 
-    segment_config = Prefab::Config.new(
-      config_type: Prefab::ConfigType::SEGMENT,
+    segment_config = PrefabProto::Config.new(
+      config_type: PrefabProto::ConfigType::SEGMENT,
       key: segment_key,
       rows: [
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           values: [
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: true),
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: true),
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['prefab.cloud', 'gmail.com']),
                   property_name: 'user.email'
                 ),
 
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
-                  value_to_match: Prefab::ConfigValue.new(bool: true),
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
                   property_name: 'user.admin'
                 )
               ]
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: false)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: false)
             )
           ]
         )
       ]
     )
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
-                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 ),
 
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
-                  value_to_match: Prefab::ConfigValue.new(bool: true),
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
+                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
                   property_name: 'user.deleted'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -439,61 +439,61 @@ class TestCriteriaEvaluator < Minitest::Test
   def test_multiple_conditions_in_multiple_values
     segment_key = 'segment_key'
 
-    segment_config = Prefab::Config.new(
-      config_type: Prefab::ConfigType::SEGMENT,
+    segment_config = PrefabProto::Config.new(
+      config_type: PrefabProto::ConfigType::SEGMENT,
       key: segment_key,
       rows: [
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           values: [
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: true),
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: true),
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
                   value_to_match: string_list(['prefab.cloud', 'gmail.com']),
                   property_name: 'user.email'
                 )
               ]
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: true),
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: true),
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
-                  value_to_match: Prefab::ConfigValue.new(bool: true),
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
                   property_name: 'user.admin'
                 )
               ]
             ),
-            Prefab::ConditionalValue.new(
-              value: Prefab::ConfigValue.new(bool: false)
+            PrefabProto::ConditionalValue.new(
+              value: PrefabProto::ConfigValue.new(bool: false)
             )
           ]
         )
       ]
     )
 
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::IN_SEG,
-                  value_to_match: Prefab::ConfigValue.new(string: segment_key)
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 ),
 
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
-                  value_to_match: Prefab::ConfigValue.new(bool: true),
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
+                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
                   property_name: 'user.deleted'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -517,22 +517,22 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   def test_stringifying_property_values_and_names
-    config = Prefab::Config.new(
+    config = PrefabProto::Config.new(
       key: KEY,
       rows: [
         DEFAULT_ROW,
-        Prefab::ConfigRow.new(
+        PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
-            Prefab::ConditionalValue.new(
+            PrefabProto::ConditionalValue.new(
               criteria: [
-                Prefab::Criterion.new(
-                  operator: Prefab::Criterion::CriterionOperator::PROP_IS_ONE_OF,
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
                   value_to_match: string_list(%w[1 true hello]),
                   property_name: 'team.name'
                 )
               ],
-              value: Prefab::ConfigValue.new(string: DESIRED_VALUE)
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
         )
@@ -556,7 +556,7 @@ class TestCriteriaEvaluator < Minitest::Test
   private
 
   def string_list(values)
-    Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
+    PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: values))
   end
 
   class FakeResolver
