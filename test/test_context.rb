@@ -83,11 +83,15 @@ class TestContext < Minitest::Test
   end
 
   def test_with_context
-    Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
+    returned = Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
       context = Prefab::Context.current
       assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
       assert_equal('some-user-key', context.get('user.key'))
+
+      'some-return-value'
     end
+
+    assert_equal 'some-return-value', returned
   end
 
   def test_with_context_nesting
@@ -99,6 +103,14 @@ class TestContext < Minitest::Test
 
       context = Prefab::Context.current
       assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
+    end
+  end
+
+  def test_printing_current_context
+    # This shouldn't raise or segfault
+    _, err = capture_io do
+      Prefab::Context.with_context({ hi: 1 }) {}
+      puts Prefab::Context.current
     end
   end
 
