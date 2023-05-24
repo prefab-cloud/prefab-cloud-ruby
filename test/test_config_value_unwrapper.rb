@@ -7,53 +7,53 @@ class TestConfigValueUnwrapper < Minitest::Test
   EMPTY_CONTEXT = Prefab::Context.new()
 
   def test_unwrapping_int
-    config_value = Prefab::ConfigValue.new(int: 123)
+    config_value = PrefabProto::ConfigValue.new(int: 123)
     assert_equal 123, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_string
-    config_value = Prefab::ConfigValue.new(string: 'abc')
+    config_value = PrefabProto::ConfigValue.new(string: 'abc')
     assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_double
-    config_value = Prefab::ConfigValue.new(double: 1.23)
+    config_value = PrefabProto::ConfigValue.new(double: 1.23)
     assert_equal 1.23, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_bool
-    config_value = Prefab::ConfigValue.new(bool: true)
+    config_value = PrefabProto::ConfigValue.new(bool: true)
     assert_equal true, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
 
-    config_value = Prefab::ConfigValue.new(bool: false)
+    config_value = PrefabProto::ConfigValue.new(bool: false)
     assert_equal false, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_log_level
-    config_value = Prefab::ConfigValue.new(log_level: :INFO)
+    config_value = PrefabProto::ConfigValue.new(log_level: :INFO)
     assert_equal :INFO, Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_string_list
-    config_value = Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: %w[a b c]))
+    config_value = PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: %w[a b c]))
     assert_equal %w[a b c], Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_weighted_values
     # single value
-    config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1]]))
+    config_value = PrefabProto::ConfigValue.new(weighted_values: weighted_values([['abc', 1]]))
 
     assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
 
     # multiple values, evenly distributed
-    config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 1], ['ghi', 1]]))
+    config_value = PrefabProto::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 1], ['ghi', 1]]))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:000'))
     assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
     assert_equal 'abc', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
     assert_equal 'ghi', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:888'))
 
     # multiple values, unevenly distributed
-    config_value = Prefab::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 99], ['ghi', 1]]))
+    config_value = PrefabProto::ConfigValue.new(weighted_values: weighted_values([['abc', 1], ['def', 99], ['ghi', 1]]))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:123'))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:456'))
     assert_equal 'def', Prefab::ConfigValueUnwrapper.unwrap(config_value, CONFIG_KEY, context_with_key('user:789'))
@@ -69,12 +69,12 @@ class TestConfigValueUnwrapper < Minitest::Test
       weighted_value(value, weight)
     end
 
-    Prefab::WeightedValues.new(weighted_values: values, hash_by_property_name: hash_by_property_name)
+    PrefabProto::WeightedValues.new(weighted_values: values, hash_by_property_name: hash_by_property_name)
   end
 
   def weighted_value(string, weight)
-    Prefab::WeightedValue.new(
-      value: Prefab::ConfigValue.new(string: string), weight: weight
+    PrefabProto::WeightedValue.new(
+      value: PrefabProto::ConfigValue.new(string: string), weight: weight
     )
   end
 

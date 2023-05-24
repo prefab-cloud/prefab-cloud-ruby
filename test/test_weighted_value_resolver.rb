@@ -58,8 +58,8 @@ class TestWeightedValueResolver < Minitest::Test
   end
 
   def weighted_value(string, weight)
-    Prefab::WeightedValue.new(
-      value: Prefab::ConfigValue.new(string: string), weight: weight
+    PrefabProto::WeightedValue.new(
+      value: PrefabProto::ConfigValue.new(string: string), weight: weight
     )
   end
 end

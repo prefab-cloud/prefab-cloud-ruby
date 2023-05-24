@@ -10,13 +10,13 @@ module Prefab
     INTERNAL_PREFIX = 'cloud.prefab.client'
 
     LOG_LEVEL_LOOKUPS = {
-      Prefab::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
-      Prefab::LogLevel::TRACE => ::Logger::DEBUG,
-      Prefab::LogLevel::DEBUG => ::Logger::DEBUG,
-      Prefab::LogLevel::INFO => ::Logger::INFO,
-      Prefab::LogLevel::WARN => ::Logger::WARN,
-      Prefab::LogLevel::ERROR => ::Logger::ERROR,
-      Prefab::LogLevel::FATAL => ::Logger::FATAL
+      PrefabProto::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
+      PrefabProto::LogLevel::TRACE => ::Logger::DEBUG,
+      PrefabProto::LogLevel::DEBUG => ::Logger::DEBUG,
+      PrefabProto::LogLevel::INFO => ::Logger::INFO,
+      PrefabProto::LogLevel::WARN => ::Logger::WARN,
+      PrefabProto::LogLevel::ERROR => ::Logger::ERROR,
+      PrefabProto::LogLevel::FATAL => ::Logger::FATAL
     }
 
     def initialize(logdev, log_path_collector: nil, formatter: nil, prefix: nil)
@@ -149,7 +149,7 @@ module Prefab
         closest_log_level_match = @config_client.get(BASE_KEY, :WARN)
       end
 
-      closest_log_level_match_int = Prefab::LogLevel.resolve(closest_log_level_match)
+      closest_log_level_match_int = PrefabProto::LogLevel.resolve(closest_log_level_match)
       LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
     end
 

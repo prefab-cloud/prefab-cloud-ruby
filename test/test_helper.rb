@@ -48,7 +48,7 @@ class MockConfigClient
   end
 
   def get_config(key)
-    Prefab::Config.new(value: @config_values[key], key: key)
+    PrefabProto::Config.new(value: @config_values[key], key: key)
   end
 
   def mock_this_config(key, config_value)
@@ -95,7 +95,7 @@ def new_client(overrides = {})
 end
 
 def string_list(values)
-  Prefab::ConfigValue.new(string_list: Prefab::StringList.new(values: values))
+  PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: values))
 end
 
 def inject_config(client, config)

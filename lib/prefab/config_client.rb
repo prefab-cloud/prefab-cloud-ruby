@@ -50,8 +50,8 @@ module Prefab
     end
 
     def self.value_to_delta(key, config_value, namespace = nil)
-      Prefab::Config.new(key: [namespace, key].compact.join(':'),
-                         rows: [Prefab::ConfigRow.new(value: config_value)])
+      PrefabProto::Config.new(key: [namespace, key].compact.join(':'),
+                         rows: [PrefabProto::ConfigRow.new(value: config_value)])
     end
 
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
@@ -120,7 +120,7 @@ module Prefab
     def load_url(conn, source)
       resp = conn.get('')
       if resp.status == 200
-        configs = Prefab::Configs.decode(resp.body)
+        configs = PrefabProto::Configs.decode(resp.body)
         load_configs(configs, source)
         true
       else
@@ -191,7 +191,7 @@ module Prefab
                                           read_timeout: SSE_READ_TIMEOUT,
                                           logger: Prefab::SseLogger.new(@base_client.log)) do |client|
         client.on_event do |event|
-          configs = Prefab::Configs.decode(Base64.decode64(event.data))
+          configs = PrefabProto::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)
         end
       end

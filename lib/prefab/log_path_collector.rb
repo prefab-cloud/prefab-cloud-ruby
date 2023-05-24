@@ -61,14 +61,14 @@ module Prefab
       @pool.post do
         log_internal "Uploading stats for #{to_ship.size} paths"
 
-        aggregate = Hash.new { |h, k| h[k] = Prefab::Logger.new }
+        aggregate = Hash.new { |h, k| h[k] = PrefabProto::Logger.new }
 
         to_ship.each do |(path, severity), count|
           aggregate[path][SEVERITY_KEY[severity]] = count
           aggregate[path]['logger_name'] = path
         end
 
-        loggers = Prefab::Loggers.new(
+        loggers = PrefabProto::Loggers.new(
           loggers: aggregate.values,
           start_at: start_at_was,
           end_at: now,
