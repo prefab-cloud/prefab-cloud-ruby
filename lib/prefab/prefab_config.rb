@@ -10,27 +10,28 @@ module Prefab
     end
   end
   class Config
+    UNSET = Prefab::Context.new
     class << self
-      def feature_123
-        value_of(config_client.get("feature_123"))
+      def feature_123(context = UNSET, default = nil)
+        value_of(config_client.get("feature_123"), context, default)
       end
-      def feature_123_is_treatment?
-        feature_123.class == Prefab::Feature123::TREATMENT
+      def feature_123_is_treatment?(context = UNSET, default = nil)
+        feature_123(context, default).class == Prefab::Feature123::TREATMENT
       end
-      def feature_123_is_control?
-        feature_123.class == Prefab::Feature123::Control
+      def feature_123_is_control?(context = UNSET, default = nil)
+        feature_123(context, default).class == Prefab::Feature123::Control
       end
-      def feature_bool?
-        config_client.get_bool("feature_bool")
+      def feature_bool?(context = UNSET, default = nil)
+        config_client.get_bool("feature_bool", context, default)
       end
-      def http_timeout
-        config_client.get_int("http_timeout")
+      def http_timeout(context = UNSET, default = nil)
+        config_client.get_int("http_timeout", context, default)
       end
-      def http_retries
-        config_client.get_int("http_retries")
+      def http_retries(context = UNSET, default = nil)
+        config_client.get_int("http_retries", context, default)
       end
-      def db_host
-        config_client.get_string("db_host")
+      def db_host(context = UNSET, default = nil)
+        config_client.get_string("db_host", context, default)
       end
     end
   end
@@ -44,6 +45,13 @@ class Usage
       # do control
     end
 
+    if Prefab::Config.feature_bool?(Prefab::Context.new({ user: {runtime: 123}}))
+      # do feature bool for runtime property 123
+    end
+
     HttpConnection.new(timeout: Prefab::Config.http_timeout, retries: Prefab::Config.http_retries)
+
+
+    puts "DB connection is #{Prefab::Config.db_host(Prefab::Config::UNSET, "localhost")}"
   end
 end

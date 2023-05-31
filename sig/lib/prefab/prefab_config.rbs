@@ -1,4 +1,6 @@
 module Prefab
+  class Context
+  end
   # RBS doesn't seem to support enums yet, so we'll use classes instead
   module Feature123
     class Treatment
@@ -7,13 +9,12 @@ module Prefab
     end
   end
   class Config
-    def self.feature_123: () -> (Feature123::Control | Feature123::Treatment)
+    def self.feature_123: (?Prefab::Context, ?(Feature123::Control | Feature123::Treatment)?) -> (Feature123::Control | Feature123::Treatment)
     def self.feature_123_is_treatment?: () -> bool
     def self.feature_123_is_control?: () -> bool
-    def self.feature_bool?: () -> bool
-    def self.http_timeout: () -> Integer
-    def self.http_retries: () -> Integer
-    def self.db_host: () -> String
-    def self.db_user: () -> String
+    def self.feature_bool?: (?Prefab::Context context, ?bool?) -> bool
+    def self.http_timeout: (?Prefab::Context, ?Integer?) -> Integer
+    def self.http_retries: (?Prefab::Context, ?Integer?) -> Integer
+    def self.db_host: (?Prefab::Context, ?String?) -> String
   end
 end
