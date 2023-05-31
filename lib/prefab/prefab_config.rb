@@ -15,10 +15,10 @@ module Prefab
         value_of(config_client.get("feature_123"))
       end
       def feature_123_is_treatment?
-        feature_123 == Prefab::Feature123::TREATMENT
+        feature_123.class == Prefab::Feature123::TREATMENT
       end
       def feature_123_is_control?
-        feature_123 == Prefab::Feature123::Control
+        feature_123.class == Prefab::Feature123::Control
       end
       def feature_bool?
         config_client.get_bool("feature_bool")

@@ -1,4 +1,5 @@
 module Prefab
+  # RBS doesn't seem to support enums yet, so we'll use classes instead
   module Feature123
     class Treatment
     end
