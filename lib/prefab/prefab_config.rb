@@ -36,6 +36,14 @@ module Prefab
   end
 end
 
-f = PrefabConfig.feature_123 == Prefab::Feature123::TREATMENT
+class Usage
+  def my_method
+    if Prefab::Config.feature_123_is_treatment?
+      # do treatment
+    elsif Prefab::Config.feature_123_is_control?
+      # do control
+    end
 
-PrefabConfig.class
+    HttpConnection.new(timeout: Prefab::Config.http_timeout, retries: Prefab::Config.http_retries)
+  end
+end
