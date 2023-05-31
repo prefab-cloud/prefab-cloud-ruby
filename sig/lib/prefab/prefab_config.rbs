@@ -1,10 +1,15 @@
 module Prefab
-  class Feature123
-    def value: -> String
+  module Feature123
+    class Treatment
+    end
+    class Control
+    end
   end
   class Config
-    def self.feature_123: () -> Feature123
-    def self.feature_456: () -> String
+    def self.feature_123: () -> (Feature123::Control | Feature123::Treatment)
+    def self.feature_123_is_treatment?: () -> bool
+    def self.feature_123_is_control?: () -> bool
+    def self.feature_bool?: () -> bool
     def self.http_timeout: () -> Integer
     def self.http_retries: () -> Integer
     def self.db_host: () -> String
