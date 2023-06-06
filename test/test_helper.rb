@@ -33,6 +33,8 @@ class MockBaseClient
 
   def log_internal(level, message); end
 
+  def context_shape_aggregator; end
+
   def config_value(key)
     @config_values[key]
   end

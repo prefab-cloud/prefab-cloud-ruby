@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'prefab/log_path_collector'
-
 module Prefab
   class LoggerClient < ::Logger
     SEP = '.'
@@ -19,21 +17,21 @@ module Prefab
       PrefabProto::LogLevel::FATAL => ::Logger::FATAL
     }
 
-    def initialize(logdev, log_path_collector: nil, formatter: nil, prefix: nil)
+    def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
       super(logdev)
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
       @silences = Concurrent::Map.new(initial_capacity: 2)
       @prefix = "#{prefix}#{prefix && '.'}"
 
-      @log_path_collector = log_path_collector
+      @log_path_aggregator = log_path_aggregator
     end
 
     def add(severity, message = nil, progname = nil, loc, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
 
-      @log_path_collector&.push(path_loc, severity)
+      @log_path_aggregator&.push(path_loc, severity)
 
       log(message, path, progname, severity, &block)
     end

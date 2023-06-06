@@ -1,5 +1,10 @@
 # [Changelog
 
+## Unreleased
+
+- Capture/report context shapes (#115)
+- Added bin/console (#114)
+
 ## [0.24.3] - 2023-05-15
 
 - Add JSON log formatter (#106)

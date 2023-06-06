@@ -17,6 +17,7 @@ module Prefab
     attr_reader :prefab_config_classpath_dir
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
+    attr_reader :shape_sync_interval
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
@@ -47,6 +48,7 @@ module Prefab
     end
 
     DEFAULT_MAX_PATHS = 1_000
+    DEFAULT_MAX_CONTEXT_KEYS = 100_000
 
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
@@ -68,7 +70,10 @@ module Prefab
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
       collect_logs: true,
       collect_max_paths: DEFAULT_MAX_PATHS,
-      collect_sync_interval: nil
+      collect_sync_interval: nil,
+      collect_shapes: true,
+      collect_max_shapes: DEFAULT_MAX_CONTEXT_KEYS,
+      shape_sync_interval: nil
     )
       @api_key = api_key
       @logdev = logdev
@@ -88,6 +93,9 @@ module Prefab
       @collect_logs = collect_logs
       @collect_max_paths = collect_max_paths
       @collect_sync_interval = collect_sync_interval
+      @collect_shapes = collect_shapes
+      @collect_max_shapes = collect_max_shapes
+      @shape_sync_interval = shape_sync_interval
     end
 
     def initialize(options = {})
@@ -102,6 +110,12 @@ module Prefab
       return 0 if !@collect_logs || local_only?
 
       @collect_max_paths
+    end
+
+    def collect_max_shapes
+      return 0 if !@collect_shapes || local_only?
+
+      @collect_max_shapes
     end
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
