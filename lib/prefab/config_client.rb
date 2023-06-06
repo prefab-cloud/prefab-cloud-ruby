@@ -58,6 +58,8 @@ module Prefab
       context = @config_resolver.make_context(properties)
       value = _get(key, context)
 
+      @base_client.context_shape_aggregator&.push(context)
+
       if value
         Prefab::ConfigValueUnwrapper.unwrap(value, key, context)
       else

@@ -53,17 +53,24 @@ module Prefab
       @feature_flag_client ||= Prefab::FeatureFlagClient.new(self)
     end
 
-    def log_path_collector
+    def log_path_aggregator
       return nil if @options.collect_max_paths <= 0
 
-      @log_path_collector ||= LogPathCollector.new(client: self, max_paths: @options.collect_max_paths,
-                                                   sync_interval: @options.collect_sync_interval)
+      @log_path_aggregator ||= LogPathAggregator.new(client: self, max_paths: @options.collect_max_paths,
+                                                     sync_interval: @options.collect_sync_interval)
     end
 
     def log
       @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
                                                                    prefix: @options.log_prefix,
-                                                                   log_path_collector: log_path_collector)
+                                                                   log_path_aggregator: log_path_aggregator)
+    end
+
+    def context_shape_aggregator
+      return nil if @options.collect_max_shapes <= 0
+
+      @context_shape_aggregator ||= ContextShapeAggregator.new(client: self, max_shapes: @options.collect_max_shapes,
+                                                               sync_interval: @options.collect_sync_interval)
     end
 
     def set_rails_loggers

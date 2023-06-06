@@ -3,9 +3,22 @@
 require 'test_helper'
 require 'timecop'
 
-class TestLogPathCollector < Minitest::Test
+class TestLogPathAggregator < Minitest::Test
   MAX_WAIT = 2
   SLEEP_TIME = 0.01
+
+  def test_push
+    aggregator = Prefab::LogPathAggregator.new(client: new_client, max_paths: 2, sync_interval: 1000)
+
+    aggregator.push('test.test_log_path_aggregator.test_push.1', ::Logger::INFO)
+    aggregator.push('test.test_log_path_aggregator.test_push.2', ::Logger::DEBUG)
+
+    assert_equal 2, aggregator.data.size
+
+    # we've reached the limit, so no more
+    aggregator.push('test.test_log_path_aggregator.test_push.3', ::Logger::INFO)
+    assert_equal 2, aggregator.data.size
+  end
 
   def test_sync
     Timecop.freeze do
@@ -20,7 +33,7 @@ class TestLogPathCollector < Minitest::Test
         requests.push(params)
       end
 
-      client.log_path_collector.send(:sync)
+      client.log_path_aggregator.send(:sync)
 
       # let the flush thread run
 
@@ -32,17 +45,17 @@ class TestLogPathCollector < Minitest::Test
         raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
       end
 
-      assert_equal requests, [[
+      assert_equal [[
         '/api/v1/known-loggers',
         PrefabProto::Loggers.new(
-          loggers: [PrefabProto::Logger.new(logger_name: 'test.test_log_path_collector.test_sync',
-                                       infos: 2, errors: 3)],
+          loggers: [PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync',
+                                            infos: 2, errors: 3)],
           start_at: (Time.now.utc.to_f * 1000).to_i,
           end_at: (Time.now.utc.to_f * 1000).to_i,
           instance_hash: client.instance_hash,
           namespace: 'this.is.a.namespace'
         )
-      ]]
+      ]], requests
     end
   end
 
