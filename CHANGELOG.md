@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Dropped Ruby 2.6 support (#116)
 - Capture/report context shapes (#115)
 - Added bin/console (#114)
 
