@@ -47,13 +47,13 @@ module Prefab
 
     def flush(to_ship, _)
       @pool.post do
-        log_internal "Uploading evaluated keys for #{to_ship.size}"
+        log_internal "Uploading evaluated configs for #{to_ship.size}"
 
         configs = PrefabProto::EvaluatedConfigs.new(configs: to_ship)
 
         result = @client.post('/api/v1/evaluated-configs', configs)
 
-        log_internal "Uploaded #{to_ship.size} keys: #{result.status}"
+        log_internal "Uploaded #{to_ship.size} configs: #{result.status}"
       end
     end
   end

@@ -35,7 +35,7 @@ module Prefab
       )
 
       Thread.new do
-        log_internal "Initialized #{@name} instance_hash=#{@client.instance_hash} max_paths=#{@max_paths}"
+        log_internal "Initialized #{@name} instance_hash=#{@client.instance_hash}"
 
         loop do
           sleep @sync_interval.call
