@@ -76,6 +76,7 @@ class TestEvaluatedConfigsAggregator < Minitest::Test
 
     # logger items are not reported
     client.get "#{Prefab::ConfigClient::LOGGING_KEY_PREFIX}something", 'default', CONTEXT
+    client.get "#{Prefab::LoggerClient::BASE_KEY}", 'default', CONTEXT
 
     requests = wait_for_post_requests(client) do
       client.evaluated_configs_aggregator.send(:sync)

@@ -64,7 +64,7 @@ module Prefab
       @base_client.evaluated_keys_aggregator&.push(key)
 
       # NOTE: we don't &.push here because some of the args aren't already available
-      if @base_client.evaluated_configs_aggregator && !key.start_with?(LOGGING_KEY_PREFIX)
+      if @base_client.evaluated_configs_aggregator && key != Prefab::LoggerClient::BASE_KEY && !key.start_with?(LOGGING_KEY_PREFIX)
         @base_client.evaluated_configs_aggregator.push([raw(key), value, context])
       end
 
