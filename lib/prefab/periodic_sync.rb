@@ -6,7 +6,7 @@ module Prefab
       log_internal "Syncing #{@data.size} items"
 
       start_at_was = @start_at
-      @start_at = now
+      @start_at = Prefab::TimeHelpers.now_in_ms
 
       flush(prepare_data, start_at_was)
     end
@@ -18,7 +18,7 @@ module Prefab
     end
 
     def start_periodic_sync(sync_interval)
-      @start_at = now
+      @start_at = Prefab::TimeHelpers.now_in_ms
 
       @sync_interval = if sync_interval.is_a?(Numeric)
                          proc { sync_interval }
@@ -46,10 +46,6 @@ module Prefab
 
     def log_internal(message)
       @client.log.log_internal message, @name, nil, ::Logger::DEBUG
-    end
-
-    def now
-      (Time.now.utc.to_f * 1000).to_i
     end
   end
 end

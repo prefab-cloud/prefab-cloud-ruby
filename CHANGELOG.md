@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Added EvaluatedConfigsAggregator (disabled by default) (#118)
 - Added EvaluatedKeysAggregator (disabled by default) (#117)
 - Dropped Ruby 2.6 support (#116)
 - Capture/report context shapes (#115)

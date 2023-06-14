@@ -37,6 +37,8 @@ class MockBaseClient
 
   def evaluated_keys_aggregator; end
 
+  def evaluated_configs_aggregator; end
+
   def config_value(key)
     @config_values[key]
   end
@@ -112,4 +114,30 @@ end
 def inject_project_env_id(client, project_env_id)
   resolver = client.config_client.instance_variable_get('@config_resolver')
   resolver.project_env_id = project_env_id
+end
+
+def wait_for_post_requests(client)
+  max_wait = 2
+  sleep_time = 0.01
+
+  requests = []
+
+  client.define_singleton_method(:post) do |*params|
+    requests.push(params)
+
+    OpenStruct.new(status: 200)
+  end
+
+  yield
+
+  # let the flush thread run
+  wait_time = 0
+  while requests.empty?
+    wait_time += sleep_time
+    sleep sleep_time
+
+    raise "Waited #{max_wait} seconds for the flush thread to run, but it never did" if wait_time > max_wait
+  end
+
+  requests
 end

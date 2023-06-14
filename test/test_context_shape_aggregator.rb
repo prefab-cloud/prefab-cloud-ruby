@@ -3,9 +3,6 @@
 require 'test_helper'
 
 class TestContextShapeAggregator < Minitest::Test
-  MAX_WAIT = 2
-  SLEEP_TIME = 0.01
-
   DOB = Date.new
 
   CONTEXT_1 = Prefab::Context.new({
@@ -94,23 +91,8 @@ class TestContextShapeAggregator < Minitest::Test
     client.get 'some.key', 'default', CONTEXT_2
     client.get 'some.key', 'default', CONTEXT_3
 
-    requests = []
-
-    client.define_singleton_method(:post) do |*params|
-      requests.push(params)
-
-      OpenStruct.new(status: 200)
-    end
-
-    client.context_shape_aggregator.send(:sync)
-
-    # let the flush thread run
-    wait_time = 0
-    while requests.empty?
-      wait_time += SLEEP_TIME
-      sleep SLEEP_TIME
-
-      raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
+    requests = wait_for_post_requests(client) do
+      client.context_shape_aggregator.send(:sync)
     end
 
     assert_equal [

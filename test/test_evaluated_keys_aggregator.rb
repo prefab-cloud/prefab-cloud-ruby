@@ -26,24 +26,8 @@ class TestEvaluatedKeysAggregator < Minitest::Test
     client.get 'key.1', 'default', {}
     client.get 'key.2', 'default', {}
 
-    requests = []
-
-    client.define_singleton_method(:post) do |*params|
-      requests.push(params)
-
-      OpenStruct.new(status: 200)
-    end
-
-    client.evaluated_keys_aggregator.send(:sync)
-
-    # let the flush thread run
-
-    wait_time = 0
-    while requests.empty?
-      wait_time += SLEEP_TIME
-      sleep SLEEP_TIME
-
-      raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
+    requests = wait_for_post_requests(client) do
+      client.evaluated_keys_aggregator.send(:sync)
     end
 
     assert_equal [[

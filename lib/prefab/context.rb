@@ -89,11 +89,11 @@ module Prefab
         key = property_key
       end
 
-      contexts[name] && contexts[name].get(key)
+      contexts[name]&.get(key)
     end
 
     def to_h
-      contexts.map { |name, context| [name, context.to_h] }.to_h
+      contexts.transform_values(&:to_h)
     end
 
     def clear
@@ -102,6 +102,26 @@ module Prefab
 
     def context(name)
       contexts[name.to_s] || NamedContext.new(name, {})
+    end
+
+    def to_proto(namespace)
+      prefab_context = {
+        'current-time' => ConfigValueWrapper.wrap(Prefab::TimeHelpers.now_in_ms)
+      }
+
+      prefab_context['namespace'] = ConfigValueWrapper.wrap(namespace) if namespace&.length&.positive?
+
+      PrefabProto::ContextSet.new(
+        contexts: contexts.map do |name, context|
+          PrefabProto::Context.new(
+            type: name,
+            values: context.to_h.transform_values do |value|
+              ConfigValueWrapper.wrap(value)
+            end
+          )
+        end.concat([PrefabProto::Context.new(type: 'prefab',
+                                             values: prefab_context)])
+      )
     end
   end
 end

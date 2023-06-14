@@ -22,9 +22,7 @@ module Prefab
     end
 
     def raw(key)
-      via_key = @local_store[key]
-
-      via_key ? via_key[:config] : nil
+      @local_store.dig(key, :config)
     end
 
     def get(key, properties = NO_DEFAULT_PROVIDED)
@@ -33,7 +31,7 @@ module Prefab
 
         return nil unless raw_config
 
-        evaluate(raw(key), properties)
+        evaluate(raw_config, properties)
       end
     end
 

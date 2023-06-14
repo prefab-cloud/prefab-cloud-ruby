@@ -6,6 +6,7 @@ module Prefab
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
     AUTH_USER = 'authuser'
+    LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}"
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -56,10 +57,16 @@ module Prefab
 
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
       context = @config_resolver.make_context(properties)
+
       value = _get(key, context)
 
       @base_client.context_shape_aggregator&.push(context)
       @base_client.evaluated_keys_aggregator&.push(key)
+
+      # NOTE: we don't &.push here because some of the args aren't already available
+      if @base_client.evaluated_configs_aggregator && !key.start_with?(LOGGING_KEY_PREFIX)
+        @base_client.evaluated_configs_aggregator.push([raw(key), value, context])
+      end
 
       if value
         Prefab::ConfigValueUnwrapper.unwrap(value, key, context)
