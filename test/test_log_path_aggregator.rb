@@ -31,6 +31,8 @@ class TestLogPathAggregator < Minitest::Test
 
       client.define_singleton_method(:post) do |*params|
         requests.push(params)
+
+        return OpenStruct.new(status: 200)
       end
 
       client.log_path_aggregator.send(:sync)

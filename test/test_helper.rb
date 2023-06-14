@@ -35,6 +35,8 @@ class MockBaseClient
 
   def context_shape_aggregator; end
 
+  def evaluated_keys_aggregator; end
+
   def config_value(key)
     @config_values[key]
   end

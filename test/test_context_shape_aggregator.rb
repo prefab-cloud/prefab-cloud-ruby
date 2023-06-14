@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'test_helper'
-require 'timecop'
 
 class TestContextShapeAggregator < Minitest::Test
   MAX_WAIT = 2
@@ -89,53 +88,53 @@ class TestContextShapeAggregator < Minitest::Test
   end
 
   def test_sync
-    Timecop.freeze do
-      client = new_client
+    client = new_client
 
-      client.get 'some.key', 'default', CONTEXT_1
-      client.get 'some.key', 'default', CONTEXT_2
-      client.get 'some.key', 'default', CONTEXT_3
+    client.get 'some.key', 'default', CONTEXT_1
+    client.get 'some.key', 'default', CONTEXT_2
+    client.get 'some.key', 'default', CONTEXT_3
 
-      requests = []
+    requests = []
 
-      client.define_singleton_method(:post) do |*params|
-        requests.push(params)
-      end
+    client.define_singleton_method(:post) do |*params|
+      requests.push(params)
 
-      client.context_shape_aggregator.send(:sync)
-
-      # let the flush thread run
-      wait_time = 0
-      while requests.empty?
-        wait_time += SLEEP_TIME
-        sleep SLEEP_TIME
-
-        raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
-      end
-
-      assert_equal [
-        [
-          '/api/v1/context-shapes',
-          PrefabProto::ContextShapes.new(shapes: [
-                                           PrefabProto::ContextShape.new(
-                                             name: 'user', field_types: {
-                                               'age' => 4, 'dob' => 2, 'email' => 2, 'name' => 2
-                                             }
-                                           ),
-                                           PrefabProto::ContextShape.new(
-                                             name: 'subscription', field_types: {
-                                               'plan' => 2, 'free' => 5, 'trial' => 5
-                                             }
-                                           ),
-                                           PrefabProto::ContextShape.new(
-                                             name: 'device', field_types: {
-                                               'version' => 1, 'os' => 2, 'name' => 2
-                                             }
-                                           )
-                                         ])
-        ]
-      ], requests
+      OpenStruct.new(status: 200)
     end
+
+    client.context_shape_aggregator.send(:sync)
+
+    # let the flush thread run
+    wait_time = 0
+    while requests.empty?
+      wait_time += SLEEP_TIME
+      sleep SLEEP_TIME
+
+      raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
+    end
+
+    assert_equal [
+      [
+        '/api/v1/context-shapes',
+        PrefabProto::ContextShapes.new(shapes: [
+                                         PrefabProto::ContextShape.new(
+                                           name: 'user', field_types: {
+                                             'age' => 4, 'dob' => 2, 'email' => 2, 'name' => 2
+                                           }
+                                         ),
+                                         PrefabProto::ContextShape.new(
+                                           name: 'subscription', field_types: {
+                                             'plan' => 2, 'free' => 5, 'trial' => 5
+                                           }
+                                         ),
+                                         PrefabProto::ContextShape.new(
+                                           name: 'device', field_types: {
+                                             'version' => 1, 'os' => 2, 'name' => 2
+                                           }
+                                         )
+                                       ])
+      ]
+    ], requests
   end
 
   private

@@ -49,6 +49,7 @@ module Prefab
 
     DEFAULT_MAX_PATHS = 1_000
     DEFAULT_MAX_CONTEXT_KEYS = 100_000
+    DEFAULT_MAX_KEYS = 100_000
 
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
@@ -73,6 +74,8 @@ module Prefab
       collect_sync_interval: nil,
       collect_shapes: true,
       collect_max_shapes: DEFAULT_MAX_CONTEXT_KEYS,
+      collect_keys: false,
+      collect_max_keys: DEFAULT_MAX_KEYS,
       shape_sync_interval: nil
     )
       @api_key = api_key
@@ -95,6 +98,8 @@ module Prefab
       @collect_sync_interval = collect_sync_interval
       @collect_shapes = collect_shapes
       @collect_max_shapes = collect_max_shapes
+      @collect_keys = collect_keys
+      @collect_max_keys = collect_max_keys
       @shape_sync_interval = shape_sync_interval
     end
 
@@ -116,6 +121,12 @@ module Prefab
       return 0 if !@collect_shapes || local_only?
 
       @collect_max_shapes
+    end
+
+    def collect_max_keys
+      return 0 if !@collect_keys || local_only?
+
+      @collect_max_keys
     end
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net

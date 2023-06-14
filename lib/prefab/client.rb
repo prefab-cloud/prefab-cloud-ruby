@@ -73,6 +73,13 @@ module Prefab
                                                                sync_interval: @options.collect_sync_interval)
     end
 
+    def evaluated_keys_aggregator
+      return nil if @options.collect_max_keys <= 0
+
+      @evaluated_keys_aggregator ||= EvaluatedKeysAggregator.new(client: self, max_keys: @options.collect_max_keys,
+                                                                 sync_interval: @options.collect_sync_interval)
+    end
+
     def set_rails_loggers
       Rails.logger = log
       ActionView::Base.logger = log
