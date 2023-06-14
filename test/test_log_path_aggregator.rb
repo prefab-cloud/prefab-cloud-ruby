@@ -27,24 +27,8 @@ class TestLogPathAggregator < Minitest::Test
       2.times { client.log.info('here is a message') }
       3.times { client.log.error('here is a message') }
 
-      requests = []
-
-      client.define_singleton_method(:post) do |*params|
-        requests.push(params)
-
-        return OpenStruct.new(status: 200)
-      end
-
-      client.log_path_aggregator.send(:sync)
-
-      # let the flush thread run
-
-      wait_time = 0
-      while requests.length == 0
-        wait_time += SLEEP_TIME
-        sleep SLEEP_TIME
-
-        raise "Waited #{MAX_WAIT} seconds for the flush thread to run, but it never did" if wait_time > MAX_WAIT
+      requests = wait_for_post_requests(client) do
+        client.log_path_aggregator.send(:sync)
       end
 
       assert_equal [[
@@ -52,8 +36,8 @@ class TestLogPathAggregator < Minitest::Test
         PrefabProto::Loggers.new(
           loggers: [PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync',
                                             infos: 2, errors: 3)],
-          start_at: (Time.now.utc.to_f * 1000).to_i,
-          end_at: (Time.now.utc.to_f * 1000).to_i,
+          start_at: Prefab::TimeHelpers.now_in_ms,
+          end_at: Prefab::TimeHelpers.now_in_ms,
           instance_hash: client.instance_hash,
           namespace: 'this.is.a.namespace'
         )

@@ -132,6 +132,48 @@ class TestContext < Minitest::Test
     assert_empty context.to_h
   end
 
+  def test_to_proto
+    namespace = "my.namespace"
+
+    contexts = Prefab::Context.new({
+                                     user: {
+                                       id: 1,
+                                       email: 'user-email'
+                                     },
+                                     team: {
+                                       id: 2,
+                                       name: 'team-name'
+                                     }
+                                   })
+
+    assert_equal PrefabProto::ContextSet.new(
+      contexts: [
+        PrefabProto::Context.new(
+          type: "user",
+          values: {
+            "id" => PrefabProto::ConfigValue.new(int: 1),
+            "email" => PrefabProto::ConfigValue.new(string: "user-email")
+          }
+        ),
+        PrefabProto::Context.new(
+          type: "team",
+          values: {
+            "id" => PrefabProto::ConfigValue.new(int: 2),
+            "name" => PrefabProto::ConfigValue.new(string: "team-name")
+          }
+        ),
+
+        PrefabProto::Context.new(
+          type: "prefab",
+          values: {
+            'current-time' => PrefabProto::ConfigValue.new(int: Prefab::TimeHelpers.now_in_ms),
+            'namespace' => PrefabProto::ConfigValue.new(string: namespace)
+          }
+        )
+      ]
+    ), contexts.to_proto(namespace)
+  end
+
   private
 
   def stringify(hash)

@@ -50,7 +50,7 @@ module Prefab
         loggers = PrefabProto::Loggers.new(
           loggers: aggregate.values,
           start_at: start_at_was,
-          end_at: now,
+          end_at: Prefab::TimeHelpers.now_in_ms,
           instance_hash: @client.instance_hash,
           namespace: @client.namespace
         )
