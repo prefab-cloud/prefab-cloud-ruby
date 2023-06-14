@@ -59,6 +59,7 @@ module Prefab
       value = _get(key, context)
 
       @base_client.context_shape_aggregator&.push(context)
+      @base_client.evaluated_keys_aggregator&.push(key)
 
       if value
         Prefab::ConfigValueUnwrapper.unwrap(value, key, context)

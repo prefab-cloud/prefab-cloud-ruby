@@ -61,7 +61,7 @@ module Prefab
           value_from_properties.end_with?(ending)
         end
       when :HIERARCHICAL_MATCH
-        value_from_properties.start_with?(criterion.value_to_match.string)
+        value_from_properties && value_from_properties.start_with?(criterion.value_to_match.string)
       else
         @base_client.log.info("Unknown Operator: #{criterion.operator}")
         false
