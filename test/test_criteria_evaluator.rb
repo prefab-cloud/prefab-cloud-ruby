@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'timecop'
 
 class TestCriteriaEvaluator < Minitest::Test
   PROJECT_ENV_ID = 1
@@ -27,9 +28,7 @@ class TestCriteriaEvaluator < Minitest::Test
           project_env_id: PROJECT_ENV_ID,
           values: [
             PrefabProto::ConditionalValue.new(
-              criteria: [
-                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)
-              ],
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
               value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
@@ -37,7 +36,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -66,7 +65,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -97,7 +96,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -128,7 +127,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -159,7 +158,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -190,7 +189,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -221,7 +220,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: nil,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -296,7 +295,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: nil, namespace: nil,
+                                                      base_client: FakeBaseClient.new, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -353,7 +352,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: nil, namespace: nil,
+                                                      base_client: FakeBaseClient.new, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -422,7 +421,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: nil, namespace: nil,
+                                                      base_client: FakeBaseClient.new, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -501,7 +500,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: nil, namespace: nil,
+                                                      base_client: FakeBaseClient.new, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -540,7 +539,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: nil)
+                                                      namespace: nil, base_client: FakeBaseClient.new)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(team: { name: 'prefab.cloud' })).string
@@ -550,6 +549,97 @@ class TestCriteriaEvaluator < Minitest::Test
         assert_equal DESIRED_VALUE, evaluator.evaluate(context(team: { property_name => value })).string
         assert_equal DESIRED_VALUE, evaluator.evaluate(context(team: { property_name => value.to_s })).string
       end
+    end
+  end
+
+  def test_in_int_range
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::IN_INT_RANGE,
+                                           value_to_match: PrefabProto::ConfigValue.new(int_range: PrefabProto::IntRange.new(start: 30, end: 40)), property_name: 'user.age')
+              ],
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+            ),
+
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)
+              ],
+              value: PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
+                                                      namespace: nil, base_client: FakeBaseClient.new)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 32 } })).string
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 29 } })).string
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 41 } })).string
+  end
+
+  def test_in_int_range_for_time
+    now = Time.now
+
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::IN_INT_RANGE,
+                                           value_to_match: PrefabProto::ConfigValue.new(
+                                             int_range: PrefabProto::IntRange.new(
+                                               start: (now.to_i - 60) * 1000, end: (now.to_i + 60) * 1000
+                                             )
+                                           ), property_name: 'prefab.current-time')
+              ],
+              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+            ),
+
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)
+              ],
+              value: PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
+                                                      namespace: nil, base_client: FakeBaseClient.new)
+
+    Timecop.freeze(now) do
+      assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
+    end
+
+    Timecop.freeze(now - 60) do
+      assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
+    end
+
+    Timecop.freeze(now - 61) do
+      assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
+    end
+
+    Timecop.freeze(now + 59) do
+      assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
+    end
+
+    Timecop.freeze(now + 60) do
+      assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     end
   end
 
@@ -571,7 +661,7 @@ class TestCriteriaEvaluator < Minitest::Test
     def get(key, properties = {})
       # This only gets called for segments, so we don't need to pass in a resolver
       Prefab::CriteriaEvaluator.new(@config[key], project_env_id: nil, resolver: nil,
-                                                  namespace: nil, base_client: nil).evaluate(properties)
+                                                  namespace: nil, base_client: FakeBaseClient.new).evaluate(properties)
     end
   end
 
@@ -581,5 +671,18 @@ class TestCriteriaEvaluator < Minitest::Test
 
   def context(properties)
     Prefab::Context.new(properties)
+  end
+
+  class FakeLogger
+    def info(msg)
+      # loudly complain about unexpected log messages
+      raise msg
+    end
+  end
+
+  class FakeBaseClient
+    def log
+      FakeLogger.new
+    end
   end
 end

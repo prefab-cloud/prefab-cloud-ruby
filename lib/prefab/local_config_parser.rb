@@ -23,8 +23,8 @@ module Prefab
               key: key,
               rows: [
                 PrefabProto::ConfigRow.new(values: [
-                                        PrefabProto::ConditionalValue.new(value: value_from(key, value))
-                                      ])
+                                             PrefabProto::ConditionalValue.new(value: value_from(key, value))
+                                           ])
               ]
             )
           }
@@ -81,8 +81,8 @@ module Prefab
 
       def parse_criterion(criterion)
         PrefabProto::Criterion.new(operator: criterion['operator'],
-                              property_name: criterion['property'],
-                              value_to_match: parse_value_to_match(criterion['values']))
+                                   property_name: criterion['property'],
+                                   value_to_match: parse_value_to_match(criterion['values']))
       end
 
       def parse_value_to_match(values)

@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# rubocop:disable Naming/MethodName
+# We're intentionally keeping the UPCASED method names to match the protobuf
+# and avoid wasting CPU cycles lowercasing things
 module Prefab
   class CriteriaEvaluator
     NAMESPACE_KEY = 'NAMESPACE'
@@ -27,45 +30,55 @@ module Prefab
 
     def all_criteria_match?(conditional_value, props)
       conditional_value.criteria.all? do |criterion|
-        evaluate_criteron(criterion, props)
+        public_send(criterion.operator, criterion, props)
       end
     end
 
-    def evaluate_criteron(criterion, properties)
-      case criterion.operator
-      when :IN_SEG
-        return in_segment?(criterion, properties)
-      when :NOT_IN_SEG
-        return !in_segment?(criterion, properties)
-      when :ALWAYS_TRUE
-        return true
-      end
+    def IN_SEG(criterion, properties)
+      in_segment?(criterion, properties)
+    end
 
-      value_from_properties = criterion.property_name === NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
+    def NOT_IN_SEG(criterion, properties)
+      !in_segment?(criterion, properties)
+    end
 
-      case criterion.operator
-      when :PROP_IS_ONE_OF
-        matches?(criterion, value_from_properties, properties)
-      when :PROP_IS_NOT_ONE_OF
-        !matches?(criterion, value_from_properties, properties)
-      when :PROP_ENDS_WITH_ONE_OF
-        return false unless value_from_properties
+    def ALWAYS_TRUE(_criterion, _properties)
+      true
+    end
 
-        criterion.value_to_match.string_list.values.any? do |ending|
-          value_from_properties.end_with?(ending)
-        end
-      when :PROP_DOES_NOT_END_WITH_ONE_OF
-        return true unless value_from_properties
+    def PROP_IS_ONE_OF(criterion, properties)
+      matches?(criterion, value_from_properties(criterion, properties), properties)
+    end
 
-        criterion.value_to_match.string_list.values.none? do |ending|
-          value_from_properties.end_with?(ending)
-        end
-      when :HIERARCHICAL_MATCH
-        value_from_properties && value_from_properties.start_with?(criterion.value_to_match.string)
-      else
-        @base_client.log.info("Unknown Operator: #{criterion.operator}")
-        false
-      end
+    def PROP_IS_NOT_ONE_OF(criterion, properties)
+      !matches?(criterion, value_from_properties(criterion, properties), properties)
+    end
+
+    def PROP_ENDS_WITH_ONE_OF(criterion, properties)
+      prop_ends_with_one_of?(criterion, value_from_properties(criterion, properties))
+    end
+
+    def PROP_DOES_NOT_END_WITH_ONE_OF(criterion, properties)
+      !prop_ends_with_one_of?(criterion, value_from_properties(criterion, properties))
+    end
+
+    def HIERARCHICAL_MATCH(criterion, properties)
+      value = value_from_properties(criterion, properties)
+      value&.start_with?(criterion.value_to_match.string)
+    end
+
+    def IN_INT_RANGE(criterion, properties)
+      value = if criterion.property_name == 'prefab.current-time'
+                Time.now.utc.to_i * 1000
+              else
+                value_from_properties(criterion, properties)
+              end
+
+      value && value >= criterion.value_to_match.int_range.start && value < criterion.value_to_match.int_range.end
+    end
+
+    def value_from_properties(criterion, properties)
+      criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
 
     private
@@ -81,24 +94,31 @@ module Prefab
     def in_segment?(criterion, properties)
       segment = @resolver.get(criterion.value_to_match.string, properties)
 
-      if !segment
-        @base_client.log.info( "Segment #{criterion.value_to_match.string} not found")
-      end
+      @base_client.log.info("Segment #{criterion.value_to_match.string} not found") unless segment
 
       segment&.bool
     end
 
-    def matches?(criterion, value_from_properties, properties)
+    def matches?(criterion, value, properties)
       criterion_value_or_values = Prefab::ConfigValueUnwrapper.unwrap(criterion.value_to_match, @config.key, properties)
 
       case criterion_value_or_values
       when Google::Protobuf::RepeatedField
         # we to_s the value from properties for comparison because the
         # criterion_value_or_values is a list of strings
-        criterion_value_or_values.include?(value_from_properties.to_s)
+        criterion_value_or_values.include?(value.to_s)
       else
-        criterion_value_or_values == value_from_properties
+        criterion_value_or_values == value
+      end
+    end
+
+    def prop_ends_with_one_of?(criterion, value)
+      return false unless value
+
+      criterion.value_to_match.string_list.values.any? do |ending|
+        value.end_with?(ending)
       end
     end
   end
 end
+# rubocop:enable Naming/MethodName
