@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Support Timed Loggers
 - Added EvaluatedConfigsAggregator (disabled by default) (#118)
 - Added EvaluatedKeysAggregator (disabled by default) (#117)
 - Dropped Ruby 2.6 support (#116)

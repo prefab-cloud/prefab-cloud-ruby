@@ -6,7 +6,7 @@ module Prefab
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
     AUTH_USER = 'authuser'
-    LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}"
+    LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}".freeze
 
     def initialize(base_client, timeout)
       @base_client = base_client
@@ -52,7 +52,7 @@ module Prefab
 
     def self.value_to_delta(key, config_value, namespace = nil)
       PrefabProto::Config.new(key: [namespace, key].compact.join(':'),
-                         rows: [PrefabProto::ConfigRow.new(value: config_value)])
+                              rows: [PrefabProto::ConfigRow.new(value: config_value)])
     end
 
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
@@ -191,8 +191,8 @@ module Prefab
       auth = "#{AUTH_USER}:#{@base_client.api_key}"
       auth_string = Base64.strict_encode64(auth)
       headers = {
-        'x-prefab-start-at-id': start_at_id,
-        'Authorization': "Basic #{auth_string}"
+        'x-prefab-start-at-id' => start_at_id,
+        'Authorization' => "Basic #{auth_string}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
       @base_client.log_internal ::Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"

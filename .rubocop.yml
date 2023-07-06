@@ -1,0 +1,13 @@
+AllCops:
+  NewCops: enable
+  Exclude:
+    - prefab-cloud-ruby.gemspec
+    - lib/prefab_pb.rb
+
+Metrics:
+  Exclude:
+    - 'test/*.rb'
+
+Layout/LineLength:
+  Exclude:
+    - 'test/*.rb'
