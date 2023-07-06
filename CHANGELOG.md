@@ -2,7 +2,9 @@
 
 ## Unreleased
 
-- Support Timed Loggers
+## [0.24.4] - 2023-07-06
+
+- Support Timed Loggers (#119)
 - Added EvaluatedConfigsAggregator (disabled by default) (#118)
 - Added EvaluatedKeysAggregator (disabled by default) (#117)
 - Dropped Ruby 2.6 support (#116)
