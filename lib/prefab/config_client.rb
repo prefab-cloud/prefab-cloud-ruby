@@ -192,7 +192,8 @@ module Prefab
       auth_string = Base64.strict_encode64(auth)
       headers = {
         'x-prefab-start-at-id' => start_at_id,
-        'Authorization' => "Basic #{auth_string}"
+        'Authorization' => "Basic #{auth_string}",
+        'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
       @base_client.log_internal ::Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
