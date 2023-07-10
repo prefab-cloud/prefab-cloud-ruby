@@ -2,6 +2,7 @@
 
 module Prefab
   NO_DEFAULT_PROVIDED = :no_default_provided
+  VERSION = File.read(File.dirname(__FILE__) + '/../VERSION').strip
 end
 
 require 'concurrent/atomics'

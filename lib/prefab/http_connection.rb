@@ -3,7 +3,11 @@
 module Prefab
   class HttpConnection
     AUTH_USER = 'authuser'
-    PROTO_HEADERS = { 'Content-Type' => 'application/x-protobuf', 'Accept' => 'application/x-protobuf' }.freeze
+    PROTO_HEADERS = {
+      'Content-Type' => 'application/x-protobuf',
+      'Accept' => 'application/x-protobuf',
+      'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
+    }.freeze
 
     def initialize(api_root, api_key)
       @api_root = api_root
