@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.24.5 - 2023-07-10
+
+- Report Client Version (#121)
 
 ## [0.24.4] - 2023-07-06
 
