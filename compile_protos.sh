@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
+set -e
+
 gem install grpc-tools
+
+(
+  cd ../prefab-cloud
+  git pull --rebase
+)
 
 grpc_tools_ruby_protoc -I ../prefab-cloud/ --ruby_out=lib --grpc_out=lib prefab.proto
 

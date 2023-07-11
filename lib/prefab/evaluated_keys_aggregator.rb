@@ -27,7 +27,7 @@ module Prefab
     private
 
     def flush(to_ship, _)
-      @pool.post do
+      pool.post do
         log_internal "Uploading evaluated keys for #{to_ship.size}"
 
         keys = PrefabProto::EvaluatedKeys.new(keys: to_ship.to_a, namespace: @client.namespace)

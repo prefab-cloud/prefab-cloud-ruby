@@ -4,6 +4,8 @@
 # We're intentionally keeping the UPCASED method names to match the protobuf
 # and avoid wasting CPU cycles lowercasing things
 module Prefab
+  # This class evaluates a config's criteria. `evaluate` returns the value of
+  # the first match based on the provided properties.
   class CriteriaEvaluator
     NAMESPACE_KEY = 'NAMESPACE'
     NO_MATCHING_ROWS = [].freeze
@@ -17,15 +19,22 @@ module Prefab
     end
 
     def evaluate(properties)
-      matching_environment_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value, properties)
-      end
+      evaluate_for_env(@project_env_id, properties) ||
+        evaluate_for_env(0, properties)
+    end
 
-      default_row_values.each do |conditional_value|
-        return conditional_value.value if all_criteria_match?(conditional_value, properties)
-      end
+    def summarize(index, value_index)
+      return if @config.config_type == :LOG_LEVEL
 
-      nil
+      @base_client.evaluation_summary_aggregator&.record(config_key: @config.key,
+                                                         config_type: @config.config_type,
+                                                         counter: {
+                                                           config_id: @config.id,
+                                                           config_row_index: index,
+                                                           conditional_value_index: value_index,
+                                                           weighted_value_index: nil, # TODO
+                                                           selected_index: nil # TODO
+                                                         })
     end
 
     def all_criteria_match?(conditional_value, props)
@@ -83,12 +92,19 @@ module Prefab
 
     private
 
-    def matching_environment_row_values
-      @config.rows.find { |row| row.project_env_id == @project_env_id }&.values || NO_MATCHING_ROWS
-    end
+    def evaluate_for_env(env_id, properties)
+      @config.rows.each_with_index do |row, index|
+        next unless row.project_env_id == env_id
 
-    def default_row_values
-      @config.rows.find { |row| row.project_env_id != @project_env_id }&.values || NO_MATCHING_ROWS
+        row.values.each_with_index do |conditional_value, value_index|
+          next unless all_criteria_match?(conditional_value, properties)
+
+          summarize(index, value_index)
+          return conditional_value.value
+        end
+      end
+
+      nil
     end
 
     def in_segment?(criterion, properties)

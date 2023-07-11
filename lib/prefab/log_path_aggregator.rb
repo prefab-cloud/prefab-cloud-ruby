@@ -37,7 +37,7 @@ module Prefab
     private
 
     def flush(to_ship, start_at_was)
-      @pool.post do
+      pool.post do
         log_internal "Uploading stats for #{to_ship.size} paths"
 
         aggregate = Hash.new { |h, k| h[k] = PrefabProto::Logger.new }

@@ -6,7 +6,7 @@ require 'timecop'
 class TestCriteriaEvaluator < Minitest::Test
   PROJECT_ENV_ID = 1
   TEST_ENV_ID = 2
-  KEY = 'key'
+  KEY = 'the-key'
   DEFAULT_VALUE = 'default_value'
   DESIRED_VALUE = 'desired_value'
   WRONG_ENV_VALUE = 'wrong_env_value'
@@ -19,9 +19,15 @@ class TestCriteriaEvaluator < Minitest::Test
     ]
   )
 
+  def setup
+    @base_client = FakeBaseClient.new
+  end
+
   def test_always_true
     config = PrefabProto::Config.new(
+      id: 123,
       key: KEY,
+      config_type: PrefabProto::ConfigType::CONFIG,
       rows: [
         DEFAULT_ROW,
         PrefabProto::ConfigRow.new(
@@ -36,10 +42,21 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
+
+    assert_summary @base_client, {
+      [KEY, :CONFIG] => {
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          conditional_value_index: 0,
+          weighted_value_index: nil,
+          selected_index: nil
+        } => 1
+      }
+    }
   end
 
   def test_nested_props_in
@@ -65,12 +82,19 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ user: { key: 'wrong' } })).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({ user: { key: 'ok' } })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_nested_props_not_in
@@ -96,19 +120,25 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({ user: { key: 'ok' } })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ user: { key: 'wrong' } })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_prop_is_one_of
     config = PrefabProto::Config.new(
       key: KEY,
       rows: [
-        DEFAULT_ROW,
         PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
@@ -123,16 +153,24 @@ class TestCriteriaEvaluator < Minitest::Test
               value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
             )
           ]
-        )
+        ),
+        DEFAULT_ROW
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email_suffix: 'prefab.cloud' })).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email_suffix: 'hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
+      }
+    }
   end
 
   def test_prop_is_not_one_of
@@ -158,12 +196,19 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email_suffix: 'prefab.cloud' })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email_suffix: 'hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_prop_ends_with_one_of
@@ -189,12 +234,19 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_prop_does_not_end_with_one_of
@@ -220,12 +272,19 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: FakeBaseClient.new,
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                                       namespace: nil)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_in_seg
@@ -295,12 +354,22 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: FakeBaseClient.new, namespace: nil,
+                                                      base_client: @base_client, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [segment_key, :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      },
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2, { config_id: 0, config_row_index: 2, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_not_in_seg
@@ -352,12 +421,23 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: FakeBaseClient.new, namespace: nil,
+                                                      base_client: @base_client, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).string
+
+    assert_summary @base_client, {
+      [segment_key, :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      },
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_multiple_conditions_in_one_value
@@ -421,7 +501,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: FakeBaseClient.new, namespace: nil,
+                                                      base_client: @base_client, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -433,6 +513,17 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@gmail.com', admin: true })).string
     assert_equal DEFAULT_VALUE,
                  evaluator.evaluate(context(user: { email: 'example@gmail.com', admin: true, deleted: true })).string
+
+    assert_summary @base_client, {
+      [segment_key, :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 4
+      },
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
+      }
+    }
   end
 
   def test_multiple_conditions_in_multiple_values
@@ -500,7 +591,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: FakeBaseClient.new, namespace: nil,
+                                                      base_client: @base_client, namespace: nil,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
@@ -513,6 +604,18 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@gmail.com', admin: true })).string
     assert_equal DEFAULT_VALUE,
                  evaluator.evaluate(context(user: { email: 'example@gmail.com', admin: true, deleted: true })).string
+
+    assert_summary @base_client, {
+      [segment_key, :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 2, weighted_value_index: nil, selected_index: nil } => 1,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 6,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 1
+      },
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5
+      }
+    }
   end
 
   def test_stringifying_property_values_and_names
@@ -539,7 +642,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: FakeBaseClient.new)
+                                                      namespace: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(team: { name: 'prefab.cloud' })).string
@@ -550,6 +653,13 @@ class TestCriteriaEvaluator < Minitest::Test
         assert_equal DESIRED_VALUE, evaluator.evaluate(context(team: { property_name => value.to_s })).string
       end
     end
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 12
+      }
+    }
   end
 
   def test_in_int_range
@@ -579,12 +689,19 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: FakeBaseClient.new)
+                                                      namespace: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 32 } })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 29 } })).string
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 41 } })).string
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
   end
 
   def test_in_int_range_for_time
@@ -620,7 +737,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: FakeBaseClient.new)
+                                                      namespace: nil, base_client: @base_client)
 
     Timecop.freeze(now) do
       assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).string
@@ -641,6 +758,38 @@ class TestCriteriaEvaluator < Minitest::Test
     Timecop.freeze(now + 60) do
       assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).string
     end
+
+    assert_summary @base_client, {
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2
+      }
+    }
+  end
+
+  def test_evaluating_a_log_level
+    config = PrefabProto::Config.new(
+      id: 999,
+      key: 'log-level',
+      config_type: PrefabProto::ConfigType::LOG_LEVEL,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
+              value: PrefabProto::ConfigValue.new(log_level: PrefabProto::LogLevel::DEBUG)
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+
+    assert_equal :DEBUG, evaluator.evaluate(context({})).log_level
+
+    # These aren't summarized
+    assert_summary @base_client, {}
   end
 
   private
@@ -650,8 +799,9 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   class FakeResolver
-    def initialize(config)
+    def initialize(config, base_client)
       @config = config
+      @base_client = base_client
     end
 
     def raw(key)
@@ -661,12 +811,12 @@ class TestCriteriaEvaluator < Minitest::Test
     def get(key, properties = {})
       # This only gets called for segments, so we don't need to pass in a resolver
       Prefab::CriteriaEvaluator.new(@config[key], project_env_id: nil, resolver: nil,
-                                                  namespace: nil, base_client: FakeBaseClient.new).evaluate(properties)
+                                                  namespace: nil, base_client: @base_client).evaluate(properties)
     end
   end
 
   def resolver_fake(config)
-    FakeResolver.new(config)
+    FakeResolver.new(config, @base_client)
   end
 
   def context(properties)
@@ -678,11 +828,21 @@ class TestCriteriaEvaluator < Minitest::Test
       # loudly complain about unexpected log messages
       raise msg
     end
+
+    def log_internal(*args); end
   end
 
   class FakeBaseClient
     def log
       FakeLogger.new
+    end
+
+    def evaluation_summary_aggregator
+      @evaluation_summary_aggregator ||= Prefab::EvaluationSummaryAggregator.new(client: self, max_keys: 9999, sync_interval: 9999)
+    end
+
+    def instance_hash
+      'fake-base-client-instance_hash'
     end
   end
 end

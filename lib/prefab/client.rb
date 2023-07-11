@@ -87,6 +87,16 @@ module Prefab
                                                                        sync_interval: @options.collect_sync_interval)
     end
 
+    def evaluation_summary_aggregator
+      return nil if @options.collect_max_evaluation_summaries <= 0
+
+      @evaluation_summary_aggregator ||= EvaluationSummaryAggregator.new(
+        client: self,
+        max_keys: @options.collect_max_evaluation_summaries,
+        sync_interval: @options.collect_sync_interval
+      )
+    end
+
     def set_rails_loggers
       Rails.logger = log
       ActionView::Base.logger = log

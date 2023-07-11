@@ -7,24 +7,32 @@ Minitest::Reporters.use!
 
 require 'prefab-cloud-ruby'
 
+FakeResponse = Struct.new(:status, :body)
+
 class MockBaseClient
   STAGING_ENV_ID = 1
   PRODUCTION_ENV_ID = 2
   TEST_ENV_ID = 3
-  attr_reader :namespace
-  attr_reader :logger
-  attr_reader :config_client
-  attr_reader :options
+  attr_reader :namespace, :logger, :config_client, :options, :posts
 
   def initialize(options = Prefab::Options.new)
     @options = options
     @namespace = namespace
     @logger = Prefab::LoggerClient.new($stdout)
     @config_client = MockConfigClient.new
+    @posts = []
+  end
+
+  def instance_hash
+    'mock-base-client-instance-hash'
   end
 
   def project_id
     1
+  end
+
+  def post(_, _)
+    raise 'Use wait_for_post_requests'
   end
 
   def log
@@ -38,6 +46,8 @@ class MockBaseClient
   def evaluated_keys_aggregator; end
 
   def evaluated_configs_aggregator; end
+
+  def evaluation_summary_aggregator; end
 
   def config_value(key)
     @config_values[key]
@@ -81,7 +91,7 @@ def default_ff_rule(variant_idx)
 end
 
 def with_env(key, value, &block)
-  old_value = ENV[key]
+  old_value = ENV.fetch(key, nil)
 
   ENV[key] = value
   block.call
@@ -125,7 +135,7 @@ def wait_for_post_requests(client)
   client.define_singleton_method(:post) do |*params|
     requests.push(params)
 
-    OpenStruct.new(status: 200)
+    FakeResponse.new(200, '')
   end
 
   yield
@@ -140,4 +150,8 @@ def wait_for_post_requests(client)
   end
 
   requests
+end
+
+def assert_summary(client, data)
+  assert_equal data, client.evaluation_summary_aggregator.data
 end

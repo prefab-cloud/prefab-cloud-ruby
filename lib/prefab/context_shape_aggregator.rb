@@ -42,7 +42,7 @@ module Prefab
     private
 
     def flush(to_ship, _)
-      @pool.post do
+      pool.post do
         log_internal "Uploading context shapes for #{to_ship.values.size}"
 
         shapes = PrefabProto::ContextShapes.new(
