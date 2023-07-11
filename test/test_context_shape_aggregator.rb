@@ -127,7 +127,6 @@ class TestContextShapeAggregator < Minitest::Test
       initialization_timeout_sec: 0,
       on_init_failure: Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN,
       api_key: '123-development-yourapikey-SDK',
-      shape_sync_interval: 1000 # we'll trigger sync manually in our test
     }.merge(overrides))
   end
 

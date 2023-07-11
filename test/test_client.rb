@@ -3,6 +3,8 @@
 require 'test_helper'
 
 class TestClient < Minitest::Test
+  LOCAL_ONLY = Prefab::Options::DATASOURCES::LOCAL_ONLY
+
   def setup
     @client = new_client
   end
@@ -88,7 +90,7 @@ class TestClient < Minitest::Test
   def test_initialization_with_an_options_object
     options_hash = {
       namespace: 'test-namespace',
-      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+      prefab_datasources: LOCAL_ONLY
     }
 
     options = Prefab::Options.new(options_hash)
@@ -101,12 +103,32 @@ class TestClient < Minitest::Test
   def test_initialization_with_a_hash
     options_hash = {
       namespace: 'test-namespace',
-      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+      prefab_datasources: LOCAL_ONLY
     }
 
     client = Prefab::Client.new(options_hash)
 
     assert_equal client.namespace, 'test-namespace'
+  end
+
+  def test_evaluation_summary_aggregator
+    fake_api_key = '123-development-yourapikey-SDK'
+
+    # it is nil by default
+    assert_nil Prefab::Client.new(api_key: fake_api_key).evaluation_summary_aggregator
+
+    # it is nil when local_only even if collect_max_evaluation_summaries is true
+    assert_nil Prefab::Client.new(prefab_datasources: LOCAL_ONLY,
+                                  collect_evaluation_summaries: true).evaluation_summary_aggregator
+
+    # it is nil when collect_max_evaluation_summaries is false
+    assert_nil Prefab::Client.new(api_key: fake_api_key,
+                                  collect_evaluation_summaries: false).evaluation_summary_aggregator
+
+    # it is not nil when collect_max_evaluation_summaries is true and the datasource is not local_only
+    assert_equal Prefab::EvaluationSummaryAggregator,
+                 Prefab::Client.new(api_key: fake_api_key,
+                                    collect_evaluation_summaries: true).evaluation_summary_aggregator.class
   end
 
   private

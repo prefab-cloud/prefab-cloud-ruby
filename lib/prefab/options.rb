@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Prefab
+  # This class contains all the options that can be passed to the Prefab client.
   class Options
     attr_reader :api_key
     attr_reader :logdev
@@ -17,7 +18,6 @@ module Prefab
     attr_reader :prefab_config_classpath_dir
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
-    attr_reader :shape_sync_interval
 
     DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
       "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
@@ -51,6 +51,7 @@ module Prefab
     DEFAULT_MAX_CONTEXT_KEYS = 100_000
     DEFAULT_MAX_KEYS = 100_000
     DEFAULT_MAX_EVALS = 100_000
+    DEFAULT_MAX_EVAL_SUMMARIES = 100_000
 
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
@@ -79,7 +80,8 @@ module Prefab
       collect_max_keys: DEFAULT_MAX_KEYS,
       collect_evaluations: false,
       collect_max_evaluations: DEFAULT_MAX_EVALS,
-      shape_sync_interval: nil
+      collect_evaluation_summaries: false,
+      collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES
     )
       @api_key = api_key
       @logdev = logdev
@@ -103,9 +105,10 @@ module Prefab
       @collect_max_shapes = collect_max_shapes
       @collect_keys = collect_keys
       @collect_max_keys = collect_max_keys
-      @shape_sync_interval = shape_sync_interval
       @collect_evaluations = collect_evaluations
       @collect_max_evaluations = collect_max_evaluations
+      @collect_evaluation_summaries = collect_evaluation_summaries
+      @collect_max_evaluation_summaries = collect_max_evaluation_summaries
     end
 
     def initialize(options = {})
@@ -138,6 +141,12 @@ module Prefab
       return 0 if !@collect_evaluations || local_only?
 
       @collect_max_evaluations
+    end
+
+    def collect_max_evaluation_summaries
+      return 0 if !@collect_evaluation_summaries || local_only?
+
+      @collect_max_evaluation_summaries
     end
 
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net

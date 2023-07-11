@@ -46,7 +46,7 @@ module Prefab
     private
 
     def flush(to_ship, _)
-      @pool.post do
+      pool.post do
         log_internal "Uploading evaluated configs for #{to_ship.size}"
 
         configs = PrefabProto::EvaluatedConfigs.new(configs: to_ship)
