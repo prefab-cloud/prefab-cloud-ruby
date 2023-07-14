@@ -11,11 +11,15 @@ class TestCriteriaEvaluator < Minitest::Test
   DESIRED_VALUE = 'desired_value'
   WRONG_ENV_VALUE = 'wrong_env_value'
 
+  DEFAULT_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
+  DESIRED_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+
+  TRUE_CONFIG = PrefabProto::ConfigValue.new(bool: true)
+  FALSE_CONFIG = PrefabProto::ConfigValue.new(bool: false)
+
   DEFAULT_ROW = PrefabProto::ConfigRow.new(
     values: [
-      PrefabProto::ConditionalValue.new(
-        value: PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
-      )
+      PrefabProto::ConditionalValue.new(value: DEFAULT_VALUE_CONFIG)
     ]
   )
 
@@ -35,7 +39,7 @@ class TestCriteriaEvaluator < Minitest::Test
           values: [
             PrefabProto::ConditionalValue.new(
               criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -51,6 +55,7 @@ class TestCriteriaEvaluator < Minitest::Test
         {
           config_id: config.id,
           config_row_index: 1,
+          selected_value: DESIRED_VALUE_CONFIG,
           conditional_value_index: 0,
           weighted_value_index: nil,
           selected_index: nil
@@ -75,7 +80,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.key'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -91,8 +96,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -113,7 +118,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.key'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -129,8 +134,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -150,7 +155,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         ),
@@ -167,8 +172,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
+        { config_id: 0, config_row_index: 0, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1,
+        { config_id: 0, config_row_index: 1, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
       }
     }
   end
@@ -189,7 +194,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.email_suffix'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -205,8 +210,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -227,7 +232,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.email'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -243,8 +248,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -265,7 +270,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'user.email'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -281,8 +286,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -297,7 +302,7 @@ class TestCriteriaEvaluator < Minitest::Test
         PrefabProto::ConfigRow.new(
           values: [
             PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: true),
+              value: TRUE_CONFIG,
               criteria: [
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
@@ -306,9 +311,7 @@ class TestCriteriaEvaluator < Minitest::Test
                 )
               ]
             ),
-            PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: false)
-            )
+            PrefabProto::ConditionalValue.new(value: FALSE_CONFIG)
           ]
         )
       ]
@@ -319,23 +322,6 @@ class TestCriteriaEvaluator < Minitest::Test
       rows: [
         DEFAULT_ROW,
 
-        # wrong env
-        PrefabProto::ConfigRow.new(
-          project_env_id: TEST_ENV_ID,
-          values: [
-            PrefabProto::ConditionalValue.new(
-              criteria: [
-                PrefabProto::Criterion.new(
-                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
-                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
-                )
-              ],
-              value: PrefabProto::ConfigValue.new(string: WRONG_ENV_VALUE)
-            )
-          ]
-        ),
-
-        # correct env
         PrefabProto::ConfigRow.new(
           project_env_id: PROJECT_ENV_ID,
           values: [
@@ -346,7 +332,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -362,12 +348,13 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).string
 
     assert_summary @base_client, {
-      [segment_key, :SEGMENT] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      ['segment_key', :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, selected_value: FALSE_CONFIG, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, selected_value: TRUE_CONFIG, weighted_value_index: nil, selected_index: nil } => 1
       },
-      [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2, { config_id: 0, config_row_index: 2, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+      ['the-key', :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, selected_value: DEFAULT_VALUE_CONFIG, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, selected_value: DESIRED_VALUE_CONFIG, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -382,7 +369,7 @@ class TestCriteriaEvaluator < Minitest::Test
         PrefabProto::ConfigRow.new(
           values: [
             PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: true),
+              value: TRUE_CONFIG,
               criteria: [
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
@@ -391,9 +378,7 @@ class TestCriteriaEvaluator < Minitest::Test
                 )
               ]
             ),
-            PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: false)
-            )
+            PrefabProto::ConditionalValue.new(value: FALSE_CONFIG)
           ]
         )
       ]
@@ -413,7 +398,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -430,12 +415,12 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [segment_key, :SEGMENT] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 0, selected_value: FALSE_CONFIG, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, selected_value: TRUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       },
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -450,7 +435,7 @@ class TestCriteriaEvaluator < Minitest::Test
         PrefabProto::ConfigRow.new(
           values: [
             PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: true),
+              value: TRUE_CONFIG,
               criteria: [
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
@@ -460,14 +445,12 @@ class TestCriteriaEvaluator < Minitest::Test
 
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
-                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
+                  value_to_match: TRUE_CONFIG,
                   property_name: 'user.admin'
                 )
               ]
             ),
-            PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: false)
-            )
+            PrefabProto::ConditionalValue.new(value: FALSE_CONFIG)
           ]
         )
       ]
@@ -489,11 +472,11 @@ class TestCriteriaEvaluator < Minitest::Test
 
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
-                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
+                  value_to_match: TRUE_CONFIG,
                   property_name: 'user.deleted'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -516,12 +499,12 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [segment_key, :SEGMENT] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 4
+        { config_id: 0, config_row_index: 0, selected_value: FALSE_CONFIG, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, selected_value: TRUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 4
       },
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5,
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2
       }
     }
   end
@@ -536,7 +519,7 @@ class TestCriteriaEvaluator < Minitest::Test
         PrefabProto::ConfigRow.new(
           values: [
             PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: true),
+              value: TRUE_CONFIG,
               criteria: [
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
@@ -546,18 +529,16 @@ class TestCriteriaEvaluator < Minitest::Test
               ]
             ),
             PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: true),
+              value: TRUE_CONFIG,
               criteria: [
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_ONE_OF,
-                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
+                  value_to_match: TRUE_CONFIG,
                   property_name: 'user.admin'
                 )
               ]
             ),
-            PrefabProto::ConditionalValue.new(
-              value: PrefabProto::ConfigValue.new(bool: false)
-            )
+            PrefabProto::ConditionalValue.new(value: FALSE_CONFIG)
           ]
         )
       ]
@@ -579,11 +560,11 @@ class TestCriteriaEvaluator < Minitest::Test
 
                 PrefabProto::Criterion.new(
                   operator: PrefabProto::Criterion::CriterionOperator::PROP_IS_NOT_ONE_OF,
-                  value_to_match: PrefabProto::ConfigValue.new(bool: true),
+                  value_to_match: TRUE_CONFIG,
                   property_name: 'user.deleted'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -607,13 +588,13 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [segment_key, :SEGMENT] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 2, weighted_value_index: nil, selected_index: nil } => 1,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 6,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 0, selected_value: FALSE_CONFIG, conditional_value_index: 2, weighted_value_index: nil, selected_index: nil } => 1,
+        { config_id: 0, config_row_index: 0, selected_value: TRUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 6,
+        { config_id: 0, config_row_index: 0, selected_value: TRUE_CONFIG, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 1
       },
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 5
       }
     }
   end
@@ -634,7 +615,7 @@ class TestCriteriaEvaluator < Minitest::Test
                   property_name: 'team.name'
                 )
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             )
           ]
         )
@@ -656,8 +637,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
-        { config_id: 0, config_row_index: 1, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 12
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 12
       }
     }
   end
@@ -674,7 +655,7 @@ class TestCriteriaEvaluator < Minitest::Test
                 PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::IN_INT_RANGE,
                                            value_to_match: PrefabProto::ConfigValue.new(int_range: PrefabProto::IntRange.new(start: 30, end: 40)), property_name: 'user.age')
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             ),
 
             PrefabProto::ConditionalValue.new(
@@ -698,8 +679,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 1
       }
     }
   end
@@ -722,7 +703,7 @@ class TestCriteriaEvaluator < Minitest::Test
                                              )
                                            ), property_name: 'prefab.current-time')
               ],
-              value: PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+              value: DESIRED_VALUE_CONFIG
             ),
 
             PrefabProto::ConditionalValue.new(
@@ -761,8 +742,8 @@ class TestCriteriaEvaluator < Minitest::Test
 
     assert_summary @base_client, {
       [KEY, :NOT_SET_CONFIG_TYPE] => {
-        { config_id: 0, config_row_index: 0, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
-        { config_id: 0, config_row_index: 0, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2
+        { config_id: 0, config_row_index: 0, selected_value: DESIRED_VALUE_CONFIG, conditional_value_index: 0, weighted_value_index: nil, selected_index: nil } => 3,
+        { config_id: 0, config_row_index: 0, selected_value: DEFAULT_VALUE_CONFIG, conditional_value_index: 1, weighted_value_index: nil, selected_index: nil } => 2
       }
     }
   end

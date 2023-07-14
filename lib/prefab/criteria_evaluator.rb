@@ -23,7 +23,7 @@ module Prefab
         evaluate_for_env(0, properties)
     end
 
-    def summarize(index, value_index)
+    def summarize(index, value_index, value)
       return if @config.config_type == :LOG_LEVEL
 
       @base_client.evaluation_summary_aggregator&.record(config_key: @config.key,
@@ -32,6 +32,7 @@ module Prefab
                                                            config_id: @config.id,
                                                            config_row_index: index,
                                                            conditional_value_index: value_index,
+                                                           selected_value: value,
                                                            weighted_value_index: nil, # TODO
                                                            selected_index: nil # TODO
                                                          })
@@ -99,7 +100,7 @@ module Prefab
         row.values.each_with_index do |conditional_value, value_index|
           next unless all_criteria_match?(conditional_value, properties)
 
-          summarize(index, value_index)
+          summarize(index, value_index, conditional_value.value)
           return conditional_value.value
         end
       end
