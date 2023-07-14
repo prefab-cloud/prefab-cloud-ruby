@@ -40,6 +40,7 @@ module Prefab
         config_row_index: counter[:config_row_index],
         conditional_value_index: counter[:conditional_value_index],
         weighted_value_index: counter[:weighted_value_index],
+        selected_value: counter[:selected_value],
         count: count
       )
     end
