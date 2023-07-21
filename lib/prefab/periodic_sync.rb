@@ -26,6 +26,10 @@ module Prefab
       # noop -- override as you wish
     end
 
+    def post(url, data)
+      @client.post(url, data)
+    end
+
     def start_periodic_sync(sync_interval)
       @start_at = Prefab::TimeHelpers.now_in_ms
 

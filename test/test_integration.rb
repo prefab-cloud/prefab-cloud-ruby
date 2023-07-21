@@ -16,7 +16,7 @@ class TestIntegration < Minitest::Test
         define_method(:"test_#{test['name']}_#{test_case['name']}") do
           it = IntegrationTest.new(test_case)
 
-          with_parent_context_maybe(parent_context) do
+          IntegrationTestHelpers.with_parent_context_maybe(parent_context) do
             case it.test_type
             when :raise
               err = assert_raises(it.expected[:error]) do
@@ -34,22 +34,25 @@ class TestIntegration < Minitest::Test
               end
             when :log_level
               assert_equal it.expected[:value].to_sym, it.test_client.send(it.func, *it.input)
+            when :telemetry
+              aggregator, get_actual_data, expected = IntegrationTestHelpers.prepare_post_data(it)
+              aggregator.sync
+
+              wait_for -> { it.last_post_result&.status == 200 }
+
+              assert it.endpoint == it.last_post_endpoint
+
+              actual = get_actual_data[it.last_data_sent]
+
+              expected.all? do |expected|
+                assert actual.include?(expected)
+              end
             else
               raise "Unknown test type: #{it.test_type}"
             end
           end
         end
       end
-    end
-  end
-
-  private
-
-  def with_parent_context_maybe(context, &block)
-    if context
-      Prefab::Context.with_context(context, &block)
-    else
-      yield
     end
   end
 end

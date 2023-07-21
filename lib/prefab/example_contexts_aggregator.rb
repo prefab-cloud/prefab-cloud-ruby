@@ -45,7 +45,7 @@ module Prefab
       pool.post do
         log_internal "Flushing #{to_ship.size} examples"
 
-        result = @client.post('/api/v1/telemetry', events(to_ship))
+        result = post('/api/v1/telemetry', events(to_ship))
 
         log_internal "Uploaded #{to_ship.size} examples: #{result.status}"
       end

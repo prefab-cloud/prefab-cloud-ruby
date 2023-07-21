@@ -54,7 +54,7 @@ module Prefab
           end
         )
 
-        result = @client.post('/api/v1/context-shapes', shapes)
+        result = post('/api/v1/context-shapes', shapes)
 
         log_internal "Uploaded #{to_ship.values.size} shapes: #{result.status}"
       end

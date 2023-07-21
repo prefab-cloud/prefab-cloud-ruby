@@ -1,18 +1,24 @@
 # frozen_string_literal: true
 
 class IntegrationTest
-  attr_reader :func, :input, :expected, :test_client
+  attr_reader :func, :input, :expected, :data, :expected_data, :aggregator, :endpoint, :test_client
 
   def initialize(test_data)
     @client_overrides = parse_client_overrides(test_data['client_overrides'])
     @func = parse_function(test_data['function'])
     @input = parse_input(test_data['input'])
     @expected = parse_expected(test_data['expected'])
-    @test_client = base_client
+    @data = test_data['data']
+    @expected_data = test_data['expected_data']
+    @aggregator = test_data['aggregator']
+    @endpoint = test_data['endpoint']
+    @test_client = capture_telemetry(base_client)
   end
 
   def test_type
-    if @input[0] && @input[0].start_with?('log-level.')
+    if @data
+      :telemetry
+    elsif @input[0] && @input[0].start_with?('log-level.')
       :log_level
     elsif @expected[:status] == 'raise'
       :raise
@@ -21,6 +27,18 @@ class IntegrationTest
     else
       :simple_equality
     end
+  end
+
+  def last_data_sent
+    test_client.last_data_sent
+  end
+
+  def last_post_result
+    test_client.last_post_result
+  end
+
+  def last_post_endpoint
+    test_client.last_post_endpoint
   end
 
   private
@@ -42,6 +60,8 @@ class IntegrationTest
   end
 
   def parse_input(input)
+    return nil if input.nil?
+
     if input['key']
       parse_config_input(input)
     elsif input['flag']
@@ -62,6 +82,8 @@ class IntegrationTest
   end
 
   def parse_expected(expected)
+    return {} if expected.nil?
+
     {
       status: expected['status'],
       error: parse_error_type(expected['error']),
@@ -73,6 +95,7 @@ class IntegrationTest
   def parse_error_type(error_type)
     case error_type
     when 'missing_default' then Prefab::Errors::MissingDefaultError
+    when 'initialization_timeout' then Prefab::Errors::InitializationTimeoutError
     end
   end
 
@@ -87,7 +110,34 @@ class IntegrationTest
       prefab_envs: ['unit_tests'],
       prefab_datasources: Prefab::Options::DATASOURCES::ALL,
       api_key: ENV['PREFAB_INTEGRATION_TEST_API_KEY'],
-      prefab_api_url: 'https://api.staging-prefab.cloud'
+      prefab_api_url: 'https://api.staging-prefab.cloud',
     }.merge(@client_overrides))
+  end
+
+  def capture_telemetry(client)
+    client.define_singleton_method(:post) do |url, data|
+      client.instance_variable_set(:@last_data_sent, data)
+      client.instance_variable_set(:@last_post_endpoint, url)
+
+      result = super(url, data)
+
+      client.instance_variable_set(:@last_post_result, result)
+
+      result
+    end
+
+    client.define_singleton_method(:last_data_sent) do
+      client.instance_variable_get(:@last_data_sent)
+    end
+
+    client.define_singleton_method(:last_post_endpoint) do
+      client.instance_variable_get(:@last_post_endpoint)
+    end
+
+    client.define_singleton_method(:last_post_result) do
+      client.instance_variable_get(:@last_post_result)
+    end
+
+    client
   end
 end
