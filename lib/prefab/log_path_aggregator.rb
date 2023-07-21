@@ -25,6 +25,9 @@ module Prefab
 
       @data = Concurrent::Map.new
 
+      @last_data_sent = nil
+      @last_request = nil
+
       start_periodic_sync(sync_interval)
     end
 
@@ -55,7 +58,7 @@ module Prefab
           namespace: @client.namespace
         )
 
-        result = @client.post('/api/v1/known-loggers', loggers)
+        result = post('/api/v1/known-loggers', loggers)
 
         log_internal "Uploaded #{to_ship.size} paths: #{result.status}"
       end

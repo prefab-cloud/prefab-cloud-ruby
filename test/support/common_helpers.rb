@@ -82,6 +82,16 @@ module CommonHelpers
 
   FakeResponse = Struct.new(:status, :body)
 
+  def wait_for(condition, max_wait: 2, sleep_time: 0.01)
+    wait_time = 0
+    while !condition.call
+      wait_time += sleep_time
+      sleep sleep_time
+
+      raise "Waited #{max_wait} seconds for the condition to be true, but it never was" if wait_time > max_wait
+    end
+  end
+
   def wait_for_post_requests(client, max_wait: 2, sleep_time: 0.01)
     # we use ivars to avoid re-mocking the post method on subsequent calls
     client.instance_variable_set("@_requests", [])
@@ -99,13 +109,7 @@ module CommonHelpers
     yield
 
     # let the flush thread run
-    wait_time = 0
-    while client.instance_variable_get("@_requests").empty?
-      wait_time += sleep_time
-      sleep sleep_time
-
-      raise "Waited #{max_wait} seconds for the flush thread to run, but it never did" if wait_time > max_wait
-    end
+    wait_for -> { client.instance_variable_get("@_requests").size > 0 }, max_wait: max_wait, sleep_time: sleep_time
 
     client.instance_variable_get("@_requests")
   end
