@@ -15,6 +15,9 @@ module Prefab
 
       @data = Concurrent::Set.new
 
+      @last_data_sent = nil
+      @last_request = nil
+
       start_periodic_sync(sync_interval)
     end
 
@@ -54,7 +57,7 @@ module Prefab
           end
         )
 
-        result = @client.post('/api/v1/context-shapes', shapes)
+        post_and_persist_data('/api/v1/context-shapes', shapes)
 
         log_internal "Uploaded #{to_ship.values.size} shapes: #{result.status}"
       end
