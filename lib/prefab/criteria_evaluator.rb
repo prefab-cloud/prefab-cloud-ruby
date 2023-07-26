@@ -23,21 +23,6 @@ module Prefab
         evaluate_for_env(0, properties)
     end
 
-    def summarize(index, value_index, value)
-      return if @config.config_type == :LOG_LEVEL
-
-      @base_client.evaluation_summary_aggregator&.record(config_key: @config.key,
-                                                         config_type: @config.config_type,
-                                                         counter: {
-                                                           config_id: @config.id,
-                                                           config_row_index: index,
-                                                           conditional_value_index: value_index,
-                                                           selected_value: value,
-                                                           weighted_value_index: nil, # TODO
-                                                           selected_index: nil # TODO
-                                                         })
-    end
-
     def all_criteria_match?(conditional_value, props)
       conditional_value.criteria.all? do |criterion|
         public_send(criterion.operator, criterion, props)
@@ -100,8 +85,13 @@ module Prefab
         row.values.each_with_index do |conditional_value, value_index|
           next unless all_criteria_match?(conditional_value, properties)
 
-          summarize(index, value_index, conditional_value.value)
-          return conditional_value.value
+          return Prefab::Evaluation.new(
+            config: @config,
+            value: conditional_value.value,
+            value_index: value_index,
+            config_row_index: index,
+            context: properties
+          )
         end
       end
 
@@ -113,11 +103,12 @@ module Prefab
 
       @base_client.log.info("Segment #{criterion.value_to_match.string} not found") unless segment
 
-      segment&.bool
+      segment&.report_and_return(@base_client.evaluation_summary_aggregator)
     end
 
     def matches?(criterion, value, properties)
-      criterion_value_or_values = Prefab::ConfigValueUnwrapper.unwrap(criterion.value_to_match, @config.key, properties)
+      criterion_value_or_values = Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config.key,
+                                                                             properties).unwrap
 
       case criterion_value_or_values
       when Google::Protobuf::RepeatedField

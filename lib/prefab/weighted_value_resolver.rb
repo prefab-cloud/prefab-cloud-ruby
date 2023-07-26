@@ -15,7 +15,7 @@ module Prefab
 
       index = variant_index(percent)
 
-      @weights[index]
+      [@weights[index], index]
     end
 
     def user_percent

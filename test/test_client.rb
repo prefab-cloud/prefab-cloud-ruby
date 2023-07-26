@@ -5,6 +5,25 @@ require 'test_helper'
 class TestClient < Minitest::Test
   LOCAL_ONLY = Prefab::Options::DATASOURCES::LOCAL_ONLY
 
+  PROJECT_ENV_ID = 1
+  KEY = 'the-key'
+  DEFAULT_VALUE = 'default_value'
+  DESIRED_VALUE = 'desired_value'
+
+  IRRELEVANT_DEFAULT_VALUE = 'this should never show up'
+
+  DEFAULT_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
+  DESIRED_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
+
+  TRUE_CONFIG = PrefabProto::ConfigValue.new(bool: true)
+  FALSE_CONFIG = PrefabProto::ConfigValue.new(bool: false)
+
+  DEFAULT_ROW = PrefabProto::ConfigRow.new(
+    values: [
+      PrefabProto::ConditionalValue.new(value: DEFAULT_VALUE_CONFIG)
+    ]
+  )
+
   def setup
     @client = new_client
   end
@@ -129,6 +148,204 @@ class TestClient < Minitest::Test
     assert_equal Prefab::EvaluationSummaryAggregator,
                  Prefab::Client.new(api_key: fake_api_key,
                                     collect_evaluation_summaries: true).evaluation_summary_aggregator.class
+  end
+
+  def test_get_with_basic_value
+    config = PrefabProto::Config.new(
+      id: 123,
+      key: KEY,
+      config_type: PrefabProto::ConfigType::CONFIG,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force)
+
+    assert_equal DESIRED_VALUE, client.get(config.key)
+
+    assert_summary client, {
+      [KEY, :CONFIG] => {
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          selected_value: DESIRED_VALUE_CONFIG,
+          conditional_value_index: 0,
+          weighted_value_index: nil,
+          selected_index: nil
+        } => 1
+      }
+    }
+  end
+
+  def test_get_with_weighted_values
+    config = PrefabProto::Config.new(
+      id: 123,
+      key: KEY,
+      config_type: PrefabProto::ConfigType::CONFIG,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
+              value: PrefabProto::ConfigValue.new(weighted_values: weighted_values([['abc', 98], ['def', 1],
+                                                                                    ['ghi', 1]]))
+            )
+          ]
+        )
+      ]
+    )
+
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force)
+
+    2.times do
+      assert_equal 'abc', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '1' }))
+    end
+
+    3.times do
+      assert_equal 'def', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '12' }))
+    end
+
+    assert_equal 'ghi', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '4' }))
+
+    assert_summary client, {
+      [KEY, :CONFIG] => {
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          selected_value: PrefabProto::ConfigValue.new(string: 'abc'),
+          conditional_value_index: 0,
+          weighted_value_index: 0,
+          selected_index: nil
+        } => 2,
+
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          selected_value: PrefabProto::ConfigValue.new(string: 'def'),
+          conditional_value_index: 0,
+          weighted_value_index: 1,
+          selected_index: nil
+        } => 3,
+
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          selected_value: PrefabProto::ConfigValue.new(string: 'ghi'),
+          conditional_value_index: 0,
+          weighted_value_index: 2,
+          selected_index: nil
+        } => 1
+      }
+    }
+  end
+
+  def test_in_seg
+    segment_key = 'segment_key'
+
+    segment_config = PrefabProto::Config.new(
+      config_type: PrefabProto::ConfigType::SEGMENT,
+      key: segment_key,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(
+              value: TRUE_CONFIG,
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_ENDS_WITH_ONE_OF,
+                  value_to_match: string_list(['hotmail.com', 'gmail.com']),
+                  property_name: 'user.email'
+                )
+              ]
+            ),
+            PrefabProto::ConditionalValue.new(value: FALSE_CONFIG)
+          ]
+        )
+      ]
+    )
+
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::IN_SEG,
+                  value_to_match: PrefabProto::ConfigValue.new(string: segment_key)
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    client = new_client(config: [config, segment_config], project_env_id: PROJECT_ENV_ID,
+                        collect_evaluation_summaries: :force)
+
+    assert_equal DEFAULT_VALUE, client.get(config.key)
+    assert_equal DEFAULT_VALUE,
+                 client.get(config.key, IRRELEVANT_DEFAULT_VALUE, user: { email: 'example@prefab.cloud' })
+    assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT_DEFAULT_VALUE, user: { email: 'example@hotmail.com' })
+
+    assert_summary client, {
+      [segment_key, :SEGMENT] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 1, selected_value: FALSE_CONFIG,
+          weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, selected_value: TRUE_CONFIG,
+          weighted_value_index: nil, selected_index: nil } => 1
+      },
+      [KEY, :NOT_SET_CONFIG_TYPE] => {
+        { config_id: 0, config_row_index: 0, conditional_value_index: 0, selected_value: DEFAULT_VALUE_CONFIG,
+          weighted_value_index: nil, selected_index: nil } => 2,
+        { config_id: 0, config_row_index: 1, conditional_value_index: 0, selected_value: DESIRED_VALUE_CONFIG,
+          weighted_value_index: nil, selected_index: nil } => 1
+      }
+    }
+  end
+
+  def test_get_log_level
+    config = PrefabProto::Config.new(
+      id: 999,
+      key: 'log-level',
+      config_type: PrefabProto::ConfigType::LOG_LEVEL,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
+              value: PrefabProto::ConfigValue.new(log_level: PrefabProto::LogLevel::DEBUG)
+            )
+          ]
+        )
+      ]
+    )
+
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID,
+                        collect_evaluation_summaries: :force)
+
+    assert_equal :DEBUG, client.get(config.key, IRRELEVANT_DEFAULT_VALUE)
+
+    # nothing is summarized for log levels
+    assert_summary client, {}
   end
 
   private

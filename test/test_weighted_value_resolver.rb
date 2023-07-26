@@ -8,30 +8,36 @@ class TestWeightedValueResolver < Minitest::Test
   def test_resolving_single_value
     values = weighted_values([['abc', 1]])
     resolver = Prefab::WeightedValueResolver.new(values, KEY, nil)
-    assert_equal 'abc', resolver.resolve.value.string
+    assert_equal 'abc', resolver.resolve[0].value.string
+    assert_equal 0, resolver.resolve[1]
   end
 
   def test_resolving_multiple_values_evenly_distributed
     values = weighted_values([['abc', 1], ['def', 1]])
 
     resolver = Prefab::WeightedValueResolver.new(values, KEY, 'user:001')
-    assert_equal 'abc', resolver.resolve.value.string
+    assert_equal 'abc', resolver.resolve[0].value.string
+    assert_equal 0, resolver.resolve[1]
 
     resolver = Prefab::WeightedValueResolver.new(values, KEY, 'user:456')
-    assert_equal 'def', resolver.resolve.value.string
+    assert_equal 'def', resolver.resolve[0].value.string
+    assert_equal 1, resolver.resolve[1]
   end
 
   def test_resolving_multiple_values_unevenly_distributed
     values = weighted_values([['abc', 1], ['def', 98], ['ghi', 1]])
 
     resolver = Prefab::WeightedValueResolver.new(values, KEY, 'user:456')
-    assert_equal 'def', resolver.resolve.value.string
+    assert_equal 'def', resolver.resolve[0].value.string
+    assert_equal 1, resolver.resolve[1]
 
     resolver = Prefab::WeightedValueResolver.new(values, KEY, 'user:103')
-    assert_equal 'ghi', resolver.resolve.value.string
+    assert_equal 'ghi', resolver.resolve[0].value.string
+    assert_equal 2, resolver.resolve[1]
 
     resolver = Prefab::WeightedValueResolver.new(values, KEY, 'user:119')
-    assert_equal 'abc', resolver.resolve.value.string
+    assert_equal 'abc', resolver.resolve[0].value.string
+    assert_equal 0, resolver.resolve[1]
   end
 
   def test_resolving_multiple_values_with_simulation
@@ -39,7 +45,7 @@ class TestWeightedValueResolver < Minitest::Test
     results = {}
 
     10_000.times do |i|
-      result = Prefab::WeightedValueResolver.new(values, KEY, "user:#{i}").resolve.value.string
+      result = Prefab::WeightedValueResolver.new(values, KEY, "user:#{i}").resolve[0].value.string
       results[result] ||= 0
       results[result] += 1
     end
