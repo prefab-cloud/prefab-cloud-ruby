@@ -25,10 +25,23 @@ module Prefab
       def to_h
         @hash
       end
+
+      def key
+        "#{@name}:#{get('key')}"
+      end
+
+      def to_proto
+        PrefabProto::Context.new(
+          type: name,
+          values: to_h.transform_values do |value|
+            ConfigValueWrapper.wrap(value)
+          end
+        )
+      end
     end
 
     THREAD_KEY = :prefab_context
-    attr_reader :contexts
+    attr_reader :contexts, :seen_at
 
     class << self
       def current=(context)
@@ -58,6 +71,7 @@ module Prefab
 
     def initialize(context = {})
       @contexts = {}
+      @seen_at = Time.now.utc.to_i
 
       if context.is_a?(NamedContext)
         @contexts[context.name] = context
@@ -113,15 +127,33 @@ module Prefab
 
       PrefabProto::ContextSet.new(
         contexts: contexts.map do |name, context|
-          PrefabProto::Context.new(
-            type: name,
-            values: context.to_h.transform_values do |value|
-              ConfigValueWrapper.wrap(value)
-            end
-          )
+          context.to_proto
         end.concat([PrefabProto::Context.new(type: 'prefab',
                                              values: prefab_context)])
       )
+    end
+
+    def slim_proto
+      PrefabProto::ContextSet.new(
+        contexts: contexts.map do |_, context|
+          context.to_proto
+        end
+      )
+    end
+
+    def grouped_key
+      contexts.map do |_, context|
+        context.key
+      end.sort.join('|')
+    end
+
+    include Comparable
+    def <=>(other)
+      if other.is_a?(Prefab::Context)
+        to_h <=> other.to_h
+      else
+        super
+      end
     end
   end
 end

@@ -50,7 +50,7 @@ module Prefab
     DEFAULT_MAX_PATHS = 1_000
     DEFAULT_MAX_CONTEXT_KEYS = 100_000
     DEFAULT_MAX_KEYS = 100_000
-    DEFAULT_MAX_EVALS = 100_000
+    DEFAULT_MAX_EXAMPLE_CONTEXTS = 100_000
     DEFAULT_MAX_EVAL_SUMMARIES = 100_000
 
     private def init(
@@ -78,8 +78,8 @@ module Prefab
       collect_max_shapes: DEFAULT_MAX_CONTEXT_KEYS,
       collect_keys: false,
       collect_max_keys: DEFAULT_MAX_KEYS,
-      collect_evaluations: false,
-      collect_max_evaluations: DEFAULT_MAX_EVALS,
+      collect_example_contexts: false,
+      collect_max_example_contexts: DEFAULT_MAX_EXAMPLE_CONTEXTS,
       collect_evaluation_summaries: false,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES
     )
@@ -105,8 +105,8 @@ module Prefab
       @collect_max_shapes = collect_max_shapes
       @collect_keys = collect_keys
       @collect_max_keys = collect_max_keys
-      @collect_evaluations = collect_evaluations
-      @collect_max_evaluations = collect_max_evaluations
+      @collect_example_contexts = collect_example_contexts
+      @collect_max_example_contexts = collect_max_example_contexts
       @collect_evaluation_summaries = collect_evaluation_summaries
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
     end
@@ -137,10 +137,10 @@ module Prefab
       @collect_max_keys
     end
 
-    def collect_max_evaluations
-      return 0 unless telemetry_allowed?(@collect_evaluations)
+    def collect_max_example_contexts
+      return 0 unless telemetry_allowed?(@collect_example_contexts)
 
-      @collect_max_evaluations
+      @collect_max_example_contexts
     end
 
     def collect_max_evaluation_summaries

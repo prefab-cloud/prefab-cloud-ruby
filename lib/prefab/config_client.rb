@@ -58,17 +58,16 @@ module Prefab
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
       context = @config_resolver.make_context(properties)
 
+      if properties != NO_DEFAULT_PROVIDED && @base_client.example_contexts_aggregator
+        @base_client.example_contexts_aggregator.record(context)
+      end
+
       evaluation = _get(key, context)
 
       @base_client.context_shape_aggregator&.push(context)
       @base_client.evaluated_keys_aggregator&.push(key)
 
       if evaluation
-        # NOTE: we don't &.push here because some of the args aren't already available
-        if @base_client.evaluated_configs_aggregator && key != Prefab::LoggerClient::BASE_KEY && !key.start_with?(LOGGING_KEY_PREFIX)
-          @base_client.evaluated_configs_aggregator.push([raw(key), evaluation.value, context])
-        end
-
         evaluation.report_and_return(@base_client.evaluation_summary_aggregator)
       else
         handle_default(key, default)
