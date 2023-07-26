@@ -80,11 +80,14 @@ module Prefab
                                                                  sync_interval: @options.collect_sync_interval)
     end
 
-    def evaluated_configs_aggregator
-      return nil if @options.collect_max_evaluations <= 0
+    def example_contexts_aggregator
+      return nil if @options.collect_max_example_contexts <= 0
 
-      @evaluated_configs_aggregator ||= EvaluatedConfigsAggregator.new(client: self, max_configs: @options.collect_max_evaluations,
-                                                                       sync_interval: @options.collect_sync_interval)
+      @example_contexts_aggregator ||= ExampleContextsAggregator.new(
+        client: self,
+        max_contexts: @options.collect_max_example_contexts,
+        sync_interval: @options.collect_sync_interval
+      )
     end
 
     def evaluation_summary_aggregator

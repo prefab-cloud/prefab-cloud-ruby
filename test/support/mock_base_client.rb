@@ -36,8 +36,6 @@ class MockBaseClient
 
   def evaluated_keys_aggregator; end
 
-  def evaluated_configs_aggregator; end
-
   def evaluation_summary_aggregator; end
 
   def config_value(key)

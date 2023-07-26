@@ -79,6 +79,12 @@ module CommonHelpers
     assert_equal data, client.evaluation_summary_aggregator.data
   end
 
+  def assert_example_contexts(client, data)
+    raise 'Example contexts aggregator not enabled' unless client.example_contexts_aggregator
+
+    assert_equal data, client.example_contexts_aggregator.data
+  end
+
   def weighted_values(values_and_weights, hash_by_property_name: 'user.key')
     values = values_and_weights.map do |value, weight|
       weighted_value(value, weight)

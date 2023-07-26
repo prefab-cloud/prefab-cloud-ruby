@@ -16,7 +16,14 @@ module Prefab
     def prepare_data
       to_ship = @data.dup
       @data.clear
+
+      on_prepare_data
+
       to_ship
+    end
+
+    def on_prepare_data
+      # noop -- override as you wish
     end
 
     def start_periodic_sync(sync_interval)

@@ -10,7 +10,7 @@ class TestClient < Minitest::Test
   DEFAULT_VALUE = 'default_value'
   DESIRED_VALUE = 'desired_value'
 
-  IRRELEVANT_DEFAULT_VALUE = 'this should never show up'
+  IRRELEVANT = 'this should never show up'
 
   DEFAULT_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DEFAULT_VALUE)
   DESIRED_VALUE_CONFIG = PrefabProto::ConfigValue.new(string: DESIRED_VALUE)
@@ -169,9 +169,10 @@ class TestClient < Minitest::Test
       ]
     )
 
-    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force)
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
+                        collect_example_contexts: :force)
 
-    assert_equal DESIRED_VALUE, client.get(config.key)
+    assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT, 'user' => { 'key' => 99 })
 
     assert_summary client, {
       [KEY, :CONFIG] => {
@@ -185,6 +186,8 @@ class TestClient < Minitest::Test
         } => 1
       }
     }
+
+    assert_example_contexts client, [Prefab::Context.new({ user: { 'key' => 99 } })]
   end
 
   def test_get_with_weighted_values
@@ -207,17 +210,19 @@ class TestClient < Minitest::Test
       ]
     )
 
-    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force)
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
+                        collect_example_contexts: :force)
 
     2.times do
-      assert_equal 'abc', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '1' }))
+      assert_equal 'abc', client.get(config.key, IRRELEVANT, 'user' => { 'key' => '1' })
     end
 
     3.times do
-      assert_equal 'def', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '12' }))
+      assert_equal 'def', client.get(config.key, IRRELEVANT, 'user' => { 'key' => '12' })
     end
 
-    assert_equal 'ghi', client.get(config.key, IRRELEVANT_DEFAULT_VALUE, context('user' => { 'key' => '4' }))
+    assert_equal 'ghi',
+                 client.get(config.key, IRRELEVANT, 'user' => { 'key' => '4', admin: true })
 
     assert_summary client, {
       [KEY, :CONFIG] => {
@@ -249,6 +254,12 @@ class TestClient < Minitest::Test
         } => 1
       }
     }
+
+    assert_example_contexts client, [
+      Prefab::Context.new(user: { 'key' => '1' }),
+      Prefab::Context.new(user: { 'key' => '12' }),
+      Prefab::Context.new(user: { 'key' => '4', admin: true })
+    ]
   end
 
   def test_in_seg
@@ -299,12 +310,12 @@ class TestClient < Minitest::Test
     )
 
     client = new_client(config: [config, segment_config], project_env_id: PROJECT_ENV_ID,
-                        collect_evaluation_summaries: :force)
+                        collect_evaluation_summaries: :force, collect_example_contexts: :force)
 
     assert_equal DEFAULT_VALUE, client.get(config.key)
     assert_equal DEFAULT_VALUE,
-                 client.get(config.key, IRRELEVANT_DEFAULT_VALUE, user: { email: 'example@prefab.cloud' })
-    assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT_DEFAULT_VALUE, user: { email: 'example@hotmail.com' })
+                 client.get(config.key, IRRELEVANT, user: { key: 'abc', email: 'example@prefab.cloud' })
+    assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT, user: { key: 'def', email: 'example@hotmail.com' })
 
     assert_summary client, {
       [segment_key, :SEGMENT] => {
@@ -320,6 +331,11 @@ class TestClient < Minitest::Test
           weighted_value_index: nil, selected_index: nil } => 1
       }
     }
+
+    assert_example_contexts client, [
+      Prefab::Context.new(user: { key: 'abc', email: 'example@prefab.cloud' }),
+      Prefab::Context.new(user: { key: 'def', email: 'example@hotmail.com' })
+    ]
   end
 
   def test_get_log_level
@@ -342,7 +358,7 @@ class TestClient < Minitest::Test
     client = new_client(config: config, project_env_id: PROJECT_ENV_ID,
                         collect_evaluation_summaries: :force)
 
-    assert_equal :DEBUG, client.get(config.key, IRRELEVANT_DEFAULT_VALUE)
+    assert_equal :DEBUG, client.get(config.key, IRRELEVANT)
 
     # nothing is summarized for log levels
     assert_summary client, {}
