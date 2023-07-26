@@ -2,24 +2,35 @@
 
 module Prefab
   class ConfigValueUnwrapper
-    def self.unwrap(config_value, config_key, context)
-      return nil unless config_value
+    attr_reader :value, :weighted_value_index
 
-      case config_value.type
+    def initialize(value, weighted_value_index = nil)
+      @value = value
+      @weighted_value_index = weighted_value_index
+    end
+
+    def unwrap
+      case value.type
       when :int, :string, :double, :bool, :log_level
-        config_value.public_send(config_value.type)
+        value.public_send(value.type)
       when :string_list
-        config_value.string_list.values
-      when :weighted_values
-        value = Prefab::WeightedValueResolver.new(
+        value.string_list.values
+      else
+        raise "Unknown type: #{config_value.type}"
+      end
+    end
+
+    def self.deepest_value(config_value, config_key, context)
+      if config_value&.type == :weighted_values
+        value, index = Prefab::WeightedValueResolver.new(
           config_value.weighted_values.weighted_values,
           config_key,
           context.get(config_value.weighted_values.hash_by_property_name)
         ).resolve
 
-        unwrap(value.value, config_key, context)
+        new(deepest_value(value.value, config_key, context).value, index)
       else
-        raise "Unknown type: #{config_value.type}"
+        new(config_value)
       end
     end
   end

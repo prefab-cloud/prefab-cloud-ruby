@@ -34,7 +34,7 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values.size
 
     value_row = config.rows[0].values[0]
-    assert_equal 'all-features', Prefab::ConfigValueUnwrapper.unwrap(value_row.value, key, {})
+    assert_equal 'all-features', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
   end
 
   def test_flag_in_user_key
@@ -53,7 +53,7 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values[0].criteria.size
 
     value_row = config.rows[0].values[0]
-    assert_equal true, Prefab::ConfigValueUnwrapper.unwrap(value_row.value, key, {})
+    assert_equal true, Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
 
     assert_equal 'user.key', value_row.criteria[0].property_name
     assert_equal :PROP_IS_ONE_OF, value_row.criteria[0].operator

@@ -120,31 +120,31 @@ module Prefab
     end
 
     def collect_max_paths
-      return 0 if !@collect_logs || local_only?
+      return 0 unless telemetry_allowed?(@collect_logs)
 
       @collect_max_paths
     end
 
     def collect_max_shapes
-      return 0 if !@collect_shapes || local_only?
+      return 0 unless telemetry_allowed?(@collect_shapes)
 
       @collect_max_shapes
     end
 
     def collect_max_keys
-      return 0 if !@collect_keys || local_only?
+      return 0 unless telemetry_allowed?(@collect_keys)
 
       @collect_max_keys
     end
 
     def collect_max_evaluations
-      return 0 if !@collect_evaluations || local_only?
+      return 0 unless telemetry_allowed?(@collect_evaluations)
 
       @collect_max_evaluations
     end
 
     def collect_max_evaluation_summaries
-      return 0 if !@collect_evaluation_summaries || local_only?
+      return 0 unless telemetry_allowed?(@collect_evaluation_summaries)
 
       @collect_max_evaluation_summaries
     end
@@ -155,6 +155,10 @@ module Prefab
     end
 
     private
+
+    def telemetry_allowed?(option)
+      option && !local_only? || option == :force
+    end
 
     def remove_trailing_slash(url)
       url.end_with?('/') ? url[0..-2] : url

@@ -117,31 +117,30 @@ class TestConfigResolver < Minitest::Test
 
     @loader.stub :calc_config, loaded_values do
       @resolverA = resolver_for_namespace('', @loader, project_env_id: PRODUCTION_ENV_ID)
-      assert_equal_context_and_jit DEFAULT_VALUE, @resolverA, 'key', {}, :string
+      assert_equal_context_and_jit DEFAULT_VALUE, @resolverA, 'key', {}
 
       ## below here in the test env
       @resolverA = resolver_for_namespace('', @loader)
-      assert_equal_context_and_jit 'value_none', @resolverA, 'key', {}, :string
+      assert_equal_context_and_jit 'value_none', @resolverA, 'key', {}
 
       @resolverA = resolver_for_namespace('projectA', @loader)
-      assert_equal_context_and_jit 'valueA', @resolverA, 'key', {}, :string
+      assert_equal_context_and_jit 'valueA', @resolverA, 'key', {}
 
       @resolverB = resolver_for_namespace('projectB', @loader)
-      assert_equal_context_and_jit 'valueB', @resolverB, 'key', {}, :string
+      assert_equal_context_and_jit 'valueB', @resolverB, 'key', {}
 
       @resolverBX = resolver_for_namespace('projectB.subprojectX', @loader)
-      assert_equal_context_and_jit 'projectB.subprojectX', @resolverBX, 'key', {}, :string
+      assert_equal_context_and_jit 'projectB.subprojectX', @resolverBX, 'key', {}
 
       @resolverBX = resolver_for_namespace('projectB.subprojectX', @loader)
-      assert_equal_context_and_jit 'valueB2', @resolverBX, 'key2', {}, :string
+      assert_equal_context_and_jit 'valueB2', @resolverBX, 'key2', {}
 
       @resolverUndefinedSubProject = resolver_for_namespace('projectB.subprojectX.subsubQ',
                                                             @loader)
-      assert_equal_context_and_jit 'projectB.subprojectX', @resolverUndefinedSubProject, 'key',
-                                   {}, :string
+      assert_equal_context_and_jit 'projectB.subprojectX', @resolverUndefinedSubProject, 'key', {}
 
       @resolverBX = resolver_for_namespace('projectC', @loader)
-      assert_equal_context_and_jit 'value_none', @resolverBX, 'key', {}, :string
+      assert_equal_context_and_jit 'value_none', @resolverBX, 'key', {}
 
       assert_nil @resolverBX.get('key_that_doesnt_exist', nil)
 
@@ -244,9 +243,9 @@ class TestConfigResolver < Minitest::Test
       resolver.project_env_id = PRODUCTION_ENV_ID
 
       assert_equal_context_and_jit DEFAULT_VALUE, resolver, CONFIG_KEY,
-                                   { user: { email: 'test@something-else.com' } }, :string
+                                   { user: { email: 'test@something-else.com' } }
       assert_equal_context_and_jit IN_SEGMENT_VALUE, resolver, CONFIG_KEY,
-                                   { user: { email: 'test@hotmail.com' } }, :string
+                                   { user: { email: 'test@hotmail.com' } }
     end
   end
 
@@ -312,10 +311,8 @@ class TestConfigResolver < Minitest::Test
       options = Prefab::Options.new
       resolver = Prefab::ConfigResolver.new(MockBaseClient.new(options), loader)
 
-      assert_equal_context_and_jit IN_SEGMENT_VALUE, resolver, CONFIG_KEY, { user: { email: 'test@hotmail.com' } },
-                                   :string
-      assert_equal_context_and_jit NOT_IN_SEGMENT_VALUE, resolver, CONFIG_KEY, { user: { email: 'test@something-else.com' } },
-                                   :string
+      assert_equal_context_and_jit IN_SEGMENT_VALUE, resolver, CONFIG_KEY, { user: { email: 'test@hotmail.com' } }
+      assert_equal_context_and_jit NOT_IN_SEGMENT_VALUE, resolver, CONFIG_KEY, { user: { email: 'test@something-else.com' } }
     end
   end
 
@@ -356,9 +353,9 @@ class TestConfigResolver < Minitest::Test
       resolver.project_env_id = TEST_ENV_ID
 
       Prefab::Context.with_context({ user: { email: 'test@example.com' } }) do
-        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).string
-        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).string
-        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'pro' } }).string
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).unwrapped_value
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).unwrapped_value
+        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'pro' } }).unwrapped_value
       end
     end
   end
@@ -400,9 +397,9 @@ class TestConfigResolver < Minitest::Test
       resolver.project_env_id = TEST_ENV_ID
 
       Prefab::Context.with_context({ user: { email: 'test@hotmail.com' }, team: { plan: 'pro' } }) do
-        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).string
-        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { user: { email: 'test@example.com' } }).string
-        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).string
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY).unwrapped_value
+        assert_equal DESIRED_VALUE, resolver.get(CONFIG_KEY, { user: { email: 'test@example.com' } }).unwrapped_value
+        assert_equal DEFAULT_VALUE, resolver.get(CONFIG_KEY, { team: { plan: 'freebie' } }).unwrapped_value
       end
     end
   end
@@ -419,11 +416,11 @@ class TestConfigResolver < Minitest::Test
     resolver
   end
 
-  def assert_equal_context_and_jit(expected_value, resolver, key, properties, type)
-    assert_equal expected_value, resolver.get(key, properties).send(type)
+  def assert_equal_context_and_jit(expected_value, resolver, key, properties)
+    assert_equal expected_value, resolver.get(key, properties).unwrapped_value
 
     Prefab::Context.with_context(properties) do
-      assert_equal expected_value, resolver.get(key).send(type)
+      assert_equal expected_value, resolver.get(key).unwrapped_value
     end
   end
 end

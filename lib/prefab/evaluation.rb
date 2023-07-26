@@ -1,0 +1,48 @@
+# frozen_string_literal: true
+
+module Prefab
+  # Records the result of evaluating a config's criteria and forensics for reporting
+  class Evaluation
+    attr_reader :value
+
+    def initialize(config:, value:, value_index:, config_row_index:, context:)
+      @config = config
+      @value = value
+      @value_index = value_index
+      @config_row_index = config_row_index
+      @context = context
+    end
+
+    def unwrapped_value
+      deepest_value.unwrap
+    end
+
+    def report_and_return(evaluation_summary_aggregator)
+      report(evaluation_summary_aggregator)
+
+      unwrapped_value
+    end
+
+    private
+
+    def report(evaluation_summary_aggregator)
+      return if @config.config_type == :LOG_LEVEL
+
+      evaluation_summary_aggregator&.record(
+        config_key: @config.key,
+        config_type: @config.config_type,
+        counter: {
+          config_id: @config.id,
+          config_row_index: @config_row_index,
+          conditional_value_index: @value_index,
+          selected_value: deepest_value.value,
+          weighted_value_index: deepest_value.weighted_value_index,
+          selected_index: nil # TODO
+        })
+    end
+
+    def deepest_value
+      @deepest_value ||= Prefab::ConfigValueUnwrapper.deepest_value(@value, @config.key, @context)
+    end
+  end
+end

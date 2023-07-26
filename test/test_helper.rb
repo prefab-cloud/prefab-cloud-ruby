@@ -78,18 +78,6 @@ end
 
 private
 
-def default_ff_rule(variant_idx)
-  [
-    Prefab::Rule.new(
-      criteria: Prefab::Criteria.new(operator: Prefab::Criteria::CriteriaOperator::ALWAYS_TRUE),
-      variant_weights: [
-        Prefab::VariantWeight.new(weight: 1000,
-                                  variant_idx: variant_idx)
-      ]
-    )
-  ]
-end
-
 def with_env(key, value, &block)
   old_value = ENV.fetch(key, nil)
 
@@ -100,6 +88,9 @@ ensure
 end
 
 def new_client(overrides = {})
+  config = overrides.delete(:config)
+  project_env_id = overrides.delete(:project_env_id)
+
   options = Prefab::Options.new(**{
     prefab_config_override_dir: 'none',
     prefab_config_classpath_dir: 'test',
@@ -107,7 +98,11 @@ def new_client(overrides = {})
     prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
   }.merge(overrides))
 
-  Prefab::Client.new(options)
+  Prefab::Client.new(options).tap do |client|
+    inject_config(client, config) if config
+
+    client.resolver.project_env_id = project_env_id if project_env_id
+  end
 end
 
 def string_list(values)
@@ -118,7 +113,9 @@ def inject_config(client, config)
   resolver = client.config_client.instance_variable_get('@config_resolver')
   store = resolver.instance_variable_get('@local_store')
 
-  store[config.key] = { config: config }
+  Array(config).each do |c|
+    store[c.key] = { config: c }
+  end
 end
 
 def inject_project_env_id(client, project_env_id)
@@ -153,5 +150,25 @@ def wait_for_post_requests(client)
 end
 
 def assert_summary(client, data)
+  raise 'Evaluation summary aggregator not enabled' unless client.evaluation_summary_aggregator
+
   assert_equal data, client.evaluation_summary_aggregator.data
+end
+
+def weighted_values(values_and_weights, hash_by_property_name: 'user.key')
+  values = values_and_weights.map do |value, weight|
+    weighted_value(value, weight)
+  end
+
+  PrefabProto::WeightedValues.new(weighted_values: values, hash_by_property_name: hash_by_property_name)
+end
+
+def weighted_value(string, weight)
+  PrefabProto::WeightedValue.new(
+    value: PrefabProto::ConfigValue.new(string: string), weight: weight
+  )
+end
+
+def context(properties)
+  Prefab::Context.new(properties)
 end
