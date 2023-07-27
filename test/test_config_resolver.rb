@@ -22,6 +22,10 @@ class TestConfigResolver < Minitest::Test
     ]
   )
 
+  class MockConfigLoader
+    def calc_config; end
+  end
+
   def test_resolution
     @loader = MockConfigLoader.new
 
