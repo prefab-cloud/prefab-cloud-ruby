@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.24.6 - 2023-07-31
+
+- Logger Client compatibility (#129)
+- Replace EvaluatedConfigs with ExampleContexts (#128)
+- Add ConfigEvaluationSummaries (opt-in for now) (#123)
+
 ## 0.24.5 - 2023-07-10
 
 - Report Client Version (#121)
