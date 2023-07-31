@@ -182,7 +182,7 @@ module Prefab
 
       @base_client.log_internal ::Logger::INFO, "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
-      @base_client.log.set_config_client(self)
+      @base_client.log.config_client = self
       @base_client.log_internal ::Logger::INFO, to_s
     end
 

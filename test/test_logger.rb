@@ -65,20 +65,20 @@ class TestLogger < Minitest::Test
       assert_equal ::Logger::INFO,
                    @logger.level_of('app.models.user'), 'PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL is info'
 
-      @logger.set_config_client(MockConfigClient.new({}))
+      @logger.config_client = MockConfigClient.new({})
       assert_equal ::Logger::WARN,
                    @logger.level_of('app.models.user'), 'default is warn'
 
-      @logger.set_config_client(MockConfigClient.new('log-level.app' => :INFO))
+      @logger.config_client = MockConfigClient.new('log-level.app' => :INFO)
       assert_equal ::Logger::INFO,
                    @logger.level_of('app.models.user')
 
-      @logger.set_config_client(MockConfigClient.new('log-level.app' => :DEBUG))
+      @logger.config_client = MockConfigClient.new('log-level.app' => :DEBUG)
       assert_equal ::Logger::DEBUG,
                    @logger.level_of('app.models.user')
 
-      @logger.set_config_client(MockConfigClient.new('log-level.app' => :DEBUG,
-                                                     'log-level.app.models' => :ERROR))
+      @logger.config_client = MockConfigClient.new('log-level.app' => :DEBUG,
+                                                   'log-level.app.models' => :ERROR)
       assert_equal ::Logger::ERROR,
                    @logger.level_of('app.models.user'), 'test leveling'
     end
