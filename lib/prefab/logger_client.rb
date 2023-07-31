@@ -15,7 +15,7 @@ module Prefab
       PrefabProto::LogLevel::WARN => ::Logger::WARN,
       PrefabProto::LogLevel::ERROR => ::Logger::ERROR,
       PrefabProto::LogLevel::FATAL => ::Logger::FATAL
-    }
+    }.freeze
 
     def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
       super(logdev)
@@ -27,7 +27,7 @@ module Prefab
       @log_path_aggregator = log_path_aggregator
     end
 
-    def add(severity, message = nil, progname = nil, loc, &block)
+    def add_internal(severity, message, progname, loc, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
 
@@ -36,7 +36,7 @@ module Prefab
       log(message, path, progname, severity, &block)
     end
 
-    def log_internal(message, path = nil, progname, severity, &block)
+    def log_internal(message, path, progname, severity, &block)
       path = if path
                "#{INTERNAL_PREFIX}.#{path}"
              else
@@ -51,9 +51,8 @@ module Prefab
 
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
-      if progname.nil?
-        progname = @progname
-      end
+      progname = @progname if progname.nil?
+
       if message.nil?
         if block_given?
           message = yield
@@ -70,23 +69,23 @@ module Prefab
     end
 
     def debug(progname = nil, &block)
-      add(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
+      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def info(progname = nil, &block)
-      add(INFO, nil, progname, caller_locations(1, 1)[0], &block)
+      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def warn(progname = nil, &block)
-      add(WARN, nil, progname, caller_locations(1, 1)[0], &block)
+      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def error(progname = nil, &block)
-      add(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
+      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def fatal(progname = nil, &block)
-      add(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
+      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
     end
 
     def debug?
@@ -113,7 +112,7 @@ module Prefab
       DEBUG
     end
 
-    def set_config_client(config_client)
+    def config_client=(config_client)
       @config_client = config_client
     end
 
@@ -169,7 +168,7 @@ module Prefab
       path
     end
 
-    def format_message(severity, datetime, progname, msg, path)
+    def format_message(severity, datetime, progname, msg, path = nil)
       formatter = (@formatter || @default_formatter)
 
       if formatter.arity == 5
