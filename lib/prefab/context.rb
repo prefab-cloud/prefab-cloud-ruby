@@ -91,6 +91,10 @@ module Prefab
       end
     end
 
+    def blank?
+      contexts.empty?
+    end
+
     def set(name, hash)
       @contexts[name.to_s] = NamedContext.new(name, hash)
     end

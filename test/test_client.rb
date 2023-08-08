@@ -151,28 +151,36 @@ class TestClient < Minitest::Test
   end
 
   def test_get_with_basic_value
-    config = PrefabProto::Config.new(
-      id: 123,
-      key: KEY,
-      config_type: PrefabProto::ConfigType::CONFIG,
-      rows: [
-        DEFAULT_ROW,
-        PrefabProto::ConfigRow.new(
-          project_env_id: PROJECT_ENV_ID,
-          values: [
-            PrefabProto::ConditionalValue.new(
-              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
-              value: DESIRED_VALUE_CONFIG
-            )
-          ]
-        )
-      ]
-    )
-
+    config = basic_value_config
     client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
                         collect_example_contexts: :force)
 
     assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT, 'user' => { 'key' => 99 })
+
+    assert_summary client, {
+      [KEY, :CONFIG] => {
+        {
+          config_id: config.id,
+          config_row_index: 1,
+          selected_value: DESIRED_VALUE_CONFIG,
+          conditional_value_index: 0,
+          weighted_value_index: nil,
+          selected_index: nil
+        } => 1
+      }
+    }
+
+    assert_example_contexts client, [Prefab::Context.new({ user: { 'key' => 99 } })]
+  end
+
+  def test_get_with_basic_value_with_context
+    config = basic_value_config
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
+                        collect_example_contexts: :force)
+
+    client.with_context('user' => { 'key' => 99 }) do
+      assert_equal DESIRED_VALUE, client.get(config.key)
+    end
 
     assert_summary client, {
       [KEY, :CONFIG] => {
@@ -372,5 +380,25 @@ class TestClient < Minitest::Test
     Prefab::Context.with_context(context) do
       assert_equal expected, @client.send(method, key)
     end
+  end
+
+  def basic_value_config
+    PrefabProto::Config.new(
+      id: 123,
+      key: KEY,
+      config_type: PrefabProto::ConfigType::CONFIG,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
   end
 end
