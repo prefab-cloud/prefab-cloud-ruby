@@ -38,6 +38,8 @@ class MockBaseClient
 
   def evaluation_summary_aggregator; end
 
+  def example_contexts_aggregator; end
+
   def config_value(key)
     @config_values[key]
   end

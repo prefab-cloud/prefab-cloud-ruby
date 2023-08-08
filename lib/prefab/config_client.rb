@@ -58,7 +58,7 @@ module Prefab
     def get(key, default = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
       context = @config_resolver.make_context(properties)
 
-      if properties != NO_DEFAULT_PROVIDED && @base_client.example_contexts_aggregator
+      if !context.blank? && @base_client.example_contexts_aggregator
         @base_client.example_contexts_aggregator.record(context)
       end
 
