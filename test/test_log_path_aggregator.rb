@@ -8,7 +8,8 @@ class TestLogPathAggregator < Minitest::Test
   SLEEP_TIME = 0.01
 
   def test_push
-    aggregator = Prefab::LogPathAggregator.new(client: new_client, max_paths: 2, sync_interval: 1000)
+    client = new_client
+    aggregator = Prefab::LogPathAggregator.new(client: client, max_paths: 2, sync_interval: 1000)
 
     aggregator.push('test.test_log_path_aggregator.test_push.1', ::Logger::INFO)
     aggregator.push('test.test_log_path_aggregator.test_push.2', ::Logger::DEBUG)
@@ -18,6 +19,8 @@ class TestLogPathAggregator < Minitest::Test
     # we've reached the limit, so no more
     aggregator.push('test.test_log_path_aggregator.test_push.3', ::Logger::INFO)
     assert_equal 2, aggregator.data.size
+
+    assert_only_expected_logs
   end
 
   def test_sync
@@ -42,6 +45,11 @@ class TestLogPathAggregator < Minitest::Test
           namespace: 'this.is.a.namespace'
         )
       ]], requests
+
+      assert_logged [
+        'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints',
+        'ERROR 2023-08-09 15:18:12 -0400: test.test_log_path_aggregator.test_sync here is a message'
+      ]
     end
   end
 

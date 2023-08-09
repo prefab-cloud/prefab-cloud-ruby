@@ -4,6 +4,7 @@ require 'test_helper'
 
 class TestConfigLoader < Minitest::Test
   def setup
+    super
     options = Prefab::Options.new(
       prefab_config_override_dir: 'none',
       prefab_config_classpath_dir: 'test',

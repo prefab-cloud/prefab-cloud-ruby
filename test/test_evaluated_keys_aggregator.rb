@@ -17,6 +17,8 @@ class TestEvaluatedKeysAggregator < Minitest::Test
     # we've reached the limit, so no more
     aggregator.push('key.3')
     assert_equal 2, aggregator.data.size
+
+    assert_only_expected_logs
   end
 
   def test_sync
@@ -37,6 +39,12 @@ class TestEvaluatedKeysAggregator < Minitest::Test
         namespace: 'this.is.a.namespace'
       )
     ]], requests
+
+    assert_logged [
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints",
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client Couldn't Initialize In 0. Key key.1. Returning what we have",
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client Couldn't Initialize In 0. Key key.2. Returning what we have"
+    ]
   end
 
   private

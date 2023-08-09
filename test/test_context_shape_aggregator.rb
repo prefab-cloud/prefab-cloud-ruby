@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'test_helper'
+require 'timecop'
 
 class TestContextShapeAggregator < Minitest::Test
   DOB = Date.new
@@ -49,6 +50,8 @@ class TestContextShapeAggregator < Minitest::Test
 
     assert_equal [['user', 'name', 2], ['user', 'email', 2], ['user', 'age', 4], ['subscription', 'plan', 2], ['subscription', 'free', 5], ['user', 'dob', 2], ['device', 'name', 2], ['device', 'os', 2], ['device', 'version', 1]],
                  aggregator.data.to_a
+
+    assert_only_expected_logs
   end
 
   def test_prepare_data
@@ -82,6 +85,7 @@ class TestContextShapeAggregator < Minitest::Test
     }
 
     assert_equal [], aggregator.data.to_a
+    assert_only_expected_logs
   end
 
   def test_sync
@@ -117,6 +121,12 @@ class TestContextShapeAggregator < Minitest::Test
                                        ])
       ]
     ], requests
+
+
+    assert_logged [
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints",
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client Couldn't Initialize In 0. Key some.key. Returning what we have"
+    ]
   end
 
   private
@@ -127,7 +137,7 @@ class TestContextShapeAggregator < Minitest::Test
       initialization_timeout_sec: 0,
       on_init_failure: Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN,
       api_key: '123-development-yourapikey-SDK',
-      context_upload_mode: :shape_only,
+      context_upload_mode: :shape_only
     }.merge(overrides))
   end
 

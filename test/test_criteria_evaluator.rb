@@ -24,6 +24,7 @@ class TestCriteriaEvaluator < Minitest::Test
   )
 
   def setup
+    super
     @base_client = FakeBaseClient.new
   end
 
