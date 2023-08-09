@@ -18,8 +18,6 @@ class IntegrationTest
       :raise
     elsif @expected[:value].nil?
       :nil
-    elsif @func == :feature_is_on_for?
-      :feature_flag
     else
       :simple_equality
     end
@@ -60,7 +58,7 @@ class IntegrationTest
   end
 
   def parse_ff_input(input)
-    [input['flag'], input['context']]
+    [input['flag'], input['default'], input['context']]
   end
 
   def parse_expected(expected)
