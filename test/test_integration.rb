@@ -25,11 +25,13 @@ class TestIntegration < Minitest::Test
               assert_match(/#{it.expected[:message]}/, err.message)
             when :nil
               assert_nil it.test_client.send(it.func, *it.input)
-            when :feature_flag
-              flag, context = *it.input
-              assert_equal it.expected[:value], it.test_client.send(it.func, flag, context)
             when :simple_equality
-              assert_equal it.expected[:value], it.test_client.send(it.func, *it.input)
+              if it.func == :enabled?
+                flag, _default, context = *it.input
+                assert_equal it.expected[:value], it.test_client.send(it.func, flag, context)
+              else
+                assert_equal it.expected[:value], it.test_client.send(it.func, *it.input)
+              end
             when :log_level
               assert_equal it.expected[:value].to_sym, it.test_client.send(it.func, *it.input)
             else

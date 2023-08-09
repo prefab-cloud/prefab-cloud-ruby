@@ -54,7 +54,7 @@ module Prefab
     end
 
     def make_context(properties)
-      if properties == NO_DEFAULT_PROVIDED
+      if properties == NO_DEFAULT_PROVIDED || properties.nil?
         Context.current
       elsif properties.is_a?(Context)
         properties

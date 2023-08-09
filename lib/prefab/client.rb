@@ -30,11 +30,6 @@ module Prefab
       config_client
     end
 
-    def with_log_context(_lookup_key, properties, &block)
-      warn '[DEPRECATION] `$prefab.with_log_context` is deprecated.  Please use `with_context` instead.'
-      with_context(properties, &block)
-    end
-
     def with_context(properties, &block)
       Prefab::Context.with_context(properties, &block)
     end
@@ -115,19 +110,15 @@ module Prefab
       log.log_internal msg, path, nil, level
     end
 
-    def enabled?(feature_name, lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED)
-      _, properties = handle_positional_arguments(lookup_key, properties, :enabled?)
-
-      feature_flag_client.feature_is_on_for?(feature_name, properties)
+    def enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)
+      feature_flag_client.feature_is_on_for?(feature_name, jit_context)
     end
 
-    def get(key, default_or_lookup_key = NO_DEFAULT_PROVIDED, properties = NO_DEFAULT_PROVIDED, ff_default = nil)
+    def get(key, default = NO_DEFAULT_PROVIDED, jit_context = NO_DEFAULT_PROVIDED)
       if is_ff?(key)
-        default, properties = handle_positional_arguments(default_or_lookup_key, properties, :get)
-
-        feature_flag_client.get(key, properties, default: ff_default)
+        feature_flag_client.get(key, jit_context, default: default)
       else
-        config_client.get(key, default_or_lookup_key, properties)
+        config_client.get(key, default, jit_context)
       end
     end
 
@@ -158,27 +149,6 @@ module Prefab
       raw = config_client.send(:raw, key)
 
       raw && raw.allowable_values.any?
-    end
-
-    # The goal here is to ease transition from the old API to the new one. The
-    # old API had a lookup_key parameter that is deprecated. This method
-    # handles the transition by checking if the first parameter is a string and
-    # if so, it is assumed to be the lookup_key and a deprecation warning is
-    # issued and we know the second argument is the properties. If the first
-    # parameter is a hash, you're on the new API and no further action is
-    # required.
-    def handle_positional_arguments(lookup_key, properties, method)
-      # handle JIT context
-      if lookup_key.is_a?(Hash) && properties == NO_DEFAULT_PROVIDED
-        properties = lookup_key
-        lookup_key = nil
-      end
-
-      if lookup_key.is_a?(String)
-        warn "[DEPRECATION] `$prefab.#{method}`'s lookup_key argument is deprecated. Please remove it or use context instead."
-      end
-
-      [lookup_key, properties]
     end
   end
 end
