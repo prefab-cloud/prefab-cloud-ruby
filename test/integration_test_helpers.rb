@@ -14,7 +14,6 @@ module IntegrationTestHelpers
       raise message if RAISE_IF_NO_TESTS_FOUND
 
       puts message
-
     end
 
     files

@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2023-07-31"
+  s.date = "2023-08-09"
   s.description = "Feature Flags, Live Config, and Dynamic Log Levels as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.executables = ["console".freeze]
@@ -64,8 +64,6 @@ Gem::Specification.new do |s|
     "lib/prefab/log_path_aggregator.rb",
     "lib/prefab/logger_client.rb",
     "lib/prefab/murmer3.rb",
-    "lib/prefab/noop_cache.rb",
-    "lib/prefab/noop_stats.rb",
     "lib/prefab/options.rb",
     "lib/prefab/periodic_sync.rb",
     "lib/prefab/rate_limit_cache.rb",
