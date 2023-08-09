@@ -36,9 +36,9 @@ class TestOptions < Minitest::Test
     assert_equal 0, options.collect_max_paths
   end
 
-  def test_collect_max_paths_with_collect_logs_false
+  def test_collect_max_paths_with_collect_logger_counts_false
     options = Prefab::Options.new(collect_max_paths: 100,
-                                  collect_logs: false)
+                                  collect_logger_counts: false)
     assert_equal 0, options.collect_max_paths
   end
 
@@ -48,5 +48,29 @@ class TestOptions < Minitest::Test
     assert_equal 3,
                  Prefab::Options.new(collect_evaluation_summaries: true,
                                      collect_max_evaluation_summaries: 3).collect_max_evaluation_summaries
+  end
+
+  def test_context_upload_mode_periodic
+    options = Prefab::Options.new(context_upload_mode: :periodic_example, context_max_size: 100)
+    assert_equal 100, options.collect_max_example_contexts
+
+    options = Prefab::Options.new(context_upload_mode: :none)
+    assert_equal 0, options.collect_max_example_contexts
+  end
+
+  def test_context_upload_mode_shape_only
+    options = Prefab::Options.new(context_upload_mode: :shape_only, context_max_size: 100)
+    assert_equal 100, options.collect_max_shapes
+
+    options = Prefab::Options.new(context_upload_mode: :none)
+    assert_equal 0, options.collect_max_shapes
+  end
+
+  def test_context_upload_mode_none
+    options = Prefab::Options.new(context_upload_mode: :none)
+    assert_equal 0, options.collect_max_example_contexts
+
+    options = Prefab::Options.new(context_upload_mode: :none)
+    assert_equal 0, options.collect_max_shapes
   end
 end

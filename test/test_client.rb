@@ -152,8 +152,8 @@ class TestClient < Minitest::Test
 
   def test_get_with_basic_value
     config = basic_value_config
-    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
-                        collect_example_contexts: :force)
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: true,
+                        context_upload_mode: :periodic_example, allow_telemetry_in_local_mode: true)
 
     assert_equal DESIRED_VALUE, client.get(config.key, IRRELEVANT, 'user' => { 'key' => 99 })
 
@@ -175,8 +175,8 @@ class TestClient < Minitest::Test
 
   def test_get_with_basic_value_with_context
     config = basic_value_config
-    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
-                        collect_example_contexts: :force)
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: true,
+                        context_upload_mode: :periodic_example, allow_telemetry_in_local_mode: true)
 
     client.with_context('user' => { 'key' => 99 }) do
       assert_equal DESIRED_VALUE, client.get(config.key)
@@ -218,8 +218,8 @@ class TestClient < Minitest::Test
       ]
     )
 
-    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: :force,
-                        collect_example_contexts: :force)
+    client = new_client(config: config, project_env_id: PROJECT_ENV_ID, collect_evaluation_summaries: true,
+                       context_upload_mode: :periodic_example, allow_telemetry_in_local_mode: true)
 
     2.times do
       assert_equal 'abc', client.get(config.key, IRRELEVANT, 'user' => { 'key' => '1' })
@@ -318,7 +318,7 @@ class TestClient < Minitest::Test
     )
 
     client = new_client(config: [config, segment_config], project_env_id: PROJECT_ENV_ID,
-                        collect_evaluation_summaries: :force, collect_example_contexts: :force)
+                        collect_evaluation_summaries: true, context_upload_mode: :periodic_example, allow_telemetry_in_local_mode: true)
 
     assert_equal DEFAULT_VALUE, client.get(config.key)
     assert_equal DEFAULT_VALUE,
@@ -364,7 +364,7 @@ class TestClient < Minitest::Test
     )
 
     client = new_client(config: config, project_env_id: PROJECT_ENV_ID,
-                        collect_evaluation_summaries: :force)
+                        collect_evaluation_summaries: true, allow_telemetry_in_local_mode: true)
 
     assert_equal :DEBUG, client.get(config.key, IRRELEVANT)
 

@@ -157,7 +157,6 @@ module Prefab
         @base_client.log_internal ::Logger::DEBUG,
                                   "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", 'load_configs'
       end
-      @base_client.stats.increment('prefab.config.checkpoint.load')
       @config_resolver.update
       finish_init!(source)
     end

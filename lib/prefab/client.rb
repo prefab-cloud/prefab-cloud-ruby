@@ -7,12 +7,10 @@ module Prefab
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
 
-    attr_reader :shared_cache, :stats, :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
+    attr_reader :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
 
     def initialize(options = Prefab::Options.new)
       @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
-      @shared_cache = @options.shared_cache
-      @stats = @options.stats
       @namespace = @options.namespace
       @stubs = {}
       @instance_hash = UUID.new.generate

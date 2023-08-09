@@ -11,8 +11,6 @@ module Prefab
     end
 
     def feature_is_on_for?(feature_name, properties)
-      @base_client.stats.increment('prefab.featureflag.on', tags: ["feature:#{feature_name}"])
-
       variant = @base_client.config_client.get(feature_name, false, properties)
 
       is_on?(variant)

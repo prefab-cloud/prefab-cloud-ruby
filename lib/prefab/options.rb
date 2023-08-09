@@ -7,8 +7,6 @@ module Prefab
     attr_reader :logdev
     attr_reader :log_prefix
     attr_reader :log_formatter
-    attr_reader :stats
-    attr_reader :shared_cache
     attr_reader :namespace
     attr_reader :prefab_api_url
     attr_reader :on_no_default
@@ -33,22 +31,21 @@ module Prefab
     }
 
     module ON_INITIALIZATION_FAILURE
-      RAISE = 1
-      RETURN = 2
+      RAISE = :raise
+      RETURN = :return
     end
 
     module ON_NO_DEFAULT
-      RAISE = 1
-      RETURN_NIL = 2
+      RAISE = :raise
+      RETURN_NIL = :return_nil
     end
 
     module DATASOURCES
-      ALL = 1
-      LOCAL_ONLY = 2
+      ALL = :all
+      LOCAL_ONLY = :local_only
     end
 
     DEFAULT_MAX_PATHS = 1_000
-    DEFAULT_MAX_CONTEXT_KEYS = 100_000
     DEFAULT_MAX_KEYS = 100_000
     DEFAULT_MAX_EXAMPLE_CONTEXTS = 100_000
     DEFAULT_MAX_EVAL_SUMMARIES = 100_000
@@ -56,37 +53,30 @@ module Prefab
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
       logdev: $stdout,
-      stats: NoopStats.new, # receives increment("prefab.limitcheck", {:tags=>["policy_group:page_view", "pass:true"]})
-      shared_cache: NoopCache.new, # Something that quacks like Rails.cache ideally memcached
       namespace: '',
       log_formatter: DEFAULT_LOG_FORMATTER,
       log_prefix: nil,
       prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
-      on_init_failure: ON_INITIALIZATION_FAILURE::RAISE, # options :unlock_and_continue, :lock_and_keep_trying, :raise
-      # new_config_callback: nil, #callback method
-      # live_override_url: nil,
+      on_init_failure: ON_INITIALIZATION_FAILURE::RAISE,
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: '.',
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
-      collect_logs: true,
+      collect_logger_counts: true,
       collect_max_paths: DEFAULT_MAX_PATHS,
       collect_sync_interval: nil,
-      collect_shapes: true,
-      collect_max_shapes: DEFAULT_MAX_CONTEXT_KEYS,
       collect_keys: false,
       collect_max_keys: DEFAULT_MAX_KEYS,
-      collect_example_contexts: false,
-      collect_max_example_contexts: DEFAULT_MAX_EXAMPLE_CONTEXTS,
+      context_upload_mode: :periodic_example, # :periodic_example, :shape_only, :none
+      context_max_size: DEFAULT_MAX_EVAL_SUMMARIES,
       collect_evaluation_summaries: false,
-      collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES
+      collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
+      allow_telemetry_in_local_mode: false
     )
       @api_key = api_key
       @logdev = logdev
-      @stats = stats
-      @shared_cache = shared_cache
       @namespace = namespace
       @log_formatter = log_formatter
       @log_prefix = log_prefix
@@ -98,17 +88,33 @@ module Prefab
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
-      @collect_logs = collect_logs
+      @collect_logger_counts = collect_logger_counts
       @collect_max_paths = collect_max_paths
       @collect_sync_interval = collect_sync_interval
-      @collect_shapes = collect_shapes
-      @collect_max_shapes = collect_max_shapes
       @collect_keys = collect_keys
       @collect_max_keys = collect_max_keys
-      @collect_example_contexts = collect_example_contexts
-      @collect_max_example_contexts = collect_max_example_contexts
       @collect_evaluation_summaries = collect_evaluation_summaries
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
+      @allow_telemetry_in_local_mode = allow_telemetry_in_local_mode
+
+      # defaults that may be overridden by context_upload_mode
+      @collect_shapes = false
+      @collect_max_shapes = 0
+      @collect_example_contexts = false
+      @collect_max_example_contexts = 0
+
+      case context_upload_mode
+      when :none
+        # do nothing
+      when :periodic_example
+        @collect_example_contexts = true
+        @collect_max_example_contexts = context_max_size
+      when :shape_only
+        @collect_shapes = true
+        @collect_max_shapes = context_max_size
+      else
+        raise "Unknown context_upload_mode #{context_upload_mode}. Please provide :periodic_example, :shape_only, or :none."
+      end
     end
 
     def initialize(options = {})
@@ -120,7 +126,7 @@ module Prefab
     end
 
     def collect_max_paths
-      return 0 unless telemetry_allowed?(@collect_logs)
+      return 0 unless telemetry_allowed?(@collect_logger_counts)
 
       @collect_max_paths
     end
@@ -157,7 +163,7 @@ module Prefab
     private
 
     def telemetry_allowed?(option)
-      option && !local_only? || option == :force
+      option && (!local_only? || @allow_telemetry_in_local_mode)
     end
 
     def remove_trailing_slash(url)

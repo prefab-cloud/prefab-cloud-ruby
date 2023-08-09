@@ -127,6 +127,7 @@ class TestContextShapeAggregator < Minitest::Test
       initialization_timeout_sec: 0,
       on_init_failure: Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN,
       api_key: '123-development-yourapikey-SDK',
+      context_upload_mode: :shape_only,
     }.merge(overrides))
   end
 
