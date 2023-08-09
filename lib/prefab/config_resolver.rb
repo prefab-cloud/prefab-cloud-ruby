@@ -10,6 +10,7 @@ module Prefab
       @config_loader = config_loader
       @project_env_id = 0 # we don't know this yet, it is set from the API results
       @base_client = base_client
+      @on_update = nil
       make_local
     end
 

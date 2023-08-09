@@ -6,6 +6,7 @@ class TestContext < Minitest::Test
   EXAMPLE_PROPERTIES = { user: { key: 'some-user-key', name: 'Ted' }, team: { key: 'abc', plan: 'pro' } }.freeze
 
   def setup
+    super
     Prefab::Context.current = nil
   end
 

@@ -19,6 +19,7 @@ class TestLogger < Minitest::Test
   )
 
   def setup
+    super
     Prefab::LoggerClient.send(:public, :get_path)
     Prefab::LoggerClient.send(:public, :get_loc_path)
     Prefab::LoggerClient.send(:public, :level_of)

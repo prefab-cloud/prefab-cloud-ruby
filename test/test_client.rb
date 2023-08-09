@@ -24,34 +24,33 @@ class TestClient < Minitest::Test
     ]
   )
 
-  def setup
-    @client = new_client
-  end
-
   def test_get
     _, err = capture_io do
-      assert_equal 'default', @client.get('does.not.exist', 'default')
-      assert_equal 'test sample value', @client.get('sample')
-      assert_equal 123, @client.get('sample_int')
+      client = new_client
+      assert_equal 'default', client.get('does.not.exist', 'default')
+      assert_equal 'test sample value', client.get('sample')
+      assert_equal 123, client.get('sample_int')
     end
     assert_equal '', err
   end
 
   def test_get_with_default
+    client = new_client
     # A `false` value is not replaced with the default
-    assert_equal false, @client.get('false_value', 'red')
+    assert_equal false, client.get('false_value', 'red')
 
     # A falsy value is not replaced with the default
-    assert_equal 0, @client.get('zero_value', 'red')
+    assert_equal 0, client.get('zero_value', 'red')
 
     # A missing value returns the default
-    assert_equal 'buckets', @client.get('missing_value', 'buckets')
+    assert_equal 'buckets', client.get('missing_value', 'buckets')
   end
 
   def test_get_with_missing_default
+    client = new_client
     # it raises by default
     err = assert_raises(Prefab::Errors::MissingDefaultError) do
-      assert_nil @client.get('missing_value')
+      assert_nil client.get('missing_value')
     end
 
     assert_match(/No value found for key/, err.message)
@@ -63,41 +62,53 @@ class TestClient < Minitest::Test
   end
 
   def test_enabled
-    assert_equal false, @client.enabled?('does_not_exist')
-    assert_equal true, @client.enabled?('enabled_flag')
-    assert_equal false, @client.enabled?('disabled_flag')
-    assert_equal false, @client.enabled?('flag_with_a_value')
+    client = new_client
+    assert_equal false, client.enabled?('does_not_exist')
+    assert_equal true, client.enabled?('enabled_flag')
+    assert_equal false, client.enabled?('disabled_flag')
+    assert_equal false, client.enabled?('flag_with_a_value')
   end
 
   def test_ff_enabled_with_user_key_match
-    assert_equal_context_and_jit(false, :enabled?, 'user_key_match', { user: { key: 'jimmy' } })
-    assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'abc123' } })
-    assert_equal_context_and_jit(true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })
+    client = new_client
+    assert_equal_context_and_jit(client, false, :enabled?, 'user_key_match', { user: { key: 'jimmy' } })
+    assert_equal_context_and_jit(client, true, :enabled?, 'user_key_match', { user: { key: 'abc123' } })
+    assert_equal_context_and_jit(client, true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })
   end
 
   def test_ff_enabled_with_context
-    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'gmail.com' })
-    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'prefab.cloud' })
-    assert_equal_context_and_jit(false, :enabled?, 'just_my_domain', user: { domain: 'example.com' })
+    client = new_client
+    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'gmail.com' })
+    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'prefab.cloud' })
+    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'example.com' })
   end
 
   def test_ff_get_with_context
-    assert_equal 'DEFAULT', @client.get('just_my_domain', 'DEFAULT', { user: { domain: 'gmail.com' } })
+    client = new_client
+    assert_equal 'DEFAULT', client.get('just_my_domain', 'DEFAULT', { user: { domain: 'gmail.com' } })
 
-    assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'prefab.cloud' } })
-    assert_equal_context_and_jit('new-version', :get, 'just_my_domain', { user: { domain: 'example.com' } })
+    assert_equal_context_and_jit(client, 'new-version', :get, 'just_my_domain', { user: { domain: 'prefab.cloud' } })
+    assert_equal_context_and_jit(client, 'new-version', :get, 'just_my_domain', { user: { domain: 'example.com' } })
   end
 
   def test_deprecated_no_dot_notation_ff_enabled_with_jit_context
+    client = new_client
     # with no lookup key
-    assert_equal false, @client.enabled?('deprecated_no_dot_notation', { domain: 'gmail.com' })
-    assert_equal true, @client.enabled?('deprecated_no_dot_notation', { domain: 'prefab.cloud' })
-    assert_equal true, @client.enabled?('deprecated_no_dot_notation', { domain: 'example.com' })
+    assert_equal false, client.enabled?('deprecated_no_dot_notation', { domain: 'gmail.com' })
+    assert_equal true, client.enabled?('deprecated_no_dot_notation', { domain: 'prefab.cloud' })
+    assert_equal true, client.enabled?('deprecated_no_dot_notation', { domain: 'example.com' })
+
+    assert_stderr [
+      "[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash.",
+      "[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash.",
+      "[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash."
+    ]
   end
 
   def test_getting_feature_flag_value
-    assert_equal false, @client.enabled?('flag_with_a_value')
-    assert_equal 'all-features', @client.get('flag_with_a_value')
+    client = new_client
+    assert_equal false, client.enabled?('flag_with_a_value')
+    assert_equal 'all-features', client.get('flag_with_a_value')
   end
 
   def test_initialization_with_an_options_object
@@ -128,20 +139,26 @@ class TestClient < Minitest::Test
     fake_api_key = '123-development-yourapikey-SDK'
 
     # it is nil by default
-    assert_nil Prefab::Client.new(api_key: fake_api_key).evaluation_summary_aggregator
+    assert_nil new_client(api_key: fake_api_key).evaluation_summary_aggregator
 
     # it is nil when local_only even if collect_max_evaluation_summaries is true
-    assert_nil Prefab::Client.new(prefab_datasources: LOCAL_ONLY,
-                                  collect_evaluation_summaries: true).evaluation_summary_aggregator
+    assert_nil new_client(prefab_datasources: LOCAL_ONLY,
+                                  collect_evaluation_summaries: true, ).evaluation_summary_aggregator
 
     # it is nil when collect_max_evaluation_summaries is false
-    assert_nil Prefab::Client.new(api_key: fake_api_key,
+    assert_nil new_client(api_key: fake_api_key,
+                                  prefab_datasources: :all,
                                   collect_evaluation_summaries: false).evaluation_summary_aggregator
 
     # it is not nil when collect_max_evaluation_summaries is true and the datasource is not local_only
     assert_equal Prefab::EvaluationSummaryAggregator,
-                 Prefab::Client.new(api_key: fake_api_key,
-                                    collect_evaluation_summaries: true).evaluation_summary_aggregator.class
+                 new_client(api_key: fake_api_key,
+                            prefab_datasources: :all,
+                            collect_evaluation_summaries: true).evaluation_summary_aggregator.class
+
+    assert_logged [
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints"
+    ]
   end
 
   def test_get_with_basic_value
@@ -368,17 +385,17 @@ class TestClient < Minitest::Test
 
   private
 
-  def assert_equal_context_and_jit(expected, method, key, context)
+  def assert_equal_context_and_jit(client, expected, method, key, context)
     if method == :get
-      assert_equal expected, @client.send(method, key, false, context)
+      assert_equal expected, client.send(method, key, false, context)
     elsif method == :enabled?
-      assert_equal expected, @client.send(method, key, context)
+      assert_equal expected, client.send(method, key, context)
     else
       raise "unknown method #{method}"
     end
 
     Prefab::Context.with_context(context) do
-      assert_equal expected, @client.send(method, key)
+      assert_equal expected, client.send(method, key)
     end
   end
 

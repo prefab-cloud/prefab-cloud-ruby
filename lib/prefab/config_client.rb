@@ -89,7 +89,7 @@ module Prefab
     end
 
     def _get(key, properties)
-      # wait timeout sec for the initalization to be complete
+      # wait timeout sec for the initialization to be complete
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
         unless @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
