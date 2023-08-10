@@ -62,7 +62,7 @@ module Prefab
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE,
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
       prefab_config_override_dir: Dir.home,
-      prefab_config_classpath_dir: '.',
+      prefab_config_classpath_dir: '.', # where to load local overrides
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
       collect_logger_counts: true,
       collect_max_paths: DEFAULT_MAX_PATHS,
