@@ -43,11 +43,10 @@ class TestOptions < Minitest::Test
   end
 
   def test_collect_max_evaluation_summaries
-    assert_equal 0, Prefab::Options.new.collect_max_evaluation_summaries
-    assert_equal 100_000, Prefab::Options.new(collect_evaluation_summaries: true).collect_max_evaluation_summaries
+    assert_equal 100_000, Prefab::Options.new.collect_max_evaluation_summaries
+    assert_equal 0, Prefab::Options.new(collect_evaluation_summaries: false).collect_max_evaluation_summaries
     assert_equal 3,
-                 Prefab::Options.new(collect_evaluation_summaries: true,
-                                     collect_max_evaluation_summaries: 3).collect_max_evaluation_summaries
+                 Prefab::Options.new(collect_max_evaluation_summaries: 3).collect_max_evaluation_summaries
   end
 
   def test_context_upload_mode_periodic
