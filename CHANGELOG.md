@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Change `collect_evaluation_summaries` default to true (#136)
+- Removed some backwards compatibility shims (#133)
+- Standardizing options (#132)
+  - Note that the default value for `context_upload_mode` is `:periodic_example` which means example contexts will be collected.
+    This enables easy variant override assignment in our UI. More at https://prefab.cloud/blog/feature-flag-variant-assignment/
+
 ## 0.24.6 - 2023-07-31
 
 - Logger Client compatibility (#129)

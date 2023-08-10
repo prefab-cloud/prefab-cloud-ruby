@@ -71,7 +71,7 @@ module Prefab
       collect_max_keys: DEFAULT_MAX_KEYS,
       context_upload_mode: :periodic_example, # :periodic_example, :shape_only, :none
       context_max_size: DEFAULT_MAX_EVAL_SUMMARIES,
-      collect_evaluation_summaries: false,
+      collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false
     )
