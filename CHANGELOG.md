@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.0.0 - 2023-08-10
 
 - Removed EvaluatedKeysAggregator (#137)
 - Change `collect_evaluation_summaries` default to true (#136)
