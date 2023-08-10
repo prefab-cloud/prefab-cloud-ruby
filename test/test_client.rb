@@ -71,24 +71,52 @@ class TestClient < Minitest::Test
 
   def test_ff_enabled_with_user_key_match
     client = new_client
-    assert_equal_context_and_jit(client, false, :enabled?, 'user_key_match', { user: { key: 'jimmy' } })
-    assert_equal_context_and_jit(client, true, :enabled?, 'user_key_match', { user: { key: 'abc123' } })
-    assert_equal_context_and_jit(client, true, :enabled?, 'user_key_match', { user: { key: 'xyz987' } })
+
+    ctx = { user: { key: 'jimmy' } }
+    assert_equal false, client.enabled?('user_key_match', ctx)
+    assert_equal false, Prefab::Context.with_context(ctx) { client.enabled?('user_key_match') }
+
+    ctx = { user: { key: 'abc123' } }
+    assert_equal true, client.enabled?('user_key_match', ctx)
+    assert_equal true, Prefab::Context.with_context(ctx) { client.enabled?('user_key_match') }
+
+    ctx = { user: { key: 'xyz987' } }
+    assert_equal true, client.enabled?('user_key_match', ctx)
+    assert_equal true, Prefab::Context.with_context(ctx) { client.enabled?('user_key_match') }
   end
 
+  # NOTE: these are all `false` because we're doing a enabled? on a FF with string variants
+  # see test_ff_get_with_context for the raw value tests
   def test_ff_enabled_with_context
     client = new_client
-    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'gmail.com' })
-    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'prefab.cloud' })
-    assert_equal_context_and_jit(client, false, :enabled?, 'just_my_domain', user: { domain: 'example.com' })
+
+    ctx = { user: { domain: 'gmail.com' } }
+    assert_equal false, client.enabled?('just_my_domain', ctx)
+    assert_equal false, Prefab::Context.with_context(ctx) { client.enabled?('just_my_domain') }
+
+    ctx = { user: { domain: 'prefab.cloud' } }
+    assert_equal false, client.enabled?('just_my_domain', ctx)
+    assert_equal false, Prefab::Context.with_context(ctx) { client.enabled?('just_my_domain') }
+
+    ctx = { user: { domain: 'example.com' } }
+    assert_equal false, client.enabled?('just_my_domain', ctx)
+    assert_equal false, Prefab::Context.with_context(ctx) { client.enabled?('just_my_domain') }
   end
 
   def test_ff_get_with_context
     client = new_client
-    assert_equal 'DEFAULT', client.get('just_my_domain', 'DEFAULT', { user: { domain: 'gmail.com' } })
 
-    assert_equal_context_and_jit(client, 'new-version', :get, 'just_my_domain', { user: { domain: 'prefab.cloud' } })
-    assert_equal_context_and_jit(client, 'new-version', :get, 'just_my_domain', { user: { domain: 'example.com' } })
+    ctx = { user: { domain: 'gmail.com' } }
+    assert_equal 'DEFAULT', client.get('just_my_domain', 'DEFAULT', ctx)
+    assert_equal 'DEFAULT', Prefab::Context.with_context(ctx) { client.get('just_my_domain', 'DEFAULT') }
+
+    ctx = { user: { domain: 'prefab.cloud' } }
+    assert_equal 'new-version', client.get('just_my_domain', 'DEFAULT', ctx)
+    assert_equal 'new-version', Prefab::Context.with_context(ctx) { client.get('just_my_domain', 'DEFAULT') }
+
+    ctx = { user: { domain: 'example.com' } }
+    assert_equal 'new-version', client.get('just_my_domain', 'DEFAULT', ctx)
+    assert_equal 'new-version', Prefab::Context.with_context(ctx) { client.get('just_my_domain', 'DEFAULT') }
   end
 
   def test_deprecated_no_dot_notation_ff_enabled_with_jit_context
@@ -384,20 +412,6 @@ class TestClient < Minitest::Test
   end
 
   private
-
-  def assert_equal_context_and_jit(client, expected, method, key, context)
-    if method == :get
-      assert_equal expected, client.send(method, key, false, context)
-    elsif method == :enabled?
-      assert_equal expected, client.send(method, key, context)
-    else
-      raise "unknown method #{method}"
-    end
-
-    Prefab::Context.with_context(context) do
-      assert_equal expected, client.send(method, key)
-    end
-  end
 
   def basic_value_config
     PrefabProto::Config.new(
