@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2023-08-09"
+  s.date = "2023-08-10"
   s.description = "Feature Flags, Live Config, and Dynamic Log Levels as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.executables = ["console".freeze]
@@ -52,7 +52,6 @@ Gem::Specification.new do |s|
     "lib/prefab/errors/initialization_timeout_error.rb",
     "lib/prefab/errors/invalid_api_key_error.rb",
     "lib/prefab/errors/missing_default_error.rb",
-    "lib/prefab/evaluated_keys_aggregator.rb",
     "lib/prefab/evaluation.rb",
     "lib/prefab/evaluation_summary_aggregator.rb",
     "lib/prefab/example_contexts_aggregator.rb",
@@ -91,7 +90,6 @@ Gem::Specification.new do |s|
     "test/test_context_shape.rb",
     "test/test_context_shape_aggregator.rb",
     "test/test_criteria_evaluator.rb",
-    "test/test_evaluated_keys_aggregator.rb",
     "test/test_evaluation_summary_aggregator.rb",
     "test/test_example_contexts_aggregator.rb",
     "test/test_exponential_backoff.rb",

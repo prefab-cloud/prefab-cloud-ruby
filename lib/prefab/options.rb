@@ -67,8 +67,6 @@ module Prefab
       collect_logger_counts: true,
       collect_max_paths: DEFAULT_MAX_PATHS,
       collect_sync_interval: nil,
-      collect_keys: false,
-      collect_max_keys: DEFAULT_MAX_KEYS,
       context_upload_mode: :periodic_example, # :periodic_example, :shape_only, :none
       context_max_size: DEFAULT_MAX_EVAL_SUMMARIES,
       collect_evaluation_summaries: true,
@@ -91,8 +89,6 @@ module Prefab
       @collect_logger_counts = collect_logger_counts
       @collect_max_paths = collect_max_paths
       @collect_sync_interval = collect_sync_interval
-      @collect_keys = collect_keys
-      @collect_max_keys = collect_max_keys
       @collect_evaluation_summaries = collect_evaluation_summaries
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
       @allow_telemetry_in_local_mode = allow_telemetry_in_local_mode
@@ -135,12 +131,6 @@ module Prefab
       return 0 unless telemetry_allowed?(@collect_shapes)
 
       @collect_max_shapes
-    end
-
-    def collect_max_keys
-      return 0 unless telemetry_allowed?(@collect_keys)
-
-      @collect_max_keys
     end
 
     def collect_max_example_contexts

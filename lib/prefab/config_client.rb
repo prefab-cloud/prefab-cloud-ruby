@@ -65,7 +65,6 @@ module Prefab
       evaluation = _get(key, context)
 
       @base_client.context_shape_aggregator&.push(context)
-      @base_client.evaluated_keys_aggregator&.push(key)
 
       if evaluation
         evaluation.report_and_return(@base_client.evaluation_summary_aggregator)

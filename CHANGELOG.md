@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Removed EvaluatedKeysAggregator (#137)
 - Change `collect_evaluation_summaries` default to true (#136)
 - Removed some backwards compatibility shims (#133)
 - Standardizing options (#132)

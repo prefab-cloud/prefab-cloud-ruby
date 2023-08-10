@@ -34,8 +34,6 @@ class MockBaseClient
 
   def context_shape_aggregator; end
 
-  def evaluated_keys_aggregator; end
-
   def evaluation_summary_aggregator; end
 
   def example_contexts_aggregator; end
