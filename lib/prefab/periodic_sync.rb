@@ -2,11 +2,7 @@
 
 module Prefab
   module PeriodicSync
-
-    attr_reader :last_data_sent, :last_request
-
     def sync
-
       return if @data.size.zero?
 
       log_internal "Syncing #{@data.size} items"
@@ -30,12 +26,8 @@ module Prefab
       # noop -- override as you wish
     end
 
-    def post_and_persist_data(url, data)
-      @last_data_sent = data
-
-      result = @client.post(url, data)
-
-      @last_request = result
+    def post(url, data)
+      @client.post(url, data)
     end
 
     def start_periodic_sync(sync_interval)

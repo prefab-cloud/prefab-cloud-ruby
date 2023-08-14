@@ -102,7 +102,13 @@ module IntegrationTestHelpers
         )
       end
 
-      [aggregator, ->(data) { data.events[0].summaries.summaries.each {|e| e.counters.each{|c| c.config_id = 0}} }, expected_data]
+      [aggregator, ->(data) {
+                     data.events[0].summaries.summaries.each { |e|
+                       e.counters.each { |c|
+                         c.config_id = 0
+                       }
+                     }
+                   }, expected_data]
     when "example_contexts"
       aggregator = it.test_client.example_contexts_aggregator
 
@@ -126,7 +132,7 @@ module IntegrationTestHelpers
           )
         )
       end
-      [aggregator, ->(data) { data.events[0].example_contexts.examples.each {|e| e.timestamp = 0}  }, expected_data]
+      [aggregator, ->(data) { data.events[0].example_contexts.examples.each { |e| e.timestamp = 0 } }, expected_data]
     else
       puts "unknown aggregator #{it.aggregator}"
     end

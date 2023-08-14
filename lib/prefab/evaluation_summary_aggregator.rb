@@ -55,7 +55,7 @@ module Prefab
           summaries: summaries(to_ship)
         )
 
-        post_and_persist_data('/api/v1/telemetry', events(summaries_proto))
+        result = post('/api/v1/telemetry', events(summaries_proto))
 
         log_internal "Uploaded #{to_ship.size} summaries: #{result.status}"
       end

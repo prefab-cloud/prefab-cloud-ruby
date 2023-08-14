@@ -38,11 +38,13 @@ class TestIntegration < Minitest::Test
               aggregator, get_actual_data, expected = IntegrationTestHelpers.prepare_post_data(it)
               aggregator.sync
 
-              sleep(1)
+              wait_for -> { it.last_post_result&.status == 200 }
 
-              actual = get_actual_data[aggregator.last_data_sent]
+              # TODO: endpoint assertion
+              # assert_equal it.expected[:last_post_endpoint], it.last_post_endpoint
 
-              assert aggregator.last_request.status == 200
+              actual = get_actual_data[it.last_data_sent]
+
               expected.all? do |expected|
                 assert actual.include?(expected)
               end

@@ -45,7 +45,6 @@ module Prefab
 
         aggregate = Hash.new { |h, k| h[k] = PrefabProto::Logger.new }
 
-
         to_ship.each do |(path, severity), count|
           aggregate[path][SEVERITY_KEY[severity]] = count
           aggregate[path]['logger_name'] = path
@@ -59,7 +58,7 @@ module Prefab
           namespace: @client.namespace
         )
 
-        post_and_persist_data('/api/v1/known-loggers', loggers)
+        result = post('/api/v1/known-loggers', loggers)
 
         log_internal "Uploaded #{to_ship.size} paths: #{result.status}"
       end
