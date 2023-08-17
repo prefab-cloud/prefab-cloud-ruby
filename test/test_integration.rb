@@ -40,8 +40,7 @@ class TestIntegration < Minitest::Test
 
               wait_for -> { it.last_post_result&.status == 200 }
 
-              # TODO: endpoint assertion
-              # assert_equal it.expected[:last_post_endpoint], it.last_post_endpoint
+              assert it.endpoint == it.last_post_endpoint
 
               actual = get_actual_data[it.last_data_sent]
 

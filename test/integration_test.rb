@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class IntegrationTest
-  attr_reader :func, :input, :expected, :data, :expected_data, :aggregator, :test_client
+  attr_reader :func, :input, :expected, :data, :expected_data, :aggregator, :endpoint, :test_client
 
   def initialize(test_data)
     @client_overrides = parse_client_overrides(test_data['client_overrides'])
@@ -11,6 +11,7 @@ class IntegrationTest
     @data = test_data['data']
     @expected_data = test_data['expected_data']
     @aggregator = test_data['aggregator']
+    @endpoint = test_data['endpoint']
     @test_client = capture_telemetry(base_client)
   end
 
