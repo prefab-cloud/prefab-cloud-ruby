@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.1 - 2023-08-17
+
+- Bug fix for StringList w/ ExampleContextsAggregator (#141)
+
 ## 1.0.0 - 2023-08-10
 
 - Removed EvaluatedKeysAggregator (#137)
