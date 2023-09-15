@@ -404,6 +404,46 @@ class TestLogger < Minitest::Test
     assert_logged io, 'ERROR', 'test.test_logger.test_logging_with_a_block', message
   end
 
+  def test_structured_logging
+    prefab, io = captured_logger
+    message = 'HELLO'
+
+    prefab.log.error message, user: "michael", id: 123
+
+    assert_logged io, 'ERROR', 'test.test_logger.test_structured_logging', "#{message} id=123 user=michael"
+  end
+
+  def test_structured_json_logging
+    prefab, io = captured_logger(log_formatter: Prefab::Options::JSON_LOG_FORMATTER)
+    message = 'HELLO'
+
+    prefab.log.error message, user: "michael", id: 123
+
+    log_data = JSON.parse(io.string)
+    assert log_data["message"] == message
+    assert log_data["user"] == "michael"
+    assert log_data["id"] == 123
+  end
+
+  def test_structured_internal_logging
+    prefab, io = captured_logger
+
+    prefab.log.log_internal('test', 'test.path', '', ::Logger::WARN, user: "michael")
+
+    assert_logged io, 'WARN', 'cloud.prefab.client.test.path', "test user=michael"
+  end
+
+  def test_structured_block_logger
+    prefab, io = captured_logger
+    message = 'MY MESSAGE'
+
+    prefab.log.error user: "michael" do
+      message
+    end
+
+    assert_logged io, 'ERROR', 'test.test_logger.test_structured_block_logger', "#{message} user=michael"
+  end
+
   private
 
   def assert_logged(logged_io, level, path, message)

@@ -27,26 +27,26 @@ module Prefab
       @log_path_aggregator = log_path_aggregator
     end
 
-    def add_internal(severity, message, progname, loc, &block)
+    def add_internal(severity, message, progname, loc, log_context={}, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
 
       @log_path_aggregator&.push(path_loc, severity)
 
-      log(message, path, progname, severity, &block)
+      log(message, path, progname, severity, log_context, &block)
     end
 
-    def log_internal(message, path, progname, severity, &block)
+    def log_internal(message, path, progname, severity, log_context={}, &block)
       path = if path
                "#{INTERNAL_PREFIX}.#{path}"
              else
                INTERNAL_PREFIX
              end
 
-      log(message, path, progname, severity, &block)
+      log(message, path, progname, severity, log_context, &block)
     end
 
-    def log(message, path, progname, severity)
+    def log(message, path, progname, severity, log_context={})
       severity ||= ::Logger::UNKNOWN
 
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
@@ -63,29 +63,29 @@ module Prefab
       end
 
       @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message, path)
+        format_message(format_severity(severity), Time.now, progname, message, path, log_context)
       )
       true
     end
 
-    def debug(progname = nil, &block)
-      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], &block)
+    def debug(progname = nil, **log_context, &block)
+      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
-    def info(progname = nil, &block)
-      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], &block)
+    def info(progname = nil, **log_context, &block)
+      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
-    def warn(progname = nil, &block)
-      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], &block)
+    def warn(progname = nil, **log_context, &block)
+      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
-    def error(progname = nil, &block)
-      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], &block)
+    def error(progname = nil, **log_context, &block)
+      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
-    def fatal(progname = nil, &block)
-      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], &block)
+    def fatal(progname = nil, **log_context, &block)
+      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
     def debug?
@@ -168,18 +168,17 @@ module Prefab
       path
     end
 
-    def format_message(severity, datetime, progname, msg, path = nil)
+    def format_message(severity, datetime, progname, msg, path = nil, log_context={})
       formatter = (@formatter || @default_formatter)
 
-      if formatter.arity == 5
-        formatter.call(severity, datetime, progname, msg, path)
-      else
-        formatter.call(severity, datetime, join_path_and_progname(path, progname), msg)
-      end
-    end
-
-    def join_path_and_progname(path, progname)
-      (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
+      formatter.call(
+        severity: severity,
+        datetime: datetime,
+        progname: progname,
+        path: path,
+        message: msg,
+        log_context: log_context
+      )
     end
   end
 

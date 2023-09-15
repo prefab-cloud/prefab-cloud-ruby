@@ -17,17 +17,23 @@ module Prefab
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
 
-    DEFAULT_LOG_FORMATTER = proc { |severity, datetime, progname, msg|
-      "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}\n"
+    DEFAULT_LOG_FORMATTER = proc { |data|
+      severity = data[:severity]
+      datetime = data[:datetime]
+      progname = data[:progname]
+      path = data[:path]
+      msg = data[:message]
+      log_context = data[:log_context]
+
+      progname = (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
+
+      formatted_log_context = log_context.sort.map{|k, v| "#{k}=#{v}" }.join(" ")
+      "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}#{log_context.any? ? " " + formatted_log_context : ""}\n"
     }
-    JSON_LOG_FORMATTER = proc { |severity, datetime, progname, msg, path|
-      {
-        type: severity,
-        time: datetime,
-        progname: progname,
-        message: msg,
-        path: path
-      }.compact.to_json << "\n"
+
+    JSON_LOG_FORMATTER = proc { |data|
+      log_context = data.delete(:log_context)
+      data.merge(log_context).compact.to_json << "\n"
     }
 
     module ON_INITIALIZATION_FAILURE
