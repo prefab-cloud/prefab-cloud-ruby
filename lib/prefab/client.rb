@@ -99,8 +99,8 @@ module Prefab
       resolver.on_update(&block)
     end
 
-    def log_internal(level, msg, path = nil)
-      log.log_internal msg, path, nil, level
+    def log_internal(level, msg, path = nil, **tags)
+      log.log_internal msg, path, nil, level, tags
     end
 
     def enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)

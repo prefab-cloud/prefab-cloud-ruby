@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Add support for structured logging (#143)
+    - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
+
+
 ## 1.0.1 - 2023-08-17
 
 - Bug fix for StringList w/ ExampleContextsAggregator (#141)
