@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 1.1.0 - 2023-09-18
+
 - Add support for structured logging (#143)
     - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
 
