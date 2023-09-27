@@ -40,6 +40,7 @@ Gem::Specification.new do |s|
     "lib/prefab-cloud-ruby.rb",
     "lib/prefab/client.rb",
     "lib/prefab/config_client.rb",
+    "lib/prefab/config_client_presenter.rb",
     "lib/prefab/config_loader.rb",
     "lib/prefab/config_resolver.rb",
     "lib/prefab/config_value_unwrapper.rb",

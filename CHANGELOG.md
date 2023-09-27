@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO`
+- Add `ConfigClientPresenter` for logging out stats upon successful client initialization
+
 ## 1.1.0 - 2023-09-18
 
 - Add support for structured logging (#143)

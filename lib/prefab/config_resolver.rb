@@ -3,6 +3,7 @@
 module Prefab
   class ConfigResolver
     attr_accessor :project_env_id # this will be set by the config_client when it gets an API response
+    attr_reader :local_store
 
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
