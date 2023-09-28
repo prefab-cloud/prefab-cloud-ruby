@@ -28,7 +28,7 @@ module Prefab
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
       if @options.local_only?
-        finish_init!(:local_only)
+        finish_init!(:local_only, nil)
       else
         load_checkpoint
         start_checkpointing_thread
@@ -150,14 +150,14 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        @base_client.log_internal ::Logger::INFO,
+        @base_client.log_internal ::Logger::DEBUG,
                                   "Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'"
       else
         @base_client.log_internal ::Logger::DEBUG,
                                   "Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", 'load_configs'
       end
       @config_resolver.update
-      finish_init!(source)
+      finish_init!(source, project_id)
     end
 
     # A thread that checks for a checkpoint
@@ -170,18 +170,26 @@ module Prefab
           delta = @checkpoint_freq_secs - (Time.now - started_at)
           sleep(delta) if delta > 0
         rescue StandardError => e
-          @base_client.log_internal ::Logger::INFO, "Issue Checkpointing #{e.message}"
+          @base_client.log_internal ::Logger::DEBUG, "Issue Checkpointing #{e.message}"
         end
       end
     end
 
-    def finish_init!(source)
+    def finish_init!(source, project_id)
       return unless @initialization_lock.write_locked?
 
-      @base_client.log_internal ::Logger::INFO, "Unlocked Config via #{source}"
+      @base_client.log_internal ::Logger::DEBUG, "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
       @base_client.log.config_client = self
-      @base_client.log_internal ::Logger::INFO, to_s
+      presenter = Prefab::ConfigClientPresenter.new(
+        size: @config_resolver.local_store.size,
+        source: source,
+        project_id: project_id,
+        project_env_id: @config_resolver.project_env_id,
+        api_key: @base_client.options.api_key
+      )
+      @base_client.log_internal ::Logger::INFO, presenter.to_s
+      @base_client.log_internal ::Logger::DEBUG, to_s
     end
 
     def start_sse_streaming_connection_thread(start_at_id)
@@ -193,7 +201,7 @@ module Prefab
         'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      @base_client.log_internal ::Logger::INFO, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
+      @base_client.log_internal ::Logger::DEBUG, "SSE Streaming Connect to #{url} start_at #{start_at_id}"
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
