@@ -404,6 +404,35 @@ class TestLogger < Minitest::Test
     assert_logged io, 'ERROR', 'test.test_logger.test_logging_with_a_block', message
   end
 
+  def test_add_context_keys
+    assert @logger.context_keys.empty?
+    @logger.add_context_keys("user.name", "role.admin", "company.name")
+
+    assert @logger.context_keys.to_a == %w(user.name role.admin company.name)
+  end
+
+  def test_context_keys_are_a_set
+    @logger.add_context_keys("user.name", "role.admin", "company.name")
+
+    assert @logger.context_keys.to_a == %w(user.name role.admin company.name)
+
+    @logger.add_context_keys("user.name", "user.role")
+
+    assert @logger.context_keys.to_a == %w(user.name role.admin company.name user.role)
+  end
+
+  def test_with_context_keys
+    @logger.add_context_keys("company.name")
+
+    assert @logger.context_keys.to_a == %w(company.name)
+
+    @logger.with_context_keys("user.name", "role.admin") do
+      assert @logger.context_keys.to_a == %w(company.name user.name role.admin)
+    end
+
+    assert @logger.context_keys.to_a == %w(company.name)
+  end
+
   def test_structured_logging
     prefab, io = captured_logger
     message = 'HELLO'
@@ -442,6 +471,46 @@ class TestLogger < Minitest::Test
     end
 
     assert_logged io, 'ERROR', 'test.test_logger.test_structured_block_logger', "#{message} user=michael"
+  end
+
+  def test_structured_logger_with_context_keys
+    prefab, io = captured_logger
+
+    prefab.with_context({user: {name: "michael", job: "developer", admin: false}, company: { name: "Prefab" }}) do
+
+      prefab.log.add_context_keys "user.name", "company.name", "user.admin"
+
+      prefab.log.error "UH OH"
+
+      assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys',
+        "UH OH company.name=Prefab user.admin=false user.name=michael"
+    end
+  end
+
+  def test_structured_logger_with_context_keys_block
+    prefab, io = captured_logger
+
+    prefab.with_context({user: {name: "michael", job: "developer", admin: false}, company: { name: "Prefab" }}) do
+
+      prefab.log.add_context_keys "user.name"
+
+      prefab.log.error "UH OH"
+
+      assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys_block',
+        'UH OH user.name=michael'
+
+      prefab.log.with_context_keys("company.name") do
+        prefab.log.error "UH OH"
+
+        assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys_block',
+          'UH OH company.name=Prefab user.name=michael'
+      end
+
+      prefab.log.error "UH OH"
+
+      assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys_block',
+        'UH OH user.name=michael'
+    end
   end
 
   private
