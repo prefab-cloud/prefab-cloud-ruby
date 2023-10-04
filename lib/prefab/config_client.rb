@@ -146,6 +146,17 @@ module Prefab
       @config_resolver.project_env_id = project_env_id
       starting_highwater_mark = @config_loader.highwater_mark
 
+      default_contexts = configs.default_context&.contexts&.map do |context|
+        [
+          context.type,
+          context.values.keys.map do |k|
+            [k, Prefab::ConfigValueUnwrapper.new(context.values[k]).unwrap]
+          end.to_h
+        ]
+      end.to_h
+
+      @config_resolver.default_context = default_contexts || {}
+
       configs.configs.each do |config|
         @config_loader.set(config, source)
       end

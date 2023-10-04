@@ -5,6 +5,8 @@ module Prefab
     attr_accessor :project_env_id # this will be set by the config_client when it gets an API response
     attr_reader :local_store
 
+    attr_accessor :default_context
+
     def initialize(base_client, config_loader)
       @lock = Concurrent::ReadWriteLock.new
       @local_store = {}
@@ -12,6 +14,7 @@ module Prefab
       @project_env_id = 0 # we don't know this yet, it is set from the API results
       @base_client = base_client
       @on_update = nil
+      @default_context = {}
       make_local
     end
 
@@ -62,7 +65,7 @@ module Prefab
         properties
       else
         Context.merge_with_current(properties)
-      end
+      end.merge_default(default_context || {})
     end
 
     private
