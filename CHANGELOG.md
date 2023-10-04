@@ -4,12 +4,12 @@
 
 - Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO`
 - Add `ConfigClientPresenter` for logging out stats upon successful client initialization
+- Add support for default context
 
 ## 1.1.0 - 2023-09-18
 
 - Add support for structured logging (#143)
-    - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
-
+  - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
 
 ## 1.0.1 - 2023-08-17
 

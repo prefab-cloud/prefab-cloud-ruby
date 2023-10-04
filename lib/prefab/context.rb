@@ -122,6 +122,14 @@ module Prefab
       contexts[name.to_s] || NamedContext.new(name, {})
     end
 
+    def merge_default(defaults)
+      defaults.keys.each do |name|
+        set(name, context(name).merge!(defaults[name]))
+      end
+
+      self
+    end
+
     def to_proto(namespace)
       prefab_context = {
         'current-time' => ConfigValueWrapper.wrap(Prefab::TimeHelpers.now_in_ms)
