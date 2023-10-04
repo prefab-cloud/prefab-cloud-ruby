@@ -88,6 +88,11 @@ module Prefab
     end
 
     def _get(key, properties)
+
+      # will return without waiting for API unlock
+      env_value = @config_resolver.get_env_value(key)
+      return env_value unless env_value.nil?
+
       # wait timeout sec for the initialization to be complete
       @initialized_future.value(@options.initialization_timeout_sec)
       if @initialized_future.incomplete?
@@ -99,7 +104,7 @@ module Prefab
                                   "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
         @initialization_lock.release_write_lock
       end
-
+      
       @config_resolver.get key, properties
     end
 

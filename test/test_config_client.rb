@@ -23,6 +23,34 @@ class TestConfigClient < Minitest::Test
     assert_equal :ERROR, @config_client.get('log-level.app')
   end
 
+  def test_load_prefers_env_var
+    assert_equal 'test sample value', @config_client.get('sample')
+    assert_equal 123, @config_client.get('sample_int')
+    assert_equal 12.12, @config_client.get('sample_double')
+    assert_equal true, @config_client.get('sample_bool')
+    assert_equal 'top level', @config_client.get('nested.values')
+    assert_equal 'nested value', @config_client.get('nested.values.string')
+    
+    with_env('SAMPLE', 'overriden') do 
+      assert_equal 'overriden', @config_client.get('sample')
+    end
+    with_env('SAMPLE_INT', '456') do 
+      assert_equal 456, @config_client.get('sample_int')
+    end
+    with_env('SAMPLE_DOUBLE', "13.13") do 
+      assert_equal 13.13, @config_client.get('sample_double')
+    end
+    with_env('SAMPLE_BOOL', "13.13") do 
+      assert_equal 13.13, @config_client.get('sample_bool')
+    end
+    with_env('NESTED_VALUES', "nested override") do 
+      assert_equal "nested override", @config_client.get('nested.values')
+    end
+    with_env('A3___X____3', "override") do 
+      assert_equal "override", @config_client.get('A3@$#X__🍇<3')
+    end
+  end
+
   def test_initialization_timeout_error
     options = Prefab::Options.new(
       api_key: '123-ENV-KEY-SDK',
