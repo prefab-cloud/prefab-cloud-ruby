@@ -68,6 +68,10 @@ module Prefab
       end.merge_default(default_context || {})
     end
 
+    def get_env_value(key, properties = NO_DEFAULT_PROVIDED)
+      Prefab::LocalConfigParser.eval_env(key, make_context(properties))
+    end
+
     private
 
     def make_local

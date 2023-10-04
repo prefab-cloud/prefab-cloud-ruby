@@ -33,6 +33,46 @@ module Prefab
         config
       end
 
+      def envify_string(string)
+        string.upcase.gsub(/[^A-Z0-9]/, '_')
+      end
+  
+      def eval_env(key, context)
+        config_entry = parse_env(key)
+        unless config_entry.nil? 
+          Prefab::Evaluation.new(
+            config: config_entry[:config],
+            value: config_entry[:value],
+            value_index: 0,
+            config_row_index: 0,
+            context: context
+          )
+        end
+      end
+
+      def parse_env(key)
+        envify = envify_string(key)
+        raw = ENV[envify]
+        unless raw.nil?
+          parsed = YAML.load(raw)
+          wrapped = ConfigValueWrapper.wrap(parsed)
+          {
+            source: :env,
+            match: envify,
+            value: wrapped,
+            config: PrefabProto::Config.new(
+              config_type: :CONFIG,
+              key: key,
+              rows: [
+                PrefabProto::ConfigRow.new(values: [
+                                             PrefabProto::ConditionalValue.new(value: wrapped)
+                                           ])
+              ]
+            )
+          }
+        end
+      end
+
       def value_from(key, raw)
         case raw
         when String
