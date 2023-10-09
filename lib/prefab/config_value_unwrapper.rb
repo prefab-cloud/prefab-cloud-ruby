@@ -33,7 +33,13 @@ module Prefab
       elsif config_value&.type == :provided
         if config_value.provided.source = :ENV_VAR
           raw = ENV[config_value.provided.lookup]
-          new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw)))
+          if raw.nil?
+            # TODO
+            # @client.log_internal(::Logger::WARN, "ENV Variable #{config_value.provided.lookup} not found")
+            new(Prefab::ConfigValueWrapper.wrap(""))
+          else
+            new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw)))
+          end
         else
           raise "Unknown Provided Source #{config_value.provided.source}"
         end        
