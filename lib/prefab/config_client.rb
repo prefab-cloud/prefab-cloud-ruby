@@ -100,7 +100,7 @@ module Prefab
                                   "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
         @initialization_lock.release_write_lock
       end
-      
+
       @config_resolver.get key, properties
     end
 
