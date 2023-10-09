@@ -62,6 +62,18 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal 'abc', unwrap(config_value, CONFIG_KEY, context_with_key('user:548'))
   end
 
+  def test_unwrapping_weighted_values
+    with_env('ENV_VAR_NAME', 'unit test value')do
+      value = PrefabProto::Provided.new(
+        source: :ENV_VAR,
+        lookup: "ENV_VAR_NAME"
+      )
+      config_value = PrefabProto::ConfigValue.new(provided: value)
+      assert_equal 'unit test value', unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
+    end
+  end
+
+
   private
 
   def context_with_key(key)
