@@ -60,6 +60,28 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal %w[abc123 xyz987], value_row.criteria[0].value_to_match.string_list.values
   end
 
+  def test_provided_values
+    with_env('LOOKUP_ENV', 'from env') do 
+      key = :test_provided
+      value = stringify_keys({type: 'provided', source: 'ENV_VAR', lookup: 'LOOKUP_ENV'})
+      parsed = Prefab::LocalConfigParser.parse(key, value, {}, FILE_NAME)[key]
+      config = parsed[:config]
+
+      assert_equal FILE_NAME, parsed[:source]
+      assert_equal 'LOOKUP_ENV', parsed[:match]
+      assert_equal :CONFIG, config.config_type
+      assert_equal key.to_s, config.key
+      assert_equal 1, config.rows.size
+      assert_equal 1, config.rows[0].values.size
+      
+      value_row = config.rows[0].values[0]            
+      provided = value_row.value.provided
+      assert_equal :ENV_VAR, provided.source
+      assert_equal 'LOOKUP_ENV', provided.lookup
+      assert_equal 'from env', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
+    end
+  end
+
   private
 
   def stringify_keys(hash)
