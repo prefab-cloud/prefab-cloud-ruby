@@ -176,10 +176,10 @@ module Prefab
       finish_init!(source, project_id)
     end
 
-
     def cache_path
       return @cache_path unless @cache_path.nil?
-      @cache_path ||= File.join(Dir.home, '.prefab',".prefab.cache.#{@base_client.options.api_key_id}.json")
+
+      @cache_path ||= File.join(ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache')), ".prefab.cache.#{@base_client.options.api_key_id}.json")
       FileUtils.mkdir_p(File.dirname(@cache_path))
       @cache_path
     end
@@ -204,7 +204,6 @@ module Prefab
       @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}"
       false
     end
-
 
     # A thread that checks for a checkpoint
     def start_checkpointing_thread

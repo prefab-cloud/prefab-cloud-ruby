@@ -91,4 +91,20 @@ class TestConfigClient < Minitest::Test
     assert_equal "test value", @config_client.get("test")
   end
 
+  def test_cache_path_respects_xdg
+    options = Prefab::Options.new(
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+      use_local_cache: true,
+      api_key: "123-ENV-KEY-SDK",)
+
+    config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+    assert_equal "#{Dir.home}/.cache/.prefab.cache.123.json", config_client.send(:cache_path)
+
+    with_env('XDG_CACHE_HOME', '/tmp') do
+      config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+      puts "XDG_CACHE_HOME #{ENV.fetch('XDG_CACHE_HOME','.cache')} #{ENV['XDG_CACHE_HOME']}"
+      assert_equal "/tmp/.prefab.cache.123.json", config_client.send(:cache_path)
+    end
+  end
+
 end
