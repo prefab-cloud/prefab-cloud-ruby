@@ -198,7 +198,6 @@ module Prefab
       File.open(cache_path) do |f|
         configs = PrefabProto::Configs.decode_json(f.read)
         load_configs(configs, :cache)
-        puts "LOADED!"
       end
     rescue
       @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}"
