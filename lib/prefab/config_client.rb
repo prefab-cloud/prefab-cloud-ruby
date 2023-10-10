@@ -179,16 +179,18 @@ module Prefab
     def cache_path
       return @cache_path unless @cache_path.nil?
 
-      @cache_path ||= File.join(ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache')), ".prefab.cache.#{@base_client.options.api_key_id}.json")
+      @cache_path ||= File.join(ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache')), "prefab.cache.#{@base_client.options.api_key_id}.json")
       FileUtils.mkdir_p(File.dirname(@cache_path))
       @cache_path
     end
 
     def cache_configs(configs)
-      return unless @options.use_local_cache
+      return unless @options.use_local_cache && !@options.is_fork
       File.open(cache_path, "w") do |f|
+        f.flock(File::LOCK_EX)
         f.write(PrefabProto::Configs.encode_json(configs))
       end
+      @base_client.log_internal ::Logger::DEBUG, "Cached configs to #{cache_path}"
     rescue
       @base_client.log_internal ::Logger::DEBUG, "Failed to cache configs to #{cache_path}"
     end

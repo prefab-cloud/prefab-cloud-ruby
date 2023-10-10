@@ -17,6 +17,7 @@ module Prefab
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
     attr_reader :use_local_cache
+    attr_accessor :is_fork
 
     DEFAULT_LOG_FORMATTER = proc { |data|
       severity = data[:severity]
@@ -79,7 +80,7 @@ module Prefab
       collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false,
-      use_local_cache: false
+      x_use_local_cache: false
     )
       @api_key = api_key
       @logdev = logdev
@@ -100,7 +101,8 @@ module Prefab
       @collect_evaluation_summaries = collect_evaluation_summaries
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
       @allow_telemetry_in_local_mode = allow_telemetry_in_local_mode
-      @use_local_cache = use_local_cache
+      @use_local_cache = x_use_local_cache
+      @is_fork = false
 
       # defaults that may be overridden by context_upload_mode
       @collect_shapes = false
@@ -161,6 +163,12 @@ module Prefab
 
     def api_key_id
       @api_key&.split("-")&.first
+    end
+
+    def for_fork
+      clone = self.clone
+      clone.is_fork = true
+      clone
     end
 
     private
