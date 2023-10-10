@@ -9,7 +9,8 @@ class TestConfigClient < Minitest::Test
       prefab_config_override_dir: 'none',
       prefab_config_classpath_dir: 'test',
       prefab_envs: 'unit_tests',
-      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+      use_local_cache: true,
     )
 
     @config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
@@ -73,4 +74,21 @@ class TestConfigClient < Minitest::Test
 
     assert_match(/format is invalid/, err.message)
   end
+
+  def test_caching
+    @config_client.send(:cache_configs,
+                        PrefabProto::Configs.new(configs:
+                                                   [PrefabProto::Config.new(key: 'test', id: 1,
+                                                                            rows: [PrefabProto::ConfigRow.new(
+                                                                              values: [
+                                                                                PrefabProto::ConditionalValue.new(
+                                                                                  value: PrefabProto::ConfigValue.new(string: "test value")
+                                                                                )
+                                                                              ]
+                                                                            )])],
+                                                 config_service_pointer: PrefabProto::ConfigServicePointer.new(project_id: 3, project_env_id: 5)))
+    @config_client.send(:load_cache)
+    assert_equal "test value", @config_client.get("test")
+  end
+
 end

@@ -16,6 +16,7 @@ module Prefab
     attr_reader :prefab_config_classpath_dir
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
+    attr_reader :use_local_cache
 
     DEFAULT_LOG_FORMATTER = proc { |data|
       severity = data[:severity]
@@ -77,7 +78,8 @@ module Prefab
       context_max_size: DEFAULT_MAX_EVAL_SUMMARIES,
       collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
-      allow_telemetry_in_local_mode: false
+      allow_telemetry_in_local_mode: false,
+      use_local_cache: false
     )
       @api_key = api_key
       @logdev = logdev
@@ -98,6 +100,7 @@ module Prefab
       @collect_evaluation_summaries = collect_evaluation_summaries
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
       @allow_telemetry_in_local_mode = allow_telemetry_in_local_mode
+      @use_local_cache = use_local_cache
 
       # defaults that may be overridden by context_upload_mode
       @collect_shapes = false
@@ -154,6 +157,10 @@ module Prefab
     # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
     def url_for_api_cdn
       ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, '-')}.global.ssl.fastly.net"
+    end
+
+    def api_key_id
+      @api_key&.split("-")&.first
     end
 
     private

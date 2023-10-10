@@ -112,6 +112,10 @@ module Prefab
 
       return if success
 
+      success = load_cache
+
+      return if success
+
       @base_client.log_internal ::Logger::WARN, 'No success loading checkpoints'
     end
 
@@ -130,6 +134,7 @@ module Prefab
       if resp.status == 200
         configs = PrefabProto::Configs.decode(resp.body)
         load_configs(configs, source)
+        cache_configs(configs)
         true
       else
         @base_client.log_internal ::Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
@@ -171,6 +176,36 @@ module Prefab
       finish_init!(source, project_id)
     end
 
+
+    def cache_path
+      return @cache_path unless @cache_path.nil?
+      @cache_path ||= File.join(Dir.home, '.prefab',".prefab.cache.#{@base_client.options.api_key_id}.json")
+      FileUtils.mkdir_p(File.dirname(@cache_path))
+      @cache_path
+    end
+
+    def cache_configs(configs)
+      return unless @options.use_local_cache
+      File.open(cache_path, "w") do |f|
+        f.write(PrefabProto::Configs.encode_json(configs))
+      end
+    rescue
+      @base_client.log_internal ::Logger::DEBUG, "Failed to cache configs to #{cache_path}"
+    end
+
+    def load_cache
+      return false unless @options.use_local_cache
+      File.open(cache_path) do |f|
+        configs = PrefabProto::Configs.decode_json(f.read)
+        load_configs(configs, :cache)
+        puts "LOADED!"
+      end
+    rescue
+      @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}"
+      false
+    end
+
+
     # A thread that checks for a checkpoint
     def start_checkpointing_thread
       Thread.new do
@@ -197,7 +232,7 @@ module Prefab
         source: source,
         project_id: project_id,
         project_env_id: @config_resolver.project_env_id,
-        api_key: @base_client.options.api_key
+        api_key_id: @base_client.options.api_key_id
       )
       @base_client.log_internal ::Logger::INFO, presenter.to_s
       @base_client.log_internal ::Logger::DEBUG, to_s
