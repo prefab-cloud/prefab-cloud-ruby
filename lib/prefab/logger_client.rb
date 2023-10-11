@@ -22,6 +22,7 @@ module Prefab
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
       @silences = Concurrent::Map.new(initial_capacity: 2)
+      @recurse_check = Concurrent::Map.new(initial_capacity: 2)
       @prefix = "#{prefix}#{prefix && '.'}"
 
       @log_path_aggregator = log_path_aggregator
@@ -37,6 +38,10 @@ module Prefab
     end
 
     def log_internal(message, path, progname, severity, log_context={}, &block)
+      @recurse_check[local_log_id] ||= false
+      return if @recurse_check[local_log_id]
+      @recurse_check[local_log_id] = true
+
       path = if path
                "#{INTERNAL_PREFIX}.#{path}"
              else
@@ -44,6 +49,8 @@ module Prefab
              end
 
       log(message, path, progname, severity, log_context, &block)
+    ensure
+      @recurse_check[local_log_id] = false
     end
 
     def log(message, path, progname, severity, log_context={})
