@@ -5,6 +5,7 @@ module Prefab
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
+    STALE_CACHE_WARN_HOURS = 5
     AUTH_USER = 'authuser'
     LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}".freeze
 
@@ -206,6 +207,11 @@ module Prefab
         f.flock(File::LOCK_SH)
         configs = PrefabProto::Configs.decode_json(f.read)
         load_configs(configs, :cache)
+
+        hours_old = ((Time.now - File.mtime(f)) / 60 / 60).round(2)
+        if hours_old > STALE_CACHE_WARN_HOURS
+          @base_client.log_internal ::Logger::INFO, "Stale Cache Load: #{hours_old} hours old"
+        end
       end
     rescue => e
       @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}. #{e}"
