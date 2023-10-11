@@ -1,10 +1,10 @@
 # Changelog
 
-## Unreleased
+## 1.1.1 - 2023-10-11
 
-- Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO`
-- Add `ConfigClientPresenter` for logging out stats upon successful client initialization
-- Add support for default context
+- Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO` (#144)
+- Add `ConfigClientPresenter` for logging out stats upon successful client initialization (#144)
+- Add support for default context (#146)
 
 ## 1.1.0 - 2023-09-18
 
