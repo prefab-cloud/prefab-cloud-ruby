@@ -178,10 +178,15 @@ module Prefab
 
     def cache_path
       return @cache_path unless @cache_path.nil?
-
-      @cache_path ||= File.join(ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache')), "prefab.cache.#{@base_client.options.api_key_id}.json")
+      @cache_path ||= calc_cache_path
       FileUtils.mkdir_p(File.dirname(@cache_path))
       @cache_path
+    end
+
+    def calc_cache_path
+      file_name = "prefab.cache.#{@base_client.options.api_key_id}.json"
+      dir = ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache'))
+      File.join(dir, file_name)
     end
 
     def cache_configs(configs)
