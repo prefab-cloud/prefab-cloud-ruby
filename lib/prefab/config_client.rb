@@ -191,18 +191,19 @@ module Prefab
         f.write(PrefabProto::Configs.encode_json(configs))
       end
       @base_client.log_internal ::Logger::DEBUG, "Cached configs to #{cache_path}"
-    rescue
-      @base_client.log_internal ::Logger::DEBUG, "Failed to cache configs to #{cache_path}"
+    rescue => e
+      @base_client.log_internal ::Logger::DEBUG, "Failed to cache configs to #{cache_path} #{e}"
     end
 
     def load_cache
       return false unless @options.use_local_cache
       File.open(cache_path) do |f|
+        f.flock(File::LOCK_SH)
         configs = PrefabProto::Configs.decode_json(f.read)
         load_configs(configs, :cache)
       end
-    rescue
-      @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}"
+    rescue => e
+      @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}. #{e}"
       false
     end
 
