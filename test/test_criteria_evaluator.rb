@@ -724,6 +724,8 @@ class TestCriteriaEvaluator < Minitest::Test
       FakeLogger.new
     end
 
+    def log_internal(level, msg, path = nil, **tags); end
+
     def evaluation_summary_aggregator
       @evaluation_summary_aggregator ||= Prefab::EvaluationSummaryAggregator.new(client: self, max_keys: 9999, sync_interval: 9999)
     end
