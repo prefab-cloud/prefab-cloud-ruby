@@ -38,19 +38,20 @@ module Prefab
     end
 
     def log_internal(message, path, progname, severity, log_context={}, &block)
-      @recurse_check[local_log_id] ||= Concurrent::AtomicFixnum.new
-      @recurse_check[local_log_id].increment
-      return if @recurse_check[local_log_id].value > 1
+      @recurse_check[local_log_id] ||= false
+      return if @recurse_check[local_log_id]
+      @recurse_check[local_log_id] = true
 
       path = if path
                "#{INTERNAL_PREFIX}.#{path}"
              else
                INTERNAL_PREFIX
              end
-
-      log(message, path, progname, severity, log_context, &block)
-    ensure
-      @recurse_check[local_log_id].decrement
+      begin
+        log(message, path, progname, severity, log_context, &block)
+      ensure
+        @recurse_check[local_log_id] = false
+      end
     end
 
     def log(message, path, progname, severity, log_context={})
