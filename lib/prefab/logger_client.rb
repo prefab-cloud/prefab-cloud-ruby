@@ -38,7 +38,6 @@ module Prefab
     end
 
     def log_internal(message, path, progname, severity, log_context={}, &block)
-      @recurse_check[local_log_id] ||= false
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
 
