@@ -54,3 +54,4 @@ gen_protos.sh
 lib/tes*
 .envrc
 .tool-versions
+.env*
