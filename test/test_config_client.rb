@@ -102,7 +102,6 @@ class TestConfigClient < Minitest::Test
 
     with_env('XDG_CACHE_HOME', '/tmp') do
       config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
-      puts "XDG_CACHE_HOME #{ENV.fetch('XDG_CACHE_HOME','.cache')} #{ENV['XDG_CACHE_HOME']}"
       assert_equal "/tmp/prefab.cache.123.json", config_client.send(:cache_path)
     end
   end
