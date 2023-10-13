@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.2 - 2023-10-13
+
+- Add `cloud.prefab.client.criteria_evaluator` `debug` logging of evaluations (#150)
+- Add `x_use_local_cache` for local caching (#148)
+- Tests run in RubyMine (#147)
+
 ## 1.1.1 - 2023-10-11
 
 - Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO` (#144)
