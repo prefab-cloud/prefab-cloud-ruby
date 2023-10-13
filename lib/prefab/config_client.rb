@@ -5,6 +5,7 @@ module Prefab
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
+    STALE_CACHE_WARN_HOURS = 5
     AUTH_USER = 'authuser'
     LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}".freeze
 
@@ -112,6 +113,10 @@ module Prefab
 
       return if success
 
+      success = load_cache
+
+      return if success
+
       @base_client.log_internal ::Logger::WARN, 'No success loading checkpoints'
     end
 
@@ -130,6 +135,7 @@ module Prefab
       if resp.status == 200
         configs = PrefabProto::Configs.decode(resp.body)
         load_configs(configs, source)
+        cache_configs(configs)
         true
       else
         @base_client.log_internal ::Logger::INFO, "Checkpoint #{source} failed to load. Response #{resp.status}"
@@ -171,6 +177,47 @@ module Prefab
       finish_init!(source, project_id)
     end
 
+    def cache_path
+      return @cache_path unless @cache_path.nil?
+      @cache_path ||= calc_cache_path
+      FileUtils.mkdir_p(File.dirname(@cache_path))
+      @cache_path
+    end
+
+    def calc_cache_path
+      file_name = "prefab.cache.#{@base_client.options.api_key_id}.json"
+      dir = ENV.fetch('XDG_CACHE_HOME', File.join(Dir.home, '.cache'))
+      File.join(dir, file_name)
+    end
+
+    def cache_configs(configs)
+      return unless @options.use_local_cache && !@options.is_fork
+      File.open(cache_path, "w") do |f|
+        f.flock(File::LOCK_EX)
+        f.write(PrefabProto::Configs.encode_json(configs))
+      end
+      @base_client.log_internal ::Logger::DEBUG, "Cached configs to #{cache_path}"
+    rescue => e
+      @base_client.log_internal ::Logger::DEBUG, "Failed to cache configs to #{cache_path} #{e}"
+    end
+
+    def load_cache
+      return false unless @options.use_local_cache
+      File.open(cache_path) do |f|
+        f.flock(File::LOCK_SH)
+        configs = PrefabProto::Configs.decode_json(f.read)
+        load_configs(configs, :cache)
+
+        hours_old = ((Time.now - File.mtime(f)) / 60 / 60).round(2)
+        if hours_old > STALE_CACHE_WARN_HOURS
+          @base_client.log_internal ::Logger::INFO, "Stale Cache Load: #{hours_old} hours old"
+        end
+      end
+    rescue => e
+      @base_client.log_internal ::Logger::DEBUG, "Failed to read cached configs at #{cache_path}. #{e}"
+      false
+    end
+
     # A thread that checks for a checkpoint
     def start_checkpointing_thread
       Thread.new do
@@ -197,7 +244,7 @@ module Prefab
         source: source,
         project_id: project_id,
         project_env_id: @config_resolver.project_env_id,
-        api_key: @base_client.options.api_key
+        api_key_id: @base_client.options.api_key_id
       )
       @base_client.log_internal ::Logger::INFO, presenter.to_s
       @base_client.log_internal ::Logger::DEBUG, to_s

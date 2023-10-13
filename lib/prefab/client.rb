@@ -133,7 +133,7 @@ module Prefab
     #   $prefab.set_rails_loggers
     # end
     def fork
-      Prefab::Client.new(@options)
+      Prefab::Client.new(@options.for_fork)
     end
 
     private
