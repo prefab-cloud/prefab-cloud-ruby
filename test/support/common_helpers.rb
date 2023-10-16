@@ -44,22 +44,24 @@ module CommonHelpers
   }.freeze
 
   def new_client(overrides = {})
-    $logs ||= StringIO.new
 
     config = overrides.delete(:config)
     project_env_id = overrides.delete(:project_env_id)
 
-    options = Prefab::Options.new(
-      **DEFAULT_NEW_CLIENT_OPTIONS.merge(
-        overrides.merge(logdev: $logs)
-      )
-    )
-
-    Prefab::Client.new(options).tap do |client|
+    Prefab::Client.new(prefab_options(overrides)).tap do |client|
       inject_config(client, config) if config
 
       client.resolver.project_env_id = project_env_id if project_env_id
     end
+  end
+
+  def prefab_options(overrides = {})
+    $logs ||= StringIO.new
+    Prefab::Options.new(
+      **DEFAULT_NEW_CLIENT_OPTIONS.merge(
+        overrides.merge(logdev: $logs)
+      )
+    )
   end
 
   def string_list(values)
