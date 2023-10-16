@@ -31,11 +31,9 @@ module Prefab
         new(deepest_value(value.value, config_key, context).value, index)
 
       elsif config_value&.type == :provided
-        if config_value.provided.source = :ENV_VAR
+        if :ENV_VAR == config_value.provided.source
           raw = ENV[config_value.provided.lookup]
           if raw.nil?
-            # TODO
-            # @client.log_internal(::Logger::WARN, "ENV Variable #{config_value.provided.lookup} not found")
             new(Prefab::ConfigValueWrapper.wrap(""))
           else
             new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw)))
