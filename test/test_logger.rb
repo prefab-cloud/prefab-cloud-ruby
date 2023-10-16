@@ -487,6 +487,21 @@ class TestLogger < Minitest::Test
     end
   end
 
+  def test_structured_logger_with_context_keys_and_log_hash
+    prefab, io = captured_logger
+
+    prefab.with_context({user: {name: "michael", job: "developer", admin: false}, company: { name: "Prefab" }}) do
+
+      prefab.log.add_context_keys "user.name", "company.name", "user.admin"
+
+      prefab.log.error "UH OH", user_id: 6
+
+      assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys_and_log_hash',
+        "UH OH company.name=Prefab user.admin=false user.name=michael user_id=6"
+    end
+
+  end
+
   def test_structured_logger_with_context_keys_block
     prefab, io = captured_logger
 

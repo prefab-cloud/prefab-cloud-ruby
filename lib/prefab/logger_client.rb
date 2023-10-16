@@ -78,9 +78,13 @@ module Prefab
       end
 
       @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message, path, log_context.merge(fetch_context_for_context_keys))
+        format_message(format_severity(severity), Time.now, progname, message, path, stringify_keys(log_context.merge(fetch_context_for_context_keys)))
       )
       true
+    end
+
+    def stringify_keys(hash)
+      Hash[hash.map { |k, v| [k.to_s, v] }]
     end
 
     def debug(progname = nil, **log_context, &block)
