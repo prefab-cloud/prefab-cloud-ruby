@@ -73,6 +73,17 @@ class TestConfigValueUnwrapper < Minitest::Test
     end
   end
 
+  def test_unwrapping_provided_values_of_type_array
+    with_env('ENV_VAR_NAME', '["bob","cary"]')do
+      value = PrefabProto::Provided.new(
+        source: :ENV_VAR,
+        lookup: "ENV_VAR_NAME"
+      )
+      config_value = PrefabProto::ConfigValue.new(provided: value)
+      assert_equal ["bob", "cary"], unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
+    end
+  end
+
   def test_unwrapping_provided_values_with_missing_env_var
     value = PrefabProto::Provided.new(
       source: :ENV_VAR,
@@ -81,7 +92,6 @@ class TestConfigValueUnwrapper < Minitest::Test
     config_value = PrefabProto::ConfigValue.new(provided: value)
     assert_equal '', unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
-
 
   private
 
