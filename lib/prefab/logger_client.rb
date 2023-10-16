@@ -83,10 +83,6 @@ module Prefab
       true
     end
 
-    def stringify_keys(hash)
-      Hash[hash.map { |k, v| [k.to_s, v] }]
-    end
-
     def debug(progname = nil, **log_context, &block)
       add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
@@ -149,6 +145,10 @@ module Prefab
     private
 
     NO_DEFAULT = nil
+
+    def stringify_keys(hash)
+      Hash[hash.map { |k, v| [k.to_s, v] }]
+    end
 
     def fetch_context_for_context_keys
       context = Prefab::Context.current.to_h
