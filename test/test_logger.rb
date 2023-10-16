@@ -487,6 +487,20 @@ class TestLogger < Minitest::Test
     end
   end
 
+  def test_structured_logger_with_context_keys_ignores_nils
+    prefab, io = captured_logger
+
+    prefab.with_context({user: {name: "michael", job: "developer"}, company: { name: "Prefab" }}) do
+
+      prefab.log.add_context_keys "user.name", "company.name", "user.admin"
+
+      prefab.log.error "UH OH"
+
+      assert_logged io, 'ERROR', 'test.test_logger.test_structured_logger_with_context_keys_ignores_nils',
+        "UH OH company.name=Prefab user.name=michael"
+    end
+  end
+
   def test_structured_logger_with_context_keys_and_log_hash
     prefab, io = captured_logger
 
