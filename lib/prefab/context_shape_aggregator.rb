@@ -43,7 +43,7 @@ module Prefab
 
     def flush(to_ship, _)
       pool.post do
-        log_internal "Uploading context shapes for #{to_ship.values.size}"
+        Prefab.internal_logger.debug "Uploading context shapes for #{to_ship.values.size}"
 
         shapes = PrefabProto::ContextShapes.new(
           shapes: to_ship.map do |name, shape|
@@ -56,7 +56,7 @@ module Prefab
 
         result = post('/api/v1/context-shapes', shapes)
 
-        log_internal "Uploaded #{to_ship.values.size} shapes: #{result.status}"
+        Prefab.internal_logger.debug "Uploaded #{to_ship.values.size} shapes: #{result.status}"
       end
     end
   end

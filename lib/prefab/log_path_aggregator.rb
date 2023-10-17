@@ -41,7 +41,7 @@ module Prefab
 
     def flush(to_ship, start_at_was)
       pool.post do
-        log_internal "Uploading stats for #{to_ship.size} paths"
+        Prefab.internal_logger.debug "Uploading stats for #{to_ship.size} paths"
 
         aggregate = Hash.new { |h, k| h[k] = PrefabProto::Logger.new }
 
@@ -60,7 +60,7 @@ module Prefab
 
         result = post('/api/v1/known-loggers', loggers)
 
-        log_internal "Uploaded #{to_ship.size} paths: #{result.status}"
+        Prefab.internal_logger.debug "Uploaded #{to_ship.size} paths: #{result.status}"
       end
     end
   end

@@ -47,7 +47,7 @@ module Prefab
 
     def flush(to_ship, start_at_was)
       pool.post do
-        log_internal "Flushing #{to_ship.size} summaries"
+        Prefab.internal_logger.debug "Flushing #{to_ship.size} summaries"
 
         summaries_proto = PrefabProto::ConfigEvaluationSummaries.new(
           start: start_at_was,
@@ -57,7 +57,7 @@ module Prefab
 
         result = post('/api/v1/telemetry', events(summaries_proto))
 
-        log_internal "Uploaded #{to_ship.size} summaries: #{result.status}"
+        Prefab.internal_logger.debug "Uploaded #{to_ship.size} summaries: #{result.status}"
       end
     end
 

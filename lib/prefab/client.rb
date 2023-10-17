@@ -16,13 +16,13 @@ module Prefab
       @instance_hash = UUID.new.generate
 
       if @options.local_only?
-        log_internal ::Logger::DEBUG, 'Prefab Running in Local Mode'
+        Prefab.internal_logger.debug 'Prefab Running in Local Mode'
       else
         @api_key = @options.api_key
         raise Prefab::Errors::InvalidApiKeyError, @api_key if @api_key.nil? || @api_key.empty? || api_key.count('-') < 1
 
         @prefab_api_url = @options.prefab_api_url
-        log_internal ::Logger::DEBUG, "Prefab Connecting to: #{@prefab_api_url}"
+        Prefab.internal_logger.debug "Prefab Connecting to: #{@prefab_api_url}"
       end
 
       context.clear
@@ -97,10 +97,6 @@ module Prefab
 
     def on_update(&block)
       resolver.on_update(&block)
-    end
-
-    def log_internal(level, msg, path = nil, **tags)
-      log.log_internal msg, path, nil, level, tags
     end
 
     def enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)

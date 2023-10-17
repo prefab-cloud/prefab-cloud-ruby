@@ -28,6 +28,11 @@ module Prefab
       @log_path_aggregator = log_path_aggregator
     end
 
+    def internal_logger(path=nil)
+      InternalLogger.new(path, self)
+    end
+
+    # InternalLoggers Will Call This
     def add_internal(severity, message, progname, loc, log_context={}, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
@@ -37,7 +42,7 @@ module Prefab
       log(message, path, progname, severity, log_context, &block)
     end
 
-    def log_internal(message, path, progname, severity, log_context={}, &block)
+    def log_internal(severity, message, path)
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
 
@@ -47,7 +52,7 @@ module Prefab
                INTERNAL_PREFIX
              end
       begin
-        log(message, path, progname, severity, log_context, &block)
+        log(message, path, nil, severity)
       ensure
         @recurse_check[local_log_id] = false
       end

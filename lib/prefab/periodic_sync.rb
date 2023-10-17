@@ -5,7 +5,7 @@ module Prefab
     def sync
       return if @data.size.zero?
 
-      log_internal "Syncing #{@data.size} items"
+      Prefab.internal_logger.debug "Syncing #{@data.size} items"
 
       start_at_was = @start_at
       @start_at = Prefab::TimeHelpers.now_in_ms
@@ -36,17 +36,13 @@ module Prefab
       @sync_interval = calculate_sync_interval(sync_interval)
 
       Thread.new do
-        log_internal "Initialized #{@name} instance_hash=#{@client.instance_hash}"
+        Prefab.internal_logger.debug "Initialized #{@name} instance_hash=#{@client.instance_hash}"
 
         loop do
           sleep @sync_interval.call
           sync
         end
       end
-    end
-
-    def log_internal(message)
-      @client.log.log_internal message, @name, nil, ::Logger::DEBUG
     end
 
     def pool

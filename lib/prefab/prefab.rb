@@ -4,6 +4,8 @@ module Prefab
   @@lock = Concurrent::ReadWriteLock.new
 
   def self.init(options = Prefab::Options.new)
+    @@boot_logger ||= Prefab::LoggerClient.new(options.logdev, formatter: options.log_formatter,
+                                                                        prefix: options.log_prefix)
     unless @singleton.nil?
       puts 'Prefab already initialized.'
       return @singleton
@@ -45,9 +47,11 @@ module Prefab
     @singleton
   end
 
-  def self.log_internal(level, msg, path = nil, **tags)
-    unless @singleton.nil?
-      @singleton.log_internal(level, msg, path, **tags)
+  def self.internal_logger
+    if @singleton.nil?
+      @@boot_logger.internal_logger
+    else
+      @singleton.log.internal_logger
     end
   end
 

@@ -21,7 +21,7 @@ module Prefab
     def evaluate(properties)
       rtn = evaluate_for_env(@project_env_id, properties) ||
         evaluate_for_env(0, properties)
-      @base_client.log_internal ::Logger::DEBUG, "Eval Key #{@config.key} Result #{rtn&.value} with #{properties.to_h}", :criteria_evaluator unless @config.config_type == :LOG_LEVEL
+      Prefab.internal_logger.debug "Eval Key #{@config.key} Result #{rtn&.value} with #{properties.to_h}", "criteria_evaluator" unless @config.config_type == :LOG_LEVEL
       rtn
     end
 

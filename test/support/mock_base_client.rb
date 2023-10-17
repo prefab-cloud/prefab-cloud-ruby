@@ -30,8 +30,6 @@ class MockBaseClient
     @logger
   end
 
-  def log_internal(level, msg, path = nil, **tags); end
-
   def context_shape_aggregator; end
 
   def evaluation_summary_aggregator; end

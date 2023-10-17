@@ -16,7 +16,7 @@ module Prefab
       when :string_list
         value.string_list.values
       else
-        Prefab.log_internal ::Logger::ERROR, "Unknown type: #{config_value.type}"
+        Prefab.internal_logger.error "Unknown type: #{config_value.type}"
         raise "Unknown type: #{config_value.type}"
       end
     end

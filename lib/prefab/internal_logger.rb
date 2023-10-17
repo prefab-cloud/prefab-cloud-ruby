@@ -7,24 +7,24 @@ module Prefab
       @logger = logger
     end
 
-    def debug(progname = nil)
-      @logger.log_internal yield, @path, progname, DEBUG
+    def debug msg, path = nil
+      @logger.log_internal ::Logger::DEBUG, msg, path
     end
 
-    def info(progname = nil)
-      @logger.log_internal yield, @path, progname, INFO
+    def info msg, path = nil
+      @logger.log_internal ::Logger::INFO, msg, path
     end
 
-    def warn(progname = nil)
-      @logger.log_internal yield, @path, progname, WARN
+    def warn msg, path = nil
+      @logger.log_internal ::Logger::WARN, msg, path
     end
 
-    def error(progname = nil)
-      @logger.log_internal yield, @path, progname, ERROR
+    def error msg, path = nil
+      @logger.log_internal ::Logger::ERROR, msg, path
     end
 
-    def fatal(progname = nil)
-      @logger.log_internal yield, @path, progname, FATAL
+    def fatal msg, path = nil
+      @logger.log_internal ::Logger::FATAL, msg, path
     end
   end
 end
