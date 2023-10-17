@@ -65,7 +65,6 @@ module Prefab
 
     def log(message, path, progname, severity, log_context={})
       severity ||= ::Logger::UNKNOWN
-
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
       progname = @progname if progname.nil?
@@ -86,12 +85,10 @@ module Prefab
     end
 
     def debug(progname = nil, **log_context, &block)
-      # puts "debug #{progname}"
       add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
     def info(progname = nil, **log_context, &block)
-      # puts "info #{progname}"
       add_internal(INFO, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 

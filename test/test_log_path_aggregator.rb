@@ -47,7 +47,7 @@ class TestLogPathAggregator < Minitest::Test
       ]], requests
 
       assert_logged [
-        'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints',
+        'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints',
         'ERROR 2023-08-09 15:18:12 -0400: test.test_log_path_aggregator.test_sync here is a message'
       ]
     end

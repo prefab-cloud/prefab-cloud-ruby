@@ -16,7 +16,9 @@ module Prefab
       @stubs = {}
       @instance_hash = UUID.new.generate
       Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
-                                prefix: @options.log_prefix)
+                                prefix: @options.log_prefix,
+                               log_path_aggregator: log_path_aggregator
+      )
 
       if @options.local_only?
         LOG.debug 'Prefab Running in Local Mode'
