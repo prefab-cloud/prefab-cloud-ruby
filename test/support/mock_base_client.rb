@@ -9,7 +9,6 @@ class MockBaseClient
   def initialize(options = Prefab::Options.new)
     @options = options
     @namespace = namespace
-    @logger = Prefab::LoggerClient.new($stdout)
     @config_client = MockConfigClient.new
     @posts = []
   end

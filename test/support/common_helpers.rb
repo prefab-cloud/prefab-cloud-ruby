@@ -147,7 +147,7 @@ module CommonHelpers
   end
 
   def assert_only_expected_logs
-    assert_equal "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints\n", $logs.string
+    assert_equal "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints\n", $logs.string
     # mark nil to indicate we handled it
     $logs = nil
   end

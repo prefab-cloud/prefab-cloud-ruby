@@ -2,30 +2,29 @@
 
 module Prefab
   class SseLogger < ::Logger
-    def initialize(logger)
+    def initialize()
       @path = "sse"
-      @logger = logger
     end
 
-    def debug(progname = nil)
-      @logger.log_internal ::Logger::DEBUG, progname, @path
+    def debug(progname = nil, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::DEBUG, progname, @path, &block
     end
 
-    def info(progname = nil)
-      @logger.log_internal ::Logger::INFO, progname, @path
+    def info(progname = nil, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::INFO, progname, @path, &block
     end
 
     # The SSE::Client warns on a perfectly normal stream disconnect, recast to info
-    def warn(progname = nil)
-      @logger.log_internal ::Logger::INFO, progname, @path
+    def warn(progname = nil, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::INFO, progname, @path, &block
     end
 
-    def error(progname = nil)
-      @logger.log_internal ::Logger::ERROR, progname, @path
+    def error(progname = nil, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::ERROR, progname, @path, &block
     end
 
-    def fatal(progname = nil)
-      @logger.log_internal ::Logger::FATAL, progname, @path
+    def fatal(progname = nil, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::FATAL, progname, @path, &block
     end
   end
 end

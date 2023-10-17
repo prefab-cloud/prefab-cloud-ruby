@@ -17,6 +17,10 @@ module Prefab
       PrefabProto::LogLevel::FATAL => ::Logger::FATAL
     }.freeze
 
+    def self.instance
+      @@shared_instance
+    end
+
     def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
       super(logdev)
       self.formatter = formatter
@@ -26,6 +30,7 @@ module Prefab
       @prefix = "#{prefix}#{prefix && '.'}"
 
       @log_path_aggregator = log_path_aggregator
+      @@shared_instance = self
     end
 
     def internal_logger(path=nil)
@@ -42,7 +47,7 @@ module Prefab
       log(message, path, progname, severity, log_context, &block)
     end
 
-    def log_internal(severity, message, path)
+    def log_internal(severity, message, path, log_context={}, &block)
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
 
@@ -52,7 +57,7 @@ module Prefab
                INTERNAL_PREFIX
              end
       begin
-        log(message, path, nil, severity)
+        log(message, path, nil, severity, log_context, &block)
       ensure
         @recurse_check[local_log_id] = false
       end
@@ -81,10 +86,12 @@ module Prefab
     end
 
     def debug(progname = nil, **log_context, &block)
+      # puts "debug #{progname}"
       add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 
     def info(progname = nil, **log_context, &block)
+      # puts "info #{progname}"
       add_internal(INFO, nil, progname, caller_locations(1, 1)[0], log_context, &block)
     end
 

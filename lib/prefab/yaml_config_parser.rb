@@ -2,6 +2,8 @@ require 'yaml'
 
 module Prefab
   class YAMLConfigParser
+    LOG = Prefab::InternalLogger.new(YAMLConfigParser)
+
     def initialize(file, client)
       @file = file
       @client = client
@@ -21,10 +23,10 @@ module Prefab
 
     def load
       if File.exist?(@file)
-        Prefab.internal_logger.info "Load #{@file}"
+        LOG.info "Load #{@file}"
         YAML.load_file(@file)
       else
-        Prefab.internal_logger.info "No file #{@file}"
+        LOG.info "No file #{@file}"
         {}
       end
     end

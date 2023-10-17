@@ -8,11 +8,12 @@ module Prefab
     STALE_CACHE_WARN_HOURS = 5
     AUTH_USER = 'authuser'
     LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}".freeze
+    LOG = Prefab::InternalLogger.new(ConfigClient)
 
     def initialize(base_client, timeout)
       @base_client = base_client
       @options = base_client.options
-      Prefab.internal_logger.debug 'Initialize ConfigClient'
+      LOG.debug 'Initialize ConfigClient'
       @timeout = timeout
 
       @stream_lock = Concurrent::ReadWriteLock.new
@@ -23,9 +24,9 @@ module Prefab
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
       @initialization_lock = Concurrent::ReadWriteLock.new
-      Prefab.internal_logger.debug 'Initialize ConfigClient: AcquireWriteLock'
+      LOG.debug 'Initialize ConfigClient: AcquireWriteLock'
       @initialization_lock.acquire_write_lock
-      Prefab.internal_logger.debug 'Initialize ConfigClient: AcquiredWriteLock'
+      LOG.debug 'Initialize ConfigClient: AcquiredWriteLock'
       @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
 
       if @options.local_only?
@@ -96,8 +97,7 @@ module Prefab
           raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
         end
 
-        Prefab.internal_logger.warn
-                                  "Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have"
+        LOG.warn("Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have")
         @initialization_lock.release_write_lock
       end
 
@@ -117,7 +117,7 @@ module Prefab
 
       return if success
 
-      Prefab.internal_logger.warn 'No success loading checkpoints'
+      LOG.warn 'No success loading checkpoints'
     end
 
     def load_checkpoint_api_cdn
@@ -138,12 +138,11 @@ module Prefab
         cache_configs(configs)
         true
       else
-        Prefab.internal_logger.info "Checkpoint #{source} failed to load. Response #{resp.status}"
+        LOG.info "Checkpoint #{source} failed to load. Response #{resp.status}"
         false
       end
     rescue StandardError => e
-      puts e.backtrace
-      Prefab.internal_logger.warn "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
+      LOG.warn "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
       false
     end
 
@@ -168,9 +167,9 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        Prefab.internal_logger.debug("Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'")
+        LOG.debug("Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'")
       else
-        Prefab.internal_logger.debug("Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.", 'load_configs')
+        LOG.debug("Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.")
       end
       @config_resolver.update
       finish_init!(source, project_id)
@@ -195,9 +194,9 @@ module Prefab
         f.flock(File::LOCK_EX)
         f.write(PrefabProto::Configs.encode_json(configs))
       end
-      Prefab.internal_logger.debug "Cached configs to #{cache_path}"
+      LOG.debug "Cached configs to #{cache_path}"
     rescue => e
-      Prefab.internal_logger.debug "Failed to cache configs to #{cache_path} #{e}"
+      LOG.debug "Failed to cache configs to #{cache_path} #{e}"
     end
 
     def load_cache
@@ -209,11 +208,11 @@ module Prefab
 
         hours_old = ((Time.now - File.mtime(f)) / 60 / 60).round(2)
         if hours_old > STALE_CACHE_WARN_HOURS
-          Prefab.internal_logger.info "Stale Cache Load: #{hours_old} hours old"
+          LOG.info "Stale Cache Load: #{hours_old} hours old"
         end
       end
     rescue => e
-      Prefab.internal_logger.debug "Failed to read cached configs at #{cache_path}. #{e}"
+      LOG.debug "Failed to read cached configs at #{cache_path}. #{e}"
       false
     end
 
@@ -227,7 +226,7 @@ module Prefab
           delta = @checkpoint_freq_secs - (Time.now - started_at)
           sleep(delta) if delta > 0
         rescue StandardError => e
-          Prefab.internal_logger.debug "Issue Checkpointing #{e.message}"
+          LOG.debug "Issue Checkpointing #{e.message}"
         end
       end
     end
@@ -235,9 +234,10 @@ module Prefab
     def finish_init!(source, project_id)
       return unless @initialization_lock.write_locked?
 
-      Prefab.internal_logger.debug "Unlocked Config via #{source}"
+      LOG.debug "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
-      @base_client.log.config_client = self
+
+      Prefab::LoggerClient.instance.config_client = self
       presenter = Prefab::ConfigClientPresenter.new(
         size: @config_resolver.local_store.size,
         source: source,
@@ -245,8 +245,8 @@ module Prefab
         project_env_id: @config_resolver.project_env_id,
         api_key_id: @base_client.options.api_key_id
       )
-      Prefab.internal_logger.info presenter.to_s
-      Prefab.internal_logger.debug to_s
+      LOG.info presenter.to_s
+      LOG.debug to_s
     end
 
     def start_sse_streaming_connection_thread(start_at_id)
@@ -258,11 +258,11 @@ module Prefab
         'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
       }
       url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      Prefab.internal_logger.debug "SSE Streaming Connect to #{url} start_at #{start_at_id}"
+      LOG.debug "SSE Streaming Connect to #{url} start_at #{start_at_id}"
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
-                                          logger: Prefab::SseLogger.new(@base_client.log)) do |client|
+                                          logger: Prefab::SseLogger.new) do |client|
         client.on_event do |event|
           configs = PrefabProto::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)

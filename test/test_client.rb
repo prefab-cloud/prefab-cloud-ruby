@@ -185,7 +185,7 @@ class TestClient < Minitest::Test
                             collect_evaluation_summaries: true).evaluation_summary_aggregator.class
 
     assert_logged [
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints"
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints"
     ]
   end
 

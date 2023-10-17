@@ -2,6 +2,7 @@
 
 module Prefab
   class ConfigValueUnwrapper
+    LOG = Prefab::InternalLogger.new(ConfigValueUnwrapper)
     attr_reader :value, :weighted_value_index
 
     def initialize(value, weighted_value_index = nil)
@@ -16,7 +17,7 @@ module Prefab
       when :string_list
         value.string_list.values
       else
-        Prefab.internal_logger.error "Unknown type: #{config_value.type}"
+        LOG.error "Unknown type: #{config_value.type}"
         raise "Unknown type: #{config_value.type}"
       end
     end

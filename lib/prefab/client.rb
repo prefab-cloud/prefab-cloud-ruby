@@ -6,6 +6,7 @@ module Prefab
   class Client
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
+    LOG = Prefab::InternalLogger.new(Client)
 
     attr_reader :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
 
@@ -14,15 +15,17 @@ module Prefab
       @namespace = @options.namespace
       @stubs = {}
       @instance_hash = UUID.new.generate
+      Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
+                                prefix: @options.log_prefix)
 
       if @options.local_only?
-        Prefab.internal_logger.debug 'Prefab Running in Local Mode'
+        LOG.debug 'Prefab Running in Local Mode'
       else
         @api_key = @options.api_key
         raise Prefab::Errors::InvalidApiKeyError, @api_key if @api_key.nil? || @api_key.empty? || api_key.count('-') < 1
 
         @prefab_api_url = @options.prefab_api_url
-        Prefab.internal_logger.debug "Prefab Connecting to: #{@prefab_api_url}"
+        LOG.debug "Prefab Connecting to: #{@prefab_api_url}"
       end
 
       context.clear
@@ -54,9 +57,7 @@ module Prefab
     end
 
     def log
-      @logger_client ||= Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
-                                                                   prefix: @options.log_prefix,
-                                                                   log_path_aggregator: log_path_aggregator)
+      Prefab::LoggerClient.instance
     end
 
     def context_shape_aggregator

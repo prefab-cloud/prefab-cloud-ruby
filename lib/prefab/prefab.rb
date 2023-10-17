@@ -4,10 +4,8 @@ module Prefab
   @@lock = Concurrent::ReadWriteLock.new
 
   def self.init(options = Prefab::Options.new)
-    @@boot_logger ||= Prefab::LoggerClient.new(options.logdev, formatter: options.log_formatter,
-                                                                        prefix: options.log_prefix)
     unless @singleton.nil?
-      puts 'Prefab already initialized.'
+      Prefab::LoggerClient.instance.warn 'Prefab already initialized.'
       return @singleton
     end
 
@@ -18,7 +16,9 @@ module Prefab
 
   def self.fork
     ensure_initialized
-    @singleton = @singleton.fork
+    @@lock.with_write_lock {
+      @singleton = @singleton.fork
+    }
   end
 
   def self.set_rails_loggers
@@ -36,7 +36,6 @@ module Prefab
     @singleton&.enabled?(feature_name, jit_context)
   end
 
-
   def self.with_context(properties, &block)
     ensure_initialized
     @singleton.with_context(properties, &block)
@@ -45,14 +44,6 @@ module Prefab
   def self.instance
     ensure_initialized
     @singleton
-  end
-
-  def self.internal_logger
-    if @singleton.nil?
-      @@boot_logger.internal_logger
-    else
-      @singleton.log.internal_logger
-    end
   end
 
   private

@@ -7,6 +7,7 @@ module Prefab
   # This class evaluates a config's criteria. `evaluate` returns the value of
   # the first match based on the provided properties.
   class CriteriaEvaluator
+    LOG = Prefab::InternalLogger.new(CriteriaEvaluator)
     NAMESPACE_KEY = 'NAMESPACE'
     NO_MATCHING_ROWS = [].freeze
 
@@ -21,7 +22,7 @@ module Prefab
     def evaluate(properties)
       rtn = evaluate_for_env(@project_env_id, properties) ||
         evaluate_for_env(0, properties)
-      Prefab.internal_logger.debug "Eval Key #{@config.key} Result #{rtn&.value} with #{properties.to_h}", "criteria_evaluator" unless @config.config_type == :LOG_LEVEL
+      LOG.debug "Eval Key #{@config.key} Result #{rtn&.value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
       rtn
     end
 
