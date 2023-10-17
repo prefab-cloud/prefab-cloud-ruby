@@ -28,12 +28,12 @@ module Prefab
 
   def self.get(key, properties = NO_DEFAULT_PROVIDED)
     ensure_initialized
-    @singleton&.get(key, properties)
+    @singleton.get(key, properties)
   end
 
   def self.enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)
     ensure_initialized
-    @singleton&.enabled?(feature_name, jit_context)
+    @singleton.enabled?(feature_name, jit_context)
   end
 
   def self.with_context(properties, &block)
