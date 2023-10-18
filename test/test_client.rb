@@ -411,6 +411,15 @@ class TestClient < Minitest::Test
     assert_summary client, {}
   end
 
+  def test_fork_includes_logger_context_keys
+    client = new_client
+    client.log.add_context_keys "user.name"
+
+    forked = client.fork
+
+    assert forked.log.context_keys.to_a == %w(user.name)
+  end
+
   private
 
   def basic_value_config

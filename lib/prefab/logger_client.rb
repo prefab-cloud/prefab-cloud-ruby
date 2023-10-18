@@ -21,6 +21,8 @@ module Prefab
       @@shared_instance
     end
 
+    attr_reader :context_keys
+
     def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
       super(logdev)
       self.formatter = formatter
@@ -29,14 +31,27 @@ module Prefab
       @recurse_check = Concurrent::Map.new(initial_capacity: 2)
       @prefix = "#{prefix}#{prefix && '.'}"
 
+      @context_keys = Concurrent::Set.new
+
       @log_path_aggregator = log_path_aggregator
       @@shared_instance = self
+    end
+
+    def add_context_keys(*keys)
+      @context_keys += keys
+    end
+
+    def with_context_keys(*keys)
+      @context_keys += keys
+      yield
+    ensure
+      @context_keys -= keys
     end
 
     def internal_logger(path=nil)
       InternalLogger.new(path, self)
     end
-
+    
     # InternalLoggers Will Call This
     def add_internal(severity, message, progname, loc, log_context={}, &block)
       path_loc = get_loc_path(loc)
@@ -79,7 +94,7 @@ module Prefab
       end
 
       @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message, path, log_context)
+        format_message(format_severity(severity), Time.now, progname, message, path, stringify_keys(log_context.merge(fetch_context_for_context_keys)))
       )
       true
     end
@@ -146,6 +161,17 @@ module Prefab
     private
 
     NO_DEFAULT = nil
+
+    def stringify_keys(hash)
+      Hash[hash.map { |k, v| [k.to_s, v] }]
+    end
+
+    def fetch_context_for_context_keys
+      context = Prefab::Context.current.to_h
+      Hash[@context_keys.map do |key|
+        [key, context.dig(*key.split("."))]
+      end]
+    end
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)

@@ -132,7 +132,9 @@ module Prefab
     #   $prefab.set_rails_loggers
     # end
     def fork
-      Prefab::Client.new(@options.for_fork)
+      Prefab::Client.new(@options.for_fork).tap do |client|
+        client.log.add_context_keys(*self.log.context_keys.to_a)
+      end
     end
 
     private
