@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Add `Prefab.get('key')` style usage after a `Prefab.init()` call (#151)
+
 ## 1.1.2 - 2023-10-13
 
 - Add `cloud.prefab.client.criteria_evaluator` `debug` logging of evaluations (#150)
