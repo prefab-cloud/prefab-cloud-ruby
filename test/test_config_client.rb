@@ -9,7 +9,8 @@ class TestConfigClient < Minitest::Test
       prefab_config_override_dir: 'none',
       prefab_config_classpath_dir: 'test',
       prefab_envs: 'unit_tests',
-      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+      x_use_local_cache: true,
     )
 
     @config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
@@ -73,4 +74,36 @@ class TestConfigClient < Minitest::Test
 
     assert_match(/format is invalid/, err.message)
   end
+
+  def test_caching
+    @config_client.send(:cache_configs,
+                        PrefabProto::Configs.new(configs:
+                                                   [PrefabProto::Config.new(key: 'test', id: 1,
+                                                                            rows: [PrefabProto::ConfigRow.new(
+                                                                              values: [
+                                                                                PrefabProto::ConditionalValue.new(
+                                                                                  value: PrefabProto::ConfigValue.new(string: "test value")
+                                                                                )
+                                                                              ]
+                                                                            )])],
+                                                 config_service_pointer: PrefabProto::ConfigServicePointer.new(project_id: 3, project_env_id: 5)))
+    @config_client.send(:load_cache)
+    assert_equal "test value", @config_client.get("test")
+  end
+
+  def test_cache_path_respects_xdg
+    options = Prefab::Options.new(
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+      x_use_local_cache: true,
+      api_key: "123-ENV-KEY-SDK",)
+
+    config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+    assert_equal "#{Dir.home}/.cache/prefab.cache.123.json", config_client.send(:cache_path)
+
+    with_env('XDG_CACHE_HOME', '/tmp') do
+      config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+      assert_equal "/tmp/prefab.cache.123.json", config_client.send(:cache_path)
+    end
+  end
+
 end

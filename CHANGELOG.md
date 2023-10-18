@@ -1,15 +1,21 @@
 # Changelog
 
-## Unreleased
+## 1.1.2 - 2023-10-13
 
-- Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO`
-- Add `ConfigClientPresenter` for logging out stats upon successful client initialization
+- Add `cloud.prefab.client.criteria_evaluator` `debug` logging of evaluations (#150)
+- Add `x_use_local_cache` for local caching (#148)
+- Tests run in RubyMine (#147)
+
+## 1.1.1 - 2023-10-11
+
+- Migrate happy-path client-initialization logging to `DEBUG` level rather than `INFO` (#144)
+- Add `ConfigClientPresenter` for logging out stats upon successful client initialization (#144)
+- Add support for default context (#146)
 
 ## 1.1.0 - 2023-09-18
 
 - Add support for structured logging (#143)
-    - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
-
+  - Ability to pass a hash of key/value context pairs to any of the user-facing log methods
 
 ## 1.0.1 - 2023-08-17
 
