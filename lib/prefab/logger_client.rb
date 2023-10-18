@@ -18,12 +18,12 @@ module Prefab
     }.freeze
 
     def self.instance
-      @@shared_instance
+      @@shared_instance || LoggerClient.new($stdout)
     end
 
     attr_reader :context_keys
 
-    def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
+    def initialize(logdev, log_path_aggregator: nil, formatter: Options::DEFAULT_LOG_FORMATTER, prefix: nil)
       super(logdev)
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
