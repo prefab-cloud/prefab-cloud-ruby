@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased 
+- Add `add_context_keys` and `with_context_keys` method for LoggerClient (#145)
+
 ## 1.1.2 - 2023-10-13
 
 - Add `cloud.prefab.client.criteria_evaluator` `debug` logging of evaluations (#150)
