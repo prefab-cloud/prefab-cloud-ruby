@@ -220,11 +220,11 @@ module Prefab
     def start_checkpointing_thread
       Thread.new do
         loop do
-          load_checkpoint
-
           started_at = Time.now
           delta = @checkpoint_freq_secs - (Time.now - started_at)
           sleep(delta) if delta > 0
+
+          load_checkpoint
         rescue StandardError => e
           LOG.debug "Issue Checkpointing #{e.message}"
         end
