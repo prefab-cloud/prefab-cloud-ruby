@@ -18,7 +18,7 @@ module Prefab
     }.freeze
 
     def self.instance
-      @@shared_instance || LoggerClient.new($stdout)
+      @@shared_instance ||= LoggerClient.new($stdout)
     end
 
     attr_reader :context_keys
