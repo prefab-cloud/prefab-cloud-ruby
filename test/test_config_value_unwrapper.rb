@@ -5,6 +5,13 @@ require 'test_helper'
 class TestConfigValueUnwrapper < Minitest::Test
   CONFIG_KEY = 'config_key'
   EMPTY_CONTEXT = Prefab::Context.new()
+  DECRYPTION_KEY_NAME = "decryption.key"
+  DECRYPTION_KEY_VALUE = Prefab::Encryption.generate_new_hex_key
+
+  def setup
+    super
+    @mock_resolver = MockResolver.new
+  end
 
   def test_unwrapping_int
     config_value = PrefabProto::ConfigValue.new(int: 123)
@@ -93,6 +100,13 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal '', unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
+  def test_unwrapping_encrypted_values_decrypts
+    clear_text = "very secret stuff"
+    encrypted = Prefab::Encryption.new(DECRYPTION_KEY_VALUE).encrypt(clear_text)
+    config_value = PrefabProto::ConfigValue.new(string: encrypted, decrypt_with: "decryption.key")
+    assert_equal clear_text, unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
+  end
+
   private
 
   def context_with_key(key)
@@ -100,6 +114,16 @@ class TestConfigValueUnwrapper < Minitest::Test
   end
 
   def unwrap(config_value, config_key, context)
-    Prefab::ConfigValueUnwrapper.deepest_value(config_value, config_key, context).unwrap
+    Prefab::ConfigValueUnwrapper.deepest_value(config_value, config_key, context, @mock_resolver).unwrap
+  end
+
+  class MockResolver
+    def get(key)
+      if DECRYPTION_KEY_NAME == key
+        PrefabProto::ConfigValue.new(string: DECRYPTION_KEY_VALUE)
+      else
+        raise "unexpected key"
+      end
+    end
   end
 end

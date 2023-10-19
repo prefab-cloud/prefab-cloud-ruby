@@ -5,12 +5,13 @@ module Prefab
   class Evaluation
     attr_reader :value
 
-    def initialize(config:, value:, value_index:, config_row_index:, context:)
+    def initialize(config:, value:, value_index:, config_row_index:, context:, resolver:)
       @config = config
       @value = value
       @value_index = value_index
       @config_row_index = config_row_index
       @context = context
+      @resolver = resolver
     end
 
     def unwrapped_value
@@ -42,7 +43,7 @@ module Prefab
     end
 
     def deepest_value
-      @deepest_value ||= Prefab::ConfigValueUnwrapper.deepest_value(@value, @config.key, @context)
+      @deepest_value ||= Prefab::ConfigValueUnwrapper.deepest_value(@value, @config.key, @context, @resolver)
     end
   end
 end

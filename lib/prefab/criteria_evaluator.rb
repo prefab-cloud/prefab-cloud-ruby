@@ -93,7 +93,8 @@ module Prefab
             value: conditional_value.value,
             value_index: value_index,
             config_row_index: index,
-            context: properties
+            context: properties,
+            resolver: @resolver
           )
         end
       end
