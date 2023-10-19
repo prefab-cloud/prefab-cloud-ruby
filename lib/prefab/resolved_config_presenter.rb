@@ -44,7 +44,7 @@ module Prefab
             if v.nil?
               hash[k] = ConfigRow.new(k, nil, nil, nil)
             else
-              value = @resolver.evaluate(v[:config])&.unwrapped_value
+              value = @resolver.evaluate(v[:config])&.reportable_value
               hash[k] = ConfigRow.new(k, value, v[:match], v[:source])
             end
           end
@@ -65,7 +65,7 @@ module Prefab
             if v.nil?
               elements << 'tombstone'
             else
-              value = @resolver.evaluate(v[:config])&.unwrapped_value
+              value = @resolver.evaluate(v[:config])&.reportable_value
               elements << value.to_s.slice(0..34).ljust(35)
               elements << value.class.to_s.slice(0..6).ljust(7)
               elements << "Match: #{v[:match]}".slice(0..29).ljust(30)

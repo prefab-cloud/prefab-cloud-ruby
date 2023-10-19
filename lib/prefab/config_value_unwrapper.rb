@@ -3,31 +3,50 @@
 module Prefab
   class ConfigValueUnwrapper
     LOG = Prefab::InternalLogger.new(ConfigValueUnwrapper)
-    attr_reader :value, :weighted_value_index
+    CONFIDENTIAL = "******************"
+    attr_reader :weighted_value_index
 
-    def initialize(value, resolver, weighted_value_index = nil)
-      @value = value
+    def initialize(config_value, resolver, weighted_value_index = nil)
+      @config_value = config_value
       @resolver = resolver
       @weighted_value_index = weighted_value_index
     end
 
-    def unwrap
-      raw = case value.type
-            when :int, :string, :double, :bool, :log_level
-              value.public_send(value.type)
-            when :string_list
-              value.string_list.values
-            else
-              LOG.error "Unknown type: #{config_value.type}"
-              raise "Unknown type: #{config_value.type}"
-            end
-      if value.has_decrypt_with?
-        descyrption_key = @resolver.get(value.decrypt_with).unwrapped_value
-        unencrypted = Prefab::Encryption.new(descyrption_key).decrypt(raw)
-        return unencrypted
+    def reportable_wrapped_value
+      if @config_value.confidential
+        Prefab::ConfigValueWrapper.wrap(CONFIDENTIAL)
       else
-        raw
+        @config_value
       end
+    end
+
+    def reportable_value
+      Prefab::ConfigValueUnwrapper.new(reportable_wrapped_value, @resolver, @weighted_value_index).unwrap
+    end
+
+    def raw_config_value
+      @config_value
+    end
+
+    # this will return the actual value of confidential, use reportable_value unless you need it
+    def unwrap
+      raw = case @config_value.type
+            when :int, :string, :double, :bool, :log_level
+              @config_value.public_send(@config_value.type)
+            when :string_list
+              @config_value.string_list.values
+            else
+              LOG.error "Unknown type: #{@config_value.type}"
+              raise "Unknown type: #{@config_value.type}"
+            end
+      if @config_value.has_decrypt_with?
+        decryption_key = @resolver.get(@config_value.decrypt_with).unwrapped_value
+        unencrypted = Prefab::Encryption.new(decryption_key).decrypt(raw)
+        return unencrypted
+      end
+
+      raw
+
     end
 
     def self.deepest_value(config_value, config_key, context, resolver=NoopResolver.new)
@@ -38,7 +57,7 @@ module Prefab
           context.get(config_value.weighted_values.hash_by_property_name)
         ).resolve
 
-        new(deepest_value(value.value, config_key, context, resolver).value, resolver, index)
+        new(deepest_value(value.value, config_key, context, resolver).raw_config_value, resolver, index)
 
       elsif config_value&.type == :provided
         if :ENV_VAR == config_value.provided.source

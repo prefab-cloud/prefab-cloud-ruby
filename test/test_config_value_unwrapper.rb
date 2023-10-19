@@ -107,6 +107,12 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal clear_text, unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
+  def test_confidential
+    config_value = PrefabProto::ConfigValue.new(confidential: true, string: "something confidential")
+    assert_equal Prefab::ConfigValueUnwrapper::CONFIDENTIAL,
+                 Prefab::ConfigValueUnwrapper.deepest_value(config_value, "key", {}, @mock_resolver).reportable_value
+  end
+
   private
 
   def context_with_key(key)
@@ -120,7 +126,14 @@ class TestConfigValueUnwrapper < Minitest::Test
   class MockResolver
     def get(key)
       if DECRYPTION_KEY_NAME == key
-        PrefabProto::ConfigValue.new(string: DECRYPTION_KEY_VALUE)
+        Prefab::Evaluation.new(config: PrefabProto::Config.new(key: key),
+                               value: PrefabProto::ConfigValue.new(string: DECRYPTION_KEY_VALUE),
+                                value_index: 0,
+                                config_row_index: 0,
+                                context: Prefab::Context.new,
+                                resolver: self
+        )
+
       else
         raise "unexpected key"
       end
