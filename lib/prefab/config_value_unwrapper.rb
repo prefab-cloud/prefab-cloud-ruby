@@ -63,7 +63,6 @@ module Prefab
       elsif config_value&.type == :provided
         if :ENV_VAR == config_value.provided.source
           raw = ENV[config_value.provided.lookup]
-          puts "LOOKUP ENV #{config_value.provided.lookup} got #{raw}"
           if raw.nil?
             LOG.warn "ENV Variable #{config_value.provided.lookup} not found. Using empty string."
             new(Prefab::ConfigValueWrapper.wrap(""), resolver)
