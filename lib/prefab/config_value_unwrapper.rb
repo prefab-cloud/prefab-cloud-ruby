@@ -3,7 +3,7 @@
 module Prefab
   class ConfigValueUnwrapper
     LOG = Prefab::InternalLogger.new(ConfigValueUnwrapper)
-    CONFIDENTIAL = "******************"
+    CONFIDENTIAL_PREFIX = "*****"
     attr_reader :weighted_value_index
 
     def initialize(config_value, resolver, weighted_value_index = nil)
@@ -14,7 +14,8 @@ module Prefab
 
     def reportable_wrapped_value
       if @config_value.confidential
-        Prefab::ConfigValueWrapper.wrap(CONFIDENTIAL)
+        # Unique hash for differentiation
+        Prefab::ConfigValueWrapper.wrap("#{CONFIDENTIAL_PREFIX}#{Digest::MD5.hexdigest(unwrap)[0,5]}")
       else
         @config_value
       end

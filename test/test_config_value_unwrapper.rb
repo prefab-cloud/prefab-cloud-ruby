@@ -109,8 +109,9 @@ class TestConfigValueUnwrapper < Minitest::Test
 
   def test_confidential
     config_value = PrefabProto::ConfigValue.new(confidential: true, string: "something confidential")
-    assert_equal Prefab::ConfigValueUnwrapper::CONFIDENTIAL,
-                 Prefab::ConfigValueUnwrapper.deepest_value(config_value, "key", {}, @mock_resolver).reportable_value
+    reportable = Prefab::ConfigValueUnwrapper.deepest_value(config_value, "key", {}, @mock_resolver).reportable_value
+
+    assert reportable.start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
   end
 
   private
