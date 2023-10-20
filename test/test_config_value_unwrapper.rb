@@ -21,6 +21,7 @@ class TestConfigValueUnwrapper < Minitest::Test
   def test_unwrapping_string
     config_value = PrefabProto::ConfigValue.new(string: 'abc')
     assert_equal 'abc', unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
+    assert_equal 'abc', reportable_value(config_value, CONFIG_KEY, EMPTY_CONTEXT)
   end
 
   def test_unwrapping_double
@@ -109,9 +110,19 @@ class TestConfigValueUnwrapper < Minitest::Test
 
   def test_confidential
     config_value = PrefabProto::ConfigValue.new(confidential: true, string: "something confidential")
-    reportable = Prefab::ConfigValueUnwrapper.deepest_value(config_value, "key", {}, @mock_resolver).reportable_value
+    assert reportable_value(config_value, CONFIG_KEY, EMPTY_CONTEXT).start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
+  end
 
-    assert reportable.start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
+  def test_unwrap_confiential_provided
+    with_env('PAAS_PASSWORD', "the password")do
+      value = PrefabProto::Provided.new(
+        source: :ENV_VAR,
+        lookup: "PAAS_PASSWORD"
+      )
+      config_value = PrefabProto::ConfigValue.new(provided: value, confidential: true)
+      assert_equal "the password", unwrap(config_value, CONFIG_KEY, EMPTY_CONTEXT)
+      assert reportable_value(config_value, CONFIG_KEY, EMPTY_CONTEXT).start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
+    end
   end
 
   private
@@ -122,6 +133,10 @@ class TestConfigValueUnwrapper < Minitest::Test
 
   def unwrap(config_value, config_key, context)
     Prefab::ConfigValueUnwrapper.deepest_value(config_value, config_key, context, @mock_resolver).unwrap
+  end
+
+  def reportable_value(config_value, config_key, context)
+    Prefab::ConfigValueUnwrapper.deepest_value(config_value, config_key, context, @mock_resolver).reportable_value
   end
 
   class MockResolver
