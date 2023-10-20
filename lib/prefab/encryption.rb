@@ -38,7 +38,6 @@ module Prefab
     end
 
     def decrypt(encrypted_string)
-      puts "decryptstring #{encrypted_string}"
       unpacked_parts = encrypted_string.split(SEPARATOR).map { |p| [p].pack("H*") }
 
       cipher = OpenSSL::Cipher.new(CIPHER_TYPE)
