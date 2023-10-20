@@ -124,8 +124,8 @@ class TestContextShapeAggregator < Minitest::Test
 
 
     assert_logged [
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints",
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client Couldn't Initialize In 0. Key some.key. Returning what we have"
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints",
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient Couldn't Initialize In 0. Key some.key. Returning what we have"
     ]
   end
 

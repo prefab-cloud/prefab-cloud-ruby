@@ -9,6 +9,8 @@ module Prefab
   class EvaluationSummaryAggregator
     include Prefab::PeriodicSync
 
+    LOG = Prefab::InternalLogger.new(EvaluationSummaryAggregator)
+
     attr_reader :data
 
     def initialize(client:, max_keys:, sync_interval:)
@@ -47,7 +49,7 @@ module Prefab
 
     def flush(to_ship, start_at_was)
       pool.post do
-        log_internal "Flushing #{to_ship.size} summaries"
+        LOG.debug "Flushing #{to_ship.size} summaries"
 
         summaries_proto = PrefabProto::ConfigEvaluationSummaries.new(
           start: start_at_was,
@@ -57,7 +59,7 @@ module Prefab
 
         result = post('/api/v1/telemetry', events(summaries_proto))
 
-        log_internal "Uploaded #{to_ship.size} summaries: #{result.status}"
+        LOG.debug "Uploaded #{to_ship.size} summaries: #{result.status}"
       end
     end
 

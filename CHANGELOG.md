@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased 
+## Unreleased
+- Add `Prefab.get('key')` style usage after a `Prefab.init()` call (#151)
 - Add `add_context_keys` and `with_context_keys` method for LoggerClient (#145)
 
 ## 1.1.2 - 2023-10-13

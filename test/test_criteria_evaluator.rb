@@ -710,21 +710,10 @@ class TestCriteriaEvaluator < Minitest::Test
     FakeResolver.new(config, @base_client)
   end
 
-  class FakeLogger
-    def info(msg)
-      # loudly complain about unexpected log messages
-      raise msg
-    end
-
-    def log_internal(*args); end
-  end
-
   class FakeBaseClient
-    def log
-      FakeLogger.new
+    def initialize
+      Prefab::LoggerClient.new($stdout)
     end
-
-    def log_internal(level, msg, path = nil, **tags); end
 
     def evaluation_summary_aggregator
       @evaluation_summary_aggregator ||= Prefab::EvaluationSummaryAggregator.new(client: self, max_keys: 9999, sync_interval: 9999)

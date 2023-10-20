@@ -2,6 +2,8 @@
 
 module Prefab
   class ConfigLoader
+    LOG = Prefab::InternalLogger.new(ConfigLoader)
+
     attr_reader :highwater_mark
 
     def initialize(base_client)
@@ -29,8 +31,8 @@ module Prefab
         @api_config.delete(config.key)
       else
         if @api_config[config.key]
-          @base_client.log_internal ::Logger::DEBUG,
-                                    "Replace #{config.key} with value from #{source} #{@api_config[config.key][:config].id} -> #{config.id}"
+          LOG.debug(
+                                    "Replace #{config.key} with value from #{source} #{@api_config[config.key][:config].id} -> #{config.id}")
         end
         @api_config[config.key] = { source: source, config: config }
       end

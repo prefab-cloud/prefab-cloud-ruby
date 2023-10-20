@@ -10,6 +10,8 @@ module Prefab
   class ExampleContextsAggregator
     include Prefab::PeriodicSync
 
+    LOG = Prefab::InternalLogger.new(ExampleContextsAggregator)
+
     attr_reader :data, :cache
 
     ONE_HOUR = 60 * 60
@@ -43,11 +45,11 @@ module Prefab
 
     def flush(to_ship, _)
       pool.post do
-        log_internal "Flushing #{to_ship.size} examples"
+        LOG.debug "Flushing #{to_ship.size} examples"
 
         result = post('/api/v1/telemetry', events(to_ship))
 
-        log_internal "Uploaded #{to_ship.size} examples: #{result.status}"
+        LOG.debug "Uploaded #{to_ship.size} examples: #{result.status}"
       end
     end
 

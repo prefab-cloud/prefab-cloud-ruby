@@ -6,6 +6,8 @@ module Prefab
   class ContextShapeAggregator
     include Prefab::PeriodicSync
 
+    LOG = Prefab::InternalLogger.new(ContextShapeAggregator)
+
     attr_reader :data
 
     def initialize(client:, max_shapes:, sync_interval:)
@@ -43,7 +45,7 @@ module Prefab
 
     def flush(to_ship, _)
       pool.post do
-        log_internal "Uploading context shapes for #{to_ship.values.size}"
+        LOG.debug "Uploading context shapes for #{to_ship.values.size}"
 
         shapes = PrefabProto::ContextShapes.new(
           shapes: to_ship.map do |name, shape|
@@ -56,7 +58,7 @@ module Prefab
 
         result = post('/api/v1/context-shapes', shapes)
 
-        log_internal "Uploaded #{to_ship.values.size} shapes: #{result.status}"
+        LOG.debug "Uploaded #{to_ship.values.size} shapes: #{result.status}"
       end
     end
   end

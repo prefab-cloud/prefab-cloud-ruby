@@ -17,9 +17,13 @@ module Prefab
       PrefabProto::LogLevel::FATAL => ::Logger::FATAL
     }.freeze
 
+    def self.instance
+      @@shared_instance ||= LoggerClient.new($stdout)
+    end
+
     attr_reader :context_keys
 
-    def initialize(logdev, log_path_aggregator: nil, formatter: nil, prefix: nil)
+    def initialize(logdev, log_path_aggregator: nil, formatter: Options::DEFAULT_LOG_FORMATTER, prefix: nil)
       super(logdev)
       self.formatter = formatter
       @config_client = BootstrappingConfigClient.new
@@ -30,6 +34,7 @@ module Prefab
       @context_keys = Concurrent::Set.new
 
       @log_path_aggregator = log_path_aggregator
+      @@shared_instance = self
     end
 
     def add_context_keys(*keys)
@@ -43,6 +48,11 @@ module Prefab
       @context_keys -= keys
     end
 
+    def internal_logger(path=nil)
+      InternalLogger.new(path, self)
+    end
+    
+    # InternalLoggers Will Call This
     def add_internal(severity, message, progname, loc, log_context={}, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
@@ -52,7 +62,7 @@ module Prefab
       log(message, path, progname, severity, log_context, &block)
     end
 
-    def log_internal(message, path, progname, severity, log_context={}, &block)
+    def log_internal(severity, message, path, log_context={}, &block)
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
 
@@ -62,7 +72,7 @@ module Prefab
                INTERNAL_PREFIX
              end
       begin
-        log(message, path, progname, severity, log_context, &block)
+        log(message, path, nil, severity, log_context, &block)
       ensure
         @recurse_check[local_log_id] = false
       end
@@ -70,7 +80,6 @@ module Prefab
 
     def log(message, path, progname, severity, log_context={})
       severity ||= ::Logger::UNKNOWN
-
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
       progname = @progname if progname.nil?

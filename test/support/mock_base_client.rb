@@ -9,8 +9,8 @@ class MockBaseClient
   def initialize(options = Prefab::Options.new)
     @options = options
     @namespace = namespace
-    @logger = Prefab::LoggerClient.new($stdout)
     @config_client = MockConfigClient.new
+    Prefab::LoggerClient.new(options.logdev)
     @posts = []
   end
 
@@ -29,8 +29,6 @@ class MockBaseClient
   def log
     @logger
   end
-
-  def log_internal(level, msg, path = nil, **tags); end
 
   def context_shape_aggregator; end
 

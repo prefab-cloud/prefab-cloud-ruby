@@ -87,22 +87,22 @@ class TestLogger < Minitest::Test
 
   def test_log_internal
     prefab, io = captured_logger
-    prefab.log.log_internal('test message', 'test.path', '', ::Logger::WARN)
+    prefab.log.log_internal(::Logger::WARN, 'test message', 'test.path')
     assert_logged io, 'WARN', "cloud.prefab.client.test.path", "test message"
   end
 
   def test_log_internal_unknown
     prefab, io = captured_logger
-    prefab.log.log_internal('test message', 'test.path', '', ::Logger::UNKNOWN)
+    prefab.log.log_internal(::Logger::UNKNOWN, 'test message', 'test.path')
     assert_logged io, 'ANY', "cloud.prefab.client.test.path", "test message"
   end
 
   def test_log_internal_silencing
     prefab, io = captured_logger
     prefab.log.silence do
-      prefab.log.log_internal('should not log', 'test.path', '', ::Logger::WARN)
+      prefab.log.log_internal(::Logger::WARN, 'should not log', 'test.path')
     end
-    prefab.log.log_internal('should log', 'test.path', '', ::Logger::WARN)
+    prefab.log.log_internal(::Logger::WARN, 'should log', 'test.path')
     assert_logged io, 'WARN', "cloud.prefab.client.test.path", "should log"
     refute_logged io, 'should not log'
   end
@@ -457,7 +457,7 @@ class TestLogger < Minitest::Test
   def test_structured_internal_logging
     prefab, io = captured_logger
 
-    prefab.log.log_internal('test', 'test.path', '', ::Logger::WARN, user: "michael")
+    prefab.log.log_internal(::Logger::WARN, 'test', 'test.path', user: "michael")
 
     assert_logged io, 'WARN', 'cloud.prefab.client.test.path', "test user=michael"
   end

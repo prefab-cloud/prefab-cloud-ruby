@@ -4,6 +4,8 @@ require_relative 'periodic_sync'
 
 module Prefab
   class LogPathAggregator
+    LOG = Prefab::InternalLogger.new(LogPathAggregator)
+
     include Prefab::PeriodicSync
 
     INCREMENT = ->(count) { (count || 0) + 1 }
@@ -41,7 +43,7 @@ module Prefab
 
     def flush(to_ship, start_at_was)
       pool.post do
-        log_internal "Uploading stats for #{to_ship.size} paths"
+        LOG.debug "Uploading stats for #{to_ship.size} paths"
 
         aggregate = Hash.new { |h, k| h[k] = PrefabProto::Logger.new }
 
@@ -60,7 +62,7 @@ module Prefab
 
         result = post('/api/v1/known-loggers', loggers)
 
-        log_internal "Uploaded #{to_ship.size} paths: #{result.status}"
+        LOG.debug "Uploaded #{to_ship.size} paths: #{result.status}"
       end
     end
   end

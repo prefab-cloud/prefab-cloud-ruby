@@ -185,7 +185,7 @@ class TestClient < Minitest::Test
                             collect_evaluation_summaries: true).evaluation_summary_aggregator.class
 
     assert_logged [
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client No success loading checkpoints"
+      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints"
     ]
   end
 
@@ -395,7 +395,7 @@ class TestClient < Minitest::Test
           values: [
             PrefabProto::ConditionalValue.new(
               criteria: [PrefabProto::Criterion.new(operator: PrefabProto::Criterion::CriterionOperator::ALWAYS_TRUE)],
-              value: PrefabProto::ConfigValue.new(log_level: PrefabProto::LogLevel::DEBUG)
+              value: PrefabProto::ConfigValue.new(log_level: PrefabProto::LogLevel::INFO)
             )
           ]
         )
@@ -405,7 +405,7 @@ class TestClient < Minitest::Test
     client = new_client(config: config, project_env_id: PROJECT_ENV_ID,
                         collect_evaluation_summaries: true, allow_telemetry_in_local_mode: true)
 
-    assert_equal :DEBUG, client.get(config.key, IRRELEVANT)
+    assert_equal :INFO, client.get(config.key, IRRELEVANT)
 
     # nothing is summarized for log levels
     assert_summary client, {}
