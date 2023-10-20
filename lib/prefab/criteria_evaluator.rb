@@ -112,7 +112,7 @@ module Prefab
 
     def matches?(criterion, value, properties)
       criterion_value_or_values = Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config.key,
-                                                                             properties).unwrap
+                                                                             properties, @resolver).unwrap
 
       case criterion_value_or_values
       when Google::Protobuf::RepeatedField

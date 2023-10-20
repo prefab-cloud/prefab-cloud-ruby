@@ -50,7 +50,7 @@ module Prefab
 
     end
 
-    def self.deepest_value(config_value, config_key, context, resolver=NoopResolver.new)
+    def self.deepest_value(config_value, config_key, context, resolver)
       if config_value&.type == :weighted_values
         value, index = Prefab::WeightedValueResolver.new(
           config_value.weighted_values.weighted_values,
@@ -75,12 +75,6 @@ module Prefab
       else
         new(config_value, resolver)
       end
-    end
-  end
-  class NoopResolver
-    def get(key)
-      puts caller
-      raise "This resolver should never be called"
     end
   end
 end
