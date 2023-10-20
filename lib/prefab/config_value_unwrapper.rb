@@ -67,7 +67,7 @@ module Prefab
             LOG.warn "ENV Variable #{config_value.provided.lookup} not found. Using empty string."
             new(Prefab::ConfigValueWrapper.wrap(""), resolver)
           else
-            new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw)), resolver)
+            new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw), confidential: config_value.confidential), resolver)
           end
         else
           raise "Unknown Provided Source #{config_value.provided.source}"

@@ -6,6 +6,10 @@ class TestLocalConfigParser < Minitest::Test
   FILE_NAME = 'example-config.yaml'
   DEFAULT_MATCH = 'default'
 
+  def setup
+    @mock_resolver = MockResolver.new
+  end
+
   def test_parse_int_config
     key = :sample_int
     parsed = Prefab::LocalConfigParser.parse(key, 123, {}, FILE_NAME)[key]
@@ -34,7 +38,7 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values.size
 
     value_row = config.rows[0].values[0]
-    assert_equal 'all-features', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
+    assert_equal 'all-features', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).unwrap
   end
 
   def test_flag_in_user_key
@@ -53,7 +57,7 @@ class TestLocalConfigParser < Minitest::Test
     assert_equal 1, config.rows[0].values[0].criteria.size
 
     value_row = config.rows[0].values[0]
-    assert_equal true, Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
+    assert_equal true, Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).unwrap
 
     assert_equal 'user.key', value_row.criteria[0].property_name
     assert_equal :PROP_IS_ONE_OF, value_row.criteria[0].operator
@@ -78,8 +82,46 @@ class TestLocalConfigParser < Minitest::Test
       provided = value_row.value.provided
       assert_equal :ENV_VAR, provided.source
       assert_equal 'LOOKUP_ENV', provided.lookup
-      assert_equal 'from env', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}).unwrap
+      assert_equal 'from env', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).unwrap
+      reportable_value = Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).reportable_value
+      assert_equal 'from env', reportable_value
     end
+  end
+
+  def test_confidential_provided_values
+    with_env('LOOKUP_ENV', 'from env') do
+      key = :test_provided
+      value = stringify_keys({type: 'provided', source: 'ENV_VAR', lookup: 'LOOKUP_ENV', confidential: true})
+      parsed = Prefab::LocalConfigParser.parse(key, value, {}, FILE_NAME)[key]
+      config = parsed[:config]
+
+      value_row = config.rows[0].values[0]
+      provided = value_row.value.provided
+      assert_equal :ENV_VAR, provided.source
+      assert_equal 'LOOKUP_ENV', provided.lookup
+      assert_equal 'from env', Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).unwrap
+      reportable_value = Prefab::ConfigValueUnwrapper.deepest_value(value_row.value, key, {}, @mock_resolver).reportable_value
+      assert reportable_value.start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
+    end
+  end
+
+  def test_confidential_values
+    key = :test_confidential
+    value = stringify_keys({value: 'a confidential string', confidential: true})
+    parsed = Prefab::LocalConfigParser.parse(key, value, {}, FILE_NAME)[key]
+    config = parsed[:config]
+
+    assert_equal FILE_NAME, parsed[:source]
+    assert_equal :CONFIG, config.config_type
+    assert_equal key.to_s, config.key
+    assert_equal 1, config.rows.size
+    assert_equal 1, config.rows[0].values.size
+
+    value_row = config.rows[0].values[0]
+    config_value = value_row.value
+    assert_equal 'a confidential string', Prefab::ConfigValueUnwrapper.deepest_value(config_value, key, {}, @mock_resolver).unwrap
+    reportable_value = Prefab::ConfigValueUnwrapper.deepest_value(config_value, key, {}, @mock_resolver).reportable_value
+    assert reportable_value.start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
   end
 
   private
@@ -94,5 +136,11 @@ class TestLocalConfigParser < Minitest::Test
       result[yield(key)] = value.is_a?(Hash) ? deep_transform_keys(value, &block) : value
     end
     result
+  end
+
+  class MockResolver
+    def get(key)
+      raise "unexpected key"
+    end
   end
 end

@@ -9,7 +9,7 @@ module Prefab
             config[key] = feature_flag_config(file, key, value)
           elsif value['type'] == 'provided'
             config[key] = provided_config(file, key, value)
-          elsif value['confidential']
+          elsif value['decrypt_with'] || value['confidential']
             config[key] = complex_string(file, key, value)
           else
             value.each do |nest_key, nest_value|
@@ -27,8 +27,8 @@ module Prefab
               key: key,
               rows: [
                 PrefabProto::ConfigRow.new(values: [
-                                             PrefabProto::ConditionalValue.new(value: value_from(key, value))
-                                           ])
+                  PrefabProto::ConditionalValue.new(value: value_from(key, value))
+                ])
               ]
             )
           }
@@ -86,8 +86,10 @@ module Prefab
       def provided_config(file, key, value_hash)
         value = PrefabProto::ConfigValue.new(provided: PrefabProto::Provided.new(
           source: :ENV_VAR,
-          lookup: value_hash["lookup"]
-        ))
+          lookup: value_hash["lookup"],
+        ),
+                                             confidential: value_hash["confidential"],
+        )
 
         row = PrefabProto::ConfigRow.new(
           values: [
@@ -125,7 +127,6 @@ module Prefab
 
         {
           source: file,
-          match: "?",
           config: PrefabProto::Config.new(
             config_type: :CONFIG,
             key: key,
