@@ -143,6 +143,7 @@ module Prefab
       end
     rescue StandardError => e
       LOG.warn "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
+      LOG.debug e.backtrace
       false
     end
 

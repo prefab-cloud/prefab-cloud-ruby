@@ -41,9 +41,14 @@ module Prefab
               raise "Unknown type: #{@config_value.type}"
             end
       if @config_value.has_decrypt_with?
-        decryption_key = @resolver.get(@config_value.decrypt_with).unwrapped_value
-        unencrypted = Prefab::Encryption.new(decryption_key).decrypt(raw)
-        return unencrypted
+        decryption_key = @resolver.get(@config_value.decrypt_with)&.unwrapped_value
+        if decryption_key.nil?
+          LOG.warn "No value for decryption key #{@config_value.decrypt_with} found."
+          return ""
+        else
+          unencrypted = Prefab::Encryption.new(decryption_key).decrypt(raw)
+          return unencrypted
+        end
       end
 
       raw
