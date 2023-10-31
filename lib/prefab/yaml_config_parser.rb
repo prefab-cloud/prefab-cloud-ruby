@@ -24,7 +24,13 @@ module Prefab
     def load
       if File.exist?(@file)
         LOG.info "Load #{@file}"
-        YAML.load_file(@file)
+        yaml = YAML.load_file(@file)
+
+        if yaml == false
+          LOG.warn "Empty file #{@file}"
+          return {}
+        end
+        yaml
       else
         LOG.info "No file #{@file}"
         {}
