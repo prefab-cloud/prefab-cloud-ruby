@@ -36,12 +36,12 @@ class TestContextShape < Minitest::Test
 
   # If this test fails, it means that we've added a new type to the ConfigValue
   def test_mapping_is_exhaustive
-    unsupported = [:bytes, :limit_definition, :log_level, :weighted_values, :int_range]
-
-    supported = PrefabProto::ConfigValue.descriptor.entries.reject do |entry|
+    #this removes provided for now
+    unsupported = [:bytes, :limit_definition, :log_level, :weighted_values, :int_range, :provided]
+    type_fields = PrefabProto::ConfigValue.descriptor.lookup_oneof("type").entries
+    supported = type_fields.entries.reject do |entry|
       unsupported.include?(entry.name.to_sym)
     end.map(&:number)
-
     mapped = Prefab::ContextShape::MAPPING.values.uniq
 
     unless mapped == supported
