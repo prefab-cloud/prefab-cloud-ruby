@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1 - 2023-11-01
+- Update protobuf definitions (#154)
+
+
 ## 1.2.0 - 2023-10-30
 - Add `Prefab.get('key')` style usage after a `Prefab.init()` call (#151)
 - Add `add_context_keys` and `with_context_keys` method for LoggerClient (#145)
