@@ -55,3 +55,8 @@ lib/tes*
 .envrc
 .tool-versions
 .env*
+
+
+#For rubymine
+*.iml
+.idea/**
