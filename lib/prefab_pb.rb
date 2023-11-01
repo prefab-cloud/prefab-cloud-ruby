@@ -31,7 +31,7 @@ rescue TypeError => e
   warn "This will become an error in the next major version."
 end
 
-module Prefab
+module PrefabProto
   ConfigServicePointer = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigServicePointer").msgclass
   ConfigValue = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.ConfigValue").msgclass
   Provided = ::Google::Protobuf::DescriptorPool.generated_pool.lookup("prefab.Provided").msgclass
