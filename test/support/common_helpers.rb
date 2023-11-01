@@ -155,7 +155,12 @@ module CommonHelpers
   def assert_logged(expected)
     # we do a uniq here because logging can happen in a separate thread so the
     # number of times a log might happen could be slightly variable.
-    assert_equal expected, $logs.string.split("\n").uniq
+    unique_logs = $logs.string.split("\n").uniq
+    if expected.is_a?(Regexp)
+      assert unique_logs.any? { |log| expected.match?(log) }, "No match for #{expected} in logs"
+    else
+      assert_equal expected, unique_logs
+    end
     # mark nil to indicate we handled it
     $logs = nil
   end
