@@ -12,16 +12,14 @@ class TestYamlConfigParser < Minitest::Test
     # Providing the file exists, ensure it's empty for the test
     File.write(@empty_file.path, '')
 
-    @client = "client" # replace with actual client
+    Prefab.init(prefab_options)
 
-    @config_parser = Prefab::YAMLConfigParser.new(@empty_file.path, @client)
+    @config_parser = Prefab::YAMLConfigParser.new(@empty_file.path, nil)
   end
 
   def test_empty_file_loading
-    Prefab.init(prefab_options)
-
     # Ensure no error raised when loading an empty filer
     @config_parser.merge({})
-    assert_logged /^WARN.+Empty file.+\.yml$/
+    assert_logged(/^WARN.+Empty file.+\.yml$/)
   end
 end
