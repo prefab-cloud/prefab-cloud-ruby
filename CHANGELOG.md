@@ -1,5 +1,8 @@
 # Changelog
 
+## Unreleased
+- Alpha: Add Provided & Secret Support (#152)
+
 ## 1.2.1 - 2023-11-01
 - Update protobuf definitions (#154)
 
