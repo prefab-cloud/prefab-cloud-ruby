@@ -46,7 +46,7 @@ module Prefab
     end
 
     def deepest_value
-      @deepest_value ||= Prefab::ConfigValueUnwrapper.deepest_value(@value, @config.key, @context, @resolver)
+      @deepest_value ||= Prefab::ConfigValueUnwrapper.deepest_value(@value, @config, @context, @resolver)
     end
   end
 end

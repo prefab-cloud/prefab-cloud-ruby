@@ -55,15 +55,15 @@ module Prefab
 
     end
 
-    def self.deepest_value(config_value, config_key, context, resolver)
+    def self.deepest_value(config_value, config, context, resolver)
       if config_value&.type == :weighted_values
         value, index = Prefab::WeightedValueResolver.new(
           config_value.weighted_values.weighted_values,
-          config_key,
+          config.key,
           context.get(config_value.weighted_values.hash_by_property_name)
         ).resolve
 
-        new(deepest_value(value.value, config_key, context, resolver).raw_config_value, resolver, index)
+        new(deepest_value(value.value, config, context, resolver).raw_config_value, resolver, index)
 
       elsif config_value&.type == :provided
         if :ENV_VAR == config_value.provided.source
@@ -72,7 +72,8 @@ module Prefab
             LOG.warn "ENV Variable #{config_value.provided.lookup} not found. Using empty string."
             new(Prefab::ConfigValueWrapper.wrap(""), resolver)
           else
-            new(Prefab::ConfigValueWrapper.wrap(YAML.load(raw), confidential: config_value.confidential), resolver)
+            coerced = coerce_into_type(raw, config, config_value.provided.lookup)
+            new(Prefab::ConfigValueWrapper.wrap(coerced, confidential: config_value.confidential), resolver)
           end
         else
           raise "Unknown Provided Source #{config_value.provided.source}"
@@ -80,6 +81,37 @@ module Prefab
       else
         new(config_value, resolver)
       end
+    end
+
+    # Don't allow env vars to resolve to a value_type other than the config's value_type
+    def self.coerce_into_type(value_string, config, env_var_name)
+      case config.value_type
+      when :INT then Integer(value_string)
+      when :DOUBLE then Float(value_string)
+      when :STRING then String(value_string)
+      when :STRING_LIST then
+        maybe_string_list = YAML.load(value_string)
+        case maybe_string_list
+        when Array
+          maybe_string_list
+        else
+          raise raise Prefab::Errors::EnvVarParseError.new(value_string, config, env_var_name)
+        end
+      when :BOOL then
+        maybe_bool = YAML.load(value_string)
+        case maybe_bool
+        when TrueClass,FalseClass
+          maybe_bool
+        else
+          raise Prefab::Errors::EnvVarParseError.new(value_string, config, env_var_name)
+        end
+      when :NOT_SET_VALUE_TYPE
+        YAML.load(value_string)
+      else
+        raise Prefab::Errors::EnvVarParseError.new(value_string, config, env_var_name)
+      end
+    rescue ArgumentError
+      raise Prefab::Errors::EnvVarParseError.new(value_string, config, env_var_name)
     end
   end
 end
