@@ -143,6 +143,7 @@ module Prefab
       end
     rescue StandardError => e
       LOG.warn "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
+      LOG.debug e.backtrace
       false
     end
 
@@ -156,7 +157,7 @@ module Prefab
         [
           context.type,
           context.values.keys.map do |k|
-            [k, Prefab::ConfigValueUnwrapper.new(context.values[k]).unwrap]
+            [k, Prefab::ConfigValueUnwrapper.new(context.values[k], @config_resolver).unwrap]
           end.to_h
         ]
       end.to_h

@@ -7,6 +7,10 @@ module Prefab
         if value.instance_of?(Hash)
           if value['feature_flag']
             config[key] = feature_flag_config(file, key, value)
+          elsif value['type'] == 'provided'
+            config[key] = provided_config(file, key, value)
+          elsif value['decrypt_with'] || value['confidential']
+            config[key] = complex_string(file, key, value)
           else
             value.each do |nest_key, nest_value|
               nested_key = "#{key}.#{nest_key}"
@@ -23,8 +27,8 @@ module Prefab
               key: key,
               rows: [
                 PrefabProto::ConfigRow.new(values: [
-                                             PrefabProto::ConditionalValue.new(value: value_from(key, value))
-                                           ])
+                  PrefabProto::ConditionalValue.new(value: value_from(key, value))
+                ])
               ]
             )
           }
@@ -74,6 +78,58 @@ module Prefab
             config_type: :FEATURE_FLAG,
             key: key,
             allowable_values: [variant],
+            rows: [row]
+          )
+        }
+      end
+
+      def provided_config(file, key, value_hash)
+        value = PrefabProto::ConfigValue.new(provided: PrefabProto::Provided.new(
+          source: :ENV_VAR,
+          lookup: value_hash["lookup"],
+        ),
+                                             confidential: value_hash["confidential"],
+        )
+
+        row = PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(
+              value: value
+            )
+          ]
+        )
+
+        {
+          source: file,
+          match: value.provided.lookup,
+          config: PrefabProto::Config.new(
+            config_type: :CONFIG,
+            key: key,
+            rows: [row]
+          )
+        }
+      end
+
+      def complex_string(file, key, value_hash)
+        value = PrefabProto::ConfigValue.new(
+          string: value_hash["value"],
+          confidential: value_hash["confidential"],
+          decrypt_with: value_hash["decrypt_with"],
+        )
+
+        row = PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(
+              value: value
+            )
+          ]
+        )
+
+        {
+          source: file,
+          config: PrefabProto::Config.new(
+            config_type: :CONFIG,
+            key: key,
             rows: [row]
           )
         }
