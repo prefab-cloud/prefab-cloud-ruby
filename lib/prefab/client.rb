@@ -22,6 +22,8 @@ module Prefab
 
       if @options.local_only?
         LOG.debug 'Prefab Running in Local Mode'
+      elsif @options.datafile?
+        LOG.debug 'Prefab Running in DataFile Mode'
       else
         @api_key = @options.api_key
         raise Prefab::Errors::InvalidApiKeyError, @api_key if @api_key.nil? || @api_key.empty? || api_key.count('-') < 1

@@ -17,6 +17,7 @@ module Prefab
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
     attr_reader :use_local_cache
+    attr_reader :datafile
     attr_accessor :is_fork
 
     DEFAULT_LOG_FORMATTER = proc { |data|
@@ -71,6 +72,7 @@ module Prefab
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE,
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
+      datafile: ENV['PREFAB_DATAFILE'],
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: '.', # where to load local overrides
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
@@ -94,6 +96,7 @@ module Prefab
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
       @prefab_datasources = prefab_datasources
+      @datafile = datafile
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
@@ -132,6 +135,10 @@ module Prefab
 
     def local_only?
       @prefab_datasources == DATASOURCES::LOCAL_ONLY
+    end
+
+    def datafile?
+      !@datafile.nil?
     end
 
     def collect_max_paths

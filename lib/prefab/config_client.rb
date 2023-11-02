@@ -31,6 +31,8 @@ module Prefab
 
       if @options.local_only?
         finish_init!(:local_only, nil)
+      elsif @options.datafile?
+        load_json_file(@options.datafile)
       else
         load_checkpoint
         start_checkpointing_thread
@@ -215,6 +217,14 @@ module Prefab
     rescue => e
       LOG.debug "Failed to read cached configs at #{cache_path}. #{e}"
       false
+    end
+
+    def load_json_file(file)
+      File.open(file) do |f|
+        f.flock(File::LOCK_SH)
+        configs = PrefabProto::Configs.decode_json(f.read)
+        load_configs(configs, :datafile)
+      end
     end
 
     # A thread that checks for a checkpoint
