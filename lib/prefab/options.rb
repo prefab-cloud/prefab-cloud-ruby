@@ -17,6 +17,7 @@ module Prefab
     attr_reader :prefab_envs
     attr_reader :collect_sync_interval
     attr_reader :use_local_cache
+    attr_reader :datafile
     attr_accessor :is_fork
 
     DEFAULT_LOG_FORMATTER = proc { |data|
@@ -82,6 +83,7 @@ module Prefab
       collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false,
+      x_datafile: ENV['PREFAB_DATAFILE'],
       x_use_local_cache: false
     )
       @api_key = api_key
@@ -94,6 +96,7 @@ module Prefab
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
       @prefab_datasources = prefab_datasources
+      @datafile = x_datafile
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
@@ -132,6 +135,10 @@ module Prefab
 
     def local_only?
       @prefab_datasources == DATASOURCES::LOCAL_ONLY
+    end
+
+    def datafile?
+      !@datafile.nil?
     end
 
     def collect_max_paths

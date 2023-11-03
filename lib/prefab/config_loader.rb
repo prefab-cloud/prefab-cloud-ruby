@@ -54,6 +54,7 @@ module Prefab
     private
 
     def load_classpath_config
+      return {} if @prefab_options.datafile?
       classpath_dir = @prefab_options.prefab_config_classpath_dir
       rtn = load_glob(File.join(classpath_dir, '.prefab.default.config.yaml'))
       @prefab_options.prefab_envs.each do |env|
@@ -63,6 +64,7 @@ module Prefab
     end
 
     def load_local_overrides
+      return {} if @prefab_options.datafile?
       override_dir = @prefab_options.prefab_config_override_dir
       rtn = load_glob(File.join(override_dir, '.prefab.default.config.yaml'))
       @prefab_options.prefab_envs.each do |env|
