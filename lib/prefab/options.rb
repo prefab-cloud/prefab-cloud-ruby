@@ -72,7 +72,6 @@ module Prefab
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE,
       prefab_datasources: ENV['PREFAB_DATASOURCES'] == 'LOCAL_ONLY' ? DATASOURCES::LOCAL_ONLY : DATASOURCES::ALL,
-      datafile: ENV['PREFAB_DATAFILE'],
       prefab_config_override_dir: Dir.home,
       prefab_config_classpath_dir: '.', # where to load local overrides
       prefab_envs: ENV['PREFAB_ENVS'].nil? ? [] : ENV['PREFAB_ENVS'].split(','),
@@ -84,6 +83,7 @@ module Prefab
       collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false,
+      x_datafile: ENV['PREFAB_DATAFILE'],
       x_use_local_cache: false
     )
       @api_key = api_key
@@ -96,7 +96,7 @@ module Prefab
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
       @prefab_datasources = prefab_datasources
-      @datafile = datafile
+      @datafile = x_datafile
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)
