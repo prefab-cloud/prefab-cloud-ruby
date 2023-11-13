@@ -5,7 +5,6 @@ module Prefab
     SEP = '.'
     BASE_KEY = 'log-level'
     UNKNOWN_PATH = 'unknown.'
-    INTERNAL_PREFIX = 'cloud.prefab.client'
 
     LOG_LEVEL_LOOKUPS = {
       PrefabProto::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
@@ -65,12 +64,6 @@ module Prefab
     def log_internal(severity, message, path, log_context={}, &block)
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
-
-      path = if path
-               "#{INTERNAL_PREFIX}.#{path}"
-             else
-               INTERNAL_PREFIX
-             end
       begin
         log(message, path, nil, severity, log_context, &block)
       ensure
