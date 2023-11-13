@@ -7,6 +7,8 @@ gem 'google-protobuf', platforms: :ruby
 gem 'ld-eventsource'
 gem 'uuid'
 
+gem 'activesupport',  '>= 4'
+
 group :development do
   gem 'benchmark-ips'
   gem 'bundler'

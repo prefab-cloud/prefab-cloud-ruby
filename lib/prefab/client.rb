@@ -98,6 +98,8 @@ module Prefab
       ActiveJob::Base.logger = log if defined?(ActiveJob)
       ActiveRecord::Base.logger = log
       ActiveStorage.logger = log if defined?(ActiveStorage)
+
+      LogSubscribers::ActionController.attach_to :action_controller
     end
 
     def on_update(&block)

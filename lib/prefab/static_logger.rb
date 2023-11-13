@@ -6,24 +6,24 @@ module Prefab
       @path = path
     end
 
-    def debug(msg = nil, &block) msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::DEBUG, msg, @path, &block
+    def debug(msg = nil, **log_context, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::DEBUG, msg, @path, log_context, &block
     end
 
-    def info(msg = nil, &block) msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::INFO, msg, @path, &block
+    def info(msg = nil, **log_context, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::INFO, msg, @path, log_context, &block
     end
 
-    def warn(msg = nil, &block) msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::WARN, msg, @path, &block
+    def warn(msg = nil, **log_context, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::WARN, msg, @path, log_context, &block
     end
 
-    def error(msg = nil, &block) msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::ERROR, msg, @path, &block
+    def error(msg = nil, **log_context, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::ERROR, msg, @path, log_context, &block
     end
 
-    def fatal(msg = nil, &block) msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::FATAL, msg, @path, &block
+    def fatal(msg = nil, **log_context, &block)
+      Prefab::LoggerClient.instance.log_internal ::Logger::FATAL, msg, @path, log_context, &block
     end
   end
 end
