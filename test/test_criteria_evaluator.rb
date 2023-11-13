@@ -75,8 +75,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({ user: { key: 'wrong' } })).unwrapped_value
@@ -106,8 +105,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({ user: { key: 'ok' } })).unwrapped_value
@@ -137,8 +135,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email_suffix: 'prefab.cloud' })).unwrapped_value
@@ -168,8 +165,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email_suffix: 'prefab.cloud' })).unwrapped_value
@@ -199,8 +195,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).unwrapped_value
@@ -230,8 +225,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
-                                                      namespace: nil)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { email: 'example@prefab.cloud' })).unwrapped_value
@@ -286,7 +280,7 @@ class TestCriteriaEvaluator < Minitest::Test
     )
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID,
-                                                      base_client: @base_client, namespace: nil,
+                                                      base_client: @base_client,
                                                       resolver: resolver_fake({ segment_key => segment_config }))
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
@@ -523,8 +517,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: @base_client)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(team: { name: 'prefab.cloud' })).unwrapped_value
@@ -563,8 +556,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: @base_client)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context({ 'user' => { 'age' => 32 } })).unwrapped_value
@@ -604,8 +596,7 @@ class TestCriteriaEvaluator < Minitest::Test
       ]
     )
 
-    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil,
-                                                      namespace: nil, base_client: @base_client)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client)
 
     Timecop.freeze(now) do
       assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value

@@ -7,7 +7,6 @@ module Prefab
     attr_reader :logdev
     attr_reader :log_prefix
     attr_reader :log_formatter
-    attr_reader :namespace
     attr_reader :prefab_api_url
     attr_reader :on_no_default
     attr_reader :initialization_timeout_sec
@@ -64,7 +63,6 @@ module Prefab
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
       logdev: $stdout,
-      namespace: '',
       log_formatter: DEFAULT_LOG_FORMATTER,
       log_prefix: nil,
       prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
@@ -88,7 +86,6 @@ module Prefab
     )
       @api_key = api_key
       @logdev = logdev
-      @namespace = namespace
       @log_formatter = log_formatter
       @log_prefix = log_prefix
       @prefab_api_url = remove_trailing_slash(prefab_api_url)

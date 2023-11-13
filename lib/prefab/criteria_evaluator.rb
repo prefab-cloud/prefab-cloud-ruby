@@ -8,14 +8,12 @@ module Prefab
   # the first match based on the provided properties.
   class CriteriaEvaluator
     LOG = Prefab::InternalLogger.new(CriteriaEvaluator)
-    NAMESPACE_KEY = 'NAMESPACE'
     NO_MATCHING_ROWS = [].freeze
 
-    def initialize(config, project_env_id:, resolver:, namespace:, base_client:)
+    def initialize(config, project_env_id:, resolver:, base_client:)
       @config = config
       @project_env_id = project_env_id
       @resolver = resolver
-      @namespace = namespace
       @base_client = base_client
     end
 
@@ -45,23 +43,23 @@ module Prefab
     end
 
     def PROP_IS_ONE_OF(criterion, properties)
-      matches?(criterion, value_from_properties(criterion, properties), properties)
+      matches?(criterion, properties.get(criterion.property_name), properties)
     end
 
     def PROP_IS_NOT_ONE_OF(criterion, properties)
-      !matches?(criterion, value_from_properties(criterion, properties), properties)
+      !matches?(criterion, properties.get(criterion.property_name), properties)
     end
 
     def PROP_ENDS_WITH_ONE_OF(criterion, properties)
-      prop_ends_with_one_of?(criterion, value_from_properties(criterion, properties))
+      prop_ends_with_one_of?(criterion, properties.get(criterion.property_name))
     end
 
     def PROP_DOES_NOT_END_WITH_ONE_OF(criterion, properties)
-      !prop_ends_with_one_of?(criterion, value_from_properties(criterion, properties))
+      !prop_ends_with_one_of?(criterion, properties.get(criterion.property_name))
     end
 
     def HIERARCHICAL_MATCH(criterion, properties)
-      value = value_from_properties(criterion, properties)
+      value = properties.get(criterion.property_name)
       value&.start_with?(criterion.value_to_match.string)
     end
 
@@ -69,14 +67,10 @@ module Prefab
       value = if criterion.property_name == 'prefab.current-time'
                 Time.now.utc.to_i * 1000
               else
-                value_from_properties(criterion, properties)
+                properties.get(criterion.property_name)
               end
 
       value && value >= criterion.value_to_match.int_range.start && value < criterion.value_to_match.int_range.end
-    end
-
-    def value_from_properties(criterion, properties)
-      criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
 
     private

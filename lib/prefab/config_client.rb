@@ -54,8 +54,8 @@ module Prefab
       @config_resolver
     end
 
-    def self.value_to_delta(key, config_value, namespace = nil)
-      PrefabProto::Config.new(key: [namespace, key].compact.join(':'),
+    def self.value_to_delta(key, config_value)
+      PrefabProto::Config.new(key: key,
                               rows: [PrefabProto::ConfigRow.new(value: config_value)])
     end
 
@@ -170,7 +170,7 @@ module Prefab
         @config_loader.set(config, source)
       end
       if @config_loader.highwater_mark > starting_highwater_mark
-        LOG.debug("Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id} and namespace: '#{@namespace}'")
+        LOG.debug("Found new checkpoint with highwater id #{@config_loader.highwater_mark} from #{source} in project #{project_id} environment: #{project_env_id}")
       else
         LOG.debug("Checkpoint with highwater id #{@config_loader.highwater_mark} from #{source}. No changes.")
       end

@@ -56,8 +56,7 @@ module Prefab
           loggers: aggregate.values,
           start_at: start_at_was,
           end_at: Prefab::TimeHelpers.now_in_ms,
-          instance_hash: @client.instance_hash,
-          namespace: @client.namespace
+          instance_hash: @client.instance_hash
         )
 
         result = post('/api/v1/known-loggers', loggers)

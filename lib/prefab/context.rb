@@ -130,12 +130,10 @@ module Prefab
       self
     end
 
-    def to_proto(namespace)
+    def to_proto
       prefab_context = {
         'current-time' => ConfigValueWrapper.wrap(Prefab::TimeHelpers.now_in_ms)
       }
-
-      prefab_context['namespace'] = ConfigValueWrapper.wrap(namespace) if namespace&.length&.positive?
 
       PrefabProto::ContextSet.new(
         contexts: contexts.map do |name, context|

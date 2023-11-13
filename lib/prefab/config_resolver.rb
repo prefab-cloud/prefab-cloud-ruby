@@ -44,7 +44,6 @@ module Prefab
       Prefab::CriteriaEvaluator.new(config,
                                     project_env_id: @project_env_id,
                                     resolver: self,
-                                    namespace: @base_client.options.namespace,
                                     base_client: @base_client).evaluate(make_context(properties))
     end
 

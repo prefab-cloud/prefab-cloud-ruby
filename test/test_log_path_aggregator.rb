@@ -25,7 +25,7 @@ class TestLogPathAggregator < Minitest::Test
 
   def test_sync
     Timecop.freeze do
-      client = new_client(namespace: 'this.is.a.namespace')
+      client = new_client
 
       2.times { client.log.info('here is a message') }
       3.times { client.log.error('here is a message') }
@@ -41,8 +41,7 @@ class TestLogPathAggregator < Minitest::Test
                                             infos: 2, errors: 3)],
           start_at: Prefab::TimeHelpers.now_in_ms,
           end_at: Prefab::TimeHelpers.now_in_ms,
-          instance_hash: client.instance_hash,
-          namespace: 'this.is.a.namespace'
+          instance_hash: client.instance_hash
         )
       ]], requests
 

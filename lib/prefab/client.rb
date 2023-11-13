@@ -8,11 +8,10 @@ module Prefab
     BASE_SLEEP_SEC = 0.5
     LOG = Prefab::InternalLogger.new(Client)
 
-    attr_reader :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
+    attr_reader :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
 
     def initialize(options = Prefab::Options.new)
       @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
-      @namespace = @options.namespace
       @stubs = {}
       @instance_hash = UUID.new.generate
       Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
@@ -121,7 +120,7 @@ module Prefab
     end
 
     def inspect
-      "#<Prefab::Client:#{object_id} namespace=#{namespace}>"
+      "#<Prefab::Client:#{object_id}>"
     end
 
     def resolver
