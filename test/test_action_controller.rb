@@ -11,7 +11,7 @@ class TestActionController < Minitest::Test
 
   def test_load
     @subscriber.process_action(event)
-    assert_logged ["INFO  2023-08-09 15:18:12 -0400: rails.controller.request 200 HomeController#index action=index controller=HomeController db_runtime=0.02 format=application/json method=GET params={\"foo\"=>\"bar\"} path=/home?foo=bar status=200 view_runtime=0.01"]
+    assert_logged ['INFO  2023-08-09 15:18:12 -0400: rails.controller.request 200 MyController#index action=index controller=MyController db_runtime=0.05 format=application/html method=GET params={"p1"=>"v1"} path=/my?p1=v1 status=200 view_runtime=0.02']
   end
 
 
@@ -20,16 +20,16 @@ class TestActionController < Minitest::Test
       'process_action.action_controller',
       Time.now,
       Time.now,
-      2,
+      99,
       status: 200,
-      controller: 'HomeController',
+      controller: 'MyController',
       action: 'index',
-      format: 'application/json',
+      format: 'application/html',
       method: 'GET',
-      path: '/home?foo=bar',
-      params: { 'foo' => 'bar' },
-      db_runtime: 0.021123,
-      view_runtime: 0.014555
+      path: '/my?p1=v1',
+      params: { 'p1' => 'v1' },
+      db_runtime: 0.051123,
+      view_runtime: 0.024555
     )
   end
 
