@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+
+## 1.3.0 - 2023-11-13
 - Less logging when wifi is off and we load from cache (#157)
 - Alpha: Add Provided & Secret Support (#152)
 - Alpha: x_datafile (#156)
