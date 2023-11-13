@@ -5,8 +5,8 @@ require 'test_helper'
 class TestActionController < Minitest::Test
   def setup
     super
-    client = new_client(config: log_level_config("log-level.rails.controller", "INFO"))
-    @subscriber = Prefab::LogSubscribers::ActionController.new
+    new_client(config: log_level_config("log-level.rails.controller", "INFO"))
+    @subscriber = Prefab::LogSubscribers::ActionControllerSubscriber.new
   end
 
   def test_load

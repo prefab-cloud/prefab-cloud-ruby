@@ -16,7 +16,7 @@
 #
 module Prefab
   module LogSubscribers
-    class ActionController < ActiveSupport::LogSubscriber
+    class ActionControllerSubscriber < ActiveSupport::LogSubscriber
 
       INTERNAL_PARAMS = %w[controller action format _method only_path].freeze
 
