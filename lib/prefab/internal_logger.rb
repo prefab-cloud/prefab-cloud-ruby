@@ -1,33 +1,16 @@
 # frozen_string_literal: true
 
 module Prefab
-  class InternalLogger < ::Logger
+  class InternalLogger < StaticLogger
+    INTERNAL_PREFIX = 'cloud.prefab.client'
+
     def initialize(path)
       if path.is_a?(Class)
-        @path = path.name.split('::').last.downcase
+        path_string = path.name.split('::').last.downcase
       else
-        @path = path
+        path_string = path
       end
-    end
-
-    def debug msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::DEBUG, msg, @path
-    end
-
-    def info msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::INFO, msg, @path
-    end
-
-    def warn msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::WARN, msg, @path
-    end
-
-    def error msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::ERROR, msg, @path
-    end
-
-    def fatal msg
-      Prefab::LoggerClient.instance.log_internal ::Logger::FATAL, msg, @path
+      super("#{INTERNAL_PREFIX}.#{path_string}")
     end
   end
 end
