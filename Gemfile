@@ -8,6 +8,7 @@ gem 'ld-eventsource'
 gem 'uuid'
 
 gem 'activesupport',  '>= 4'
+gem 'actionpack',  '>= 4'
 
 group :development do
   gem 'benchmark-ips'
