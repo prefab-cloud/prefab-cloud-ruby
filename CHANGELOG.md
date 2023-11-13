@@ -3,6 +3,7 @@
 ## Unreleased
 - Alpha: Add Provided & Secret Support (#152)
 - Alpha: x_datafile (#156)
+- Add single line action-controller output under rails.controller (#158)
 
 ## 1.2.1 - 2023-11-01
 - Update protobuf definitions (#154)
