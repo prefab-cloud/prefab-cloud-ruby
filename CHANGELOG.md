@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- Less logging when wifi is off and we load from cache (#157)
 - Alpha: Add Provided & Secret Support (#152)
 - Alpha: x_datafile (#156)
 

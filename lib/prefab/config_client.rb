@@ -143,6 +143,13 @@ module Prefab
         LOG.info "Checkpoint #{source} failed to load. Response #{resp.status}"
         false
       end
+    rescue Faraday::ConnectionFailed => e
+      if @initialization_lock.write_locked?
+        LOG.warn "Connection Fail loading #{source} checkpoint."
+      else
+        LOG.debug "Connection Fail loading #{source} checkpoint."
+      end
+      false
     rescue StandardError => e
       LOG.warn "Unexpected #{source} problem loading checkpoint #{e} #{conn}"
       LOG.debug e.backtrace
@@ -213,6 +220,7 @@ module Prefab
         if hours_old > STALE_CACHE_WARN_HOURS
           LOG.info "Stale Cache Load: #{hours_old} hours old"
         end
+        true
       end
     rescue => e
       LOG.debug "Failed to read cached configs at #{cache_path}. #{e}"
