@@ -28,6 +28,7 @@ module Prefab
         payload.delete(:headers)
         payload.delete(:request)
         payload.delete(:response)
+        payload[:req_path] = payload.delete(:path)
         params = payload[:params]
 
         if params.kind_of?(Hash) || params.kind_of?(::ActionController::Parameters)
