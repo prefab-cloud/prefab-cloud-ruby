@@ -34,22 +34,19 @@ class TestLogPathAggregator < Minitest::Test
         client.log_path_aggregator.send(:sync)
       end
 
-      assert_equal [[
-        '/api/v1/known-loggers',
-        PrefabProto::Loggers.new(
-          loggers: [PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync',
-                                            infos: 2, errors: 3)],
-          start_at: Prefab::TimeHelpers.now_in_ms,
-          end_at: Prefab::TimeHelpers.now_in_ms,
-          instance_hash: client.instance_hash,
-          namespace: 'this.is.a.namespace'
-        )
-      ]], requests
+      assert_equal '/api/v1/known-loggers', requests[0][0]
+      sent_logger = requests[0][1]
+      assert_equal 'this.is.a.namespace', sent_logger.namespace
+      assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.start_at
+      assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.end_at
+      assert_equal client.instance_hash, sent_logger.instance_hash
+      assert_includes sent_logger.loggers, PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync', infos: 2, errors: 3)
+      assert_includes sent_logger.loggers, PrefabProto::Logger.new(logger_name: 'cloud.prefab.client.client', debugs: 1) # spot test that internal logging is here too
 
       assert_logged [
-        'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints',
-        'ERROR 2023-08-09 15:18:12 -0400: test.test_log_path_aggregator.test_sync here is a message'
-      ]
+                      'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints',
+                      'ERROR 2023-08-09 15:18:12 -0400: test.test_log_path_aggregator.test_sync here is a message'
+                    ]
     end
   end
 
