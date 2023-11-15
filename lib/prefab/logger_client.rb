@@ -56,8 +56,6 @@ module Prefab
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
 
-      @log_path_aggregator&.push(path_loc, severity)
-
       log(message, path, progname, severity, log_context, &block)
     end
 
@@ -73,6 +71,8 @@ module Prefab
 
     def log(message, path, progname, severity, log_context={})
       severity ||= ::Logger::UNKNOWN
+      @log_path_aggregator&.push(path, severity)
+
       return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
 
       progname = @progname if progname.nil?
