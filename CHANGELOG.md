@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.3.2 - 2023-11-15
+- Send back cloud.prefab logging telemetry (#160)
+
 ## 1.3.1 - 2023-11-14
 - Improve path of rails.controller logging & fix strong param include (#159)
 
