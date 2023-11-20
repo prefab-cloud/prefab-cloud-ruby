@@ -559,6 +559,38 @@ class TestLogger < Minitest::Test
     threads.each { |thr| thr.join }
   end
 
+  def test_tagged
+    prefab, io = captured_logger
+
+    prefab.log.tagged([[]]) do # rails sends some of these
+      prefab.log.tagged("outside") do
+        prefab.log.tagged("nested", "tag2") do
+          prefab.log.error "msg"
+          assert_logged io, 'ERROR', 'test.test_logger.test_tagged',
+                        'msg log.tags=\["outside", "nested", "tag2"\]'
+        end
+      end
+    end
+  end
+
+  def test_req_tagged
+    prefab, io = captured_logger
+    prefab.log.tagged("tag-1").error "first"
+    assert_logged io, 'ERROR', 'test.test_logger.test_req_tagged',
+                  'first req.tags=\["tag-1"\]'
+    reset_io(io)
+
+    prefab.log.tagged("tag-2").error "2nd"
+    assert_logged io, 'ERROR', 'test.test_logger.test_req_tagged',
+                  '2nd req.tags=\["tag-1", "tag-2"\]'
+    prefab.log.flush
+
+    prefab.log.tagged("tag-3").error "3rd"
+    assert_logged io, 'ERROR', 'test.test_logger.test_req_tagged',
+                  '3rd req.tags=\["tag-3"\]'
+    prefab.log.flush
+  end
+
   private
 
   def assert_logged(logged_io, level, path, message)
