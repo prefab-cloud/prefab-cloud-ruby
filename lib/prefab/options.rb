@@ -42,6 +42,18 @@ module Prefab
       data.merge(log_context).compact.to_json << "\n"
     }
 
+    COMPACT_LOG_FORMATTER = proc { |data|
+      severity = data[:severity]
+      msg = data[:message]
+      log_context = data[:log_context]
+      log_context["path"] = data[:path] || ""
+
+      formatted_log_context = log_context.sort.map do |k, v|
+        "#{k}=#{v}"
+      end.join(" ")
+      "#{severity.ljust(5)} #{msg&.strip} #{formatted_log_context}\n"
+    }
+
     module ON_INITIALIZATION_FAILURE
       RAISE = :raise
       RETURN = :return
