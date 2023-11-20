@@ -5,6 +5,8 @@ module Prefab
     SEP = '.'
     BASE_KEY = 'log-level'
     UNKNOWN_PATH = 'unknown.'
+    LOG_TAGS = 'log.tags'
+    REQ_TAGS = 'req.tags'
 
     LOG_LEVEL_LOOKUPS = {
       PrefabProto::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
@@ -45,7 +47,7 @@ module Prefab
       context_keys.subtract(keys)
     end
 
-    def internal_logger(path=nil)
+    def internal_logger(path = nil)
       InternalLogger.new(path, self)
     end
 
@@ -54,14 +56,14 @@ module Prefab
     end
 
     # InternalLoggers Will Call This
-    def add_internal(severity, message, progname, loc, log_context={}, &block)
+    def add_internal(severity, message, progname, loc, log_context = {}, &block)
       path_loc = get_loc_path(loc)
       path = @prefix + path_loc
 
       log(message, path, progname, severity, log_context, &block)
     end
 
-    def log_internal(severity, message, path, log_context={}, &block)
+    def log_internal(severity, message, path, log_context = {}, &block)
       return if @recurse_check[local_log_id]
       @recurse_check[local_log_id] = true
       begin
@@ -71,7 +73,7 @@ module Prefab
       end
     end
 
-    def log(message, path, progname, severity, log_context={})
+    def log(message, path, progname, severity, log_context = {})
       severity ||= ::Logger::UNKNOWN
       @log_path_aggregator&.push(path, severity)
 
@@ -136,6 +138,30 @@ module Prefab
 
     def level
       DEBUG
+    end
+
+    def tagged(*tags)
+      to_add = tags.flatten.compact
+      if block_given?
+        new_log_tags = Prefab::Context.current.get(LOG_TAGS) || []
+        new_log_tags += to_add unless to_add.empty?
+        Prefab::Context.with_merged_context({ "log" => { "tags" => new_log_tags } }) do
+          with_context_keys LOG_TAGS do
+            yield self
+          end
+        end
+      else
+        new_log_tags = Prefab::Context.current.get(REQ_TAGS) || []
+        new_log_tags += to_add unless to_add.empty?
+        add_context_keys REQ_TAGS
+        Prefab::Context.current.set("req", {"tags": new_log_tags})
+        self
+      end
+    end
+
+    def flush
+      Prefab::Context.current.set("req", {"tags": nil})
+      super if defined?(super)
     end
 
     def config_client=(config_client)
@@ -205,7 +231,7 @@ module Prefab
       path
     end
 
-    def format_message(severity, datetime, progname, msg, path = nil, log_context={})
+    def format_message(severity, datetime, progname, msg, path = nil, log_context = {})
       formatter = (@formatter || @default_formatter)
 
       formatter.call(

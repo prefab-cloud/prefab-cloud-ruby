@@ -60,6 +60,14 @@ module Prefab
         Thread.current[THREAD_KEY] = old_context
       end
 
+      def with_merged_context(context)
+        old_context = Thread.current[THREAD_KEY]
+        Thread.current[THREAD_KEY] = merge_with_current(context)
+        yield
+      ensure
+        Thread.current[THREAD_KEY] = old_context
+      end
+
       def clear_current
         Thread.current[THREAD_KEY] = nil
       end

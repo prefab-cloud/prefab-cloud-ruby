@@ -103,6 +103,18 @@ class TestContext < Minitest::Test
     end
   end
 
+  def test_with_context_merge_nesting
+    Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
+      Prefab::Context.with_merged_context({ user: { key: 'abc', other: 'different' } }) do
+        context = Prefab::Context.current
+        assert_equal({ 'user' => { 'key' => 'abc', 'other' => 'different' }, "team"=>{"key"=>"abc", "plan"=>"pro"} }, context.to_h)
+      end
+
+      context = Prefab::Context.current
+      assert_equal(stringify(EXAMPLE_PROPERTIES), context.to_h)
+    end
+  end
+
   def test_setting
     context = Prefab::Context.new({})
     context.set('user', { key: 'value' })
