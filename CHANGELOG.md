@@ -1,6 +1,8 @@
 # Changelog
 
 ## Unreleased
+- Tagged Logging (#161)
+- ContextKey logging thread safety (#162)
 
 ## 1.3.2 - 2023-11-15
 - Send back cloud.prefab logging telemetry (#160)
