@@ -27,12 +27,12 @@ module Prefab
   end
 
   def self.get(key, properties = NO_DEFAULT_PROVIDED)
-    ensure_initialized
+    ensure_initialized key
     @singleton.get(key, properties)
   end
 
   def self.enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)
-    ensure_initialized
+    ensure_initialized feature_name
     @singleton.enabled?(feature_name, jit_context)
   end
 
@@ -48,9 +48,9 @@ module Prefab
 
   private
 
-  def self.ensure_initialized
+  def self.ensure_initialized(key = nil)
     if not defined? @singleton or @singleton.nil?
-      raise "Use Prefab.initialize before calling Prefab.get"
+      raise Prefab::Errors::UninitializedError.new(key)
     end
   end
 end
