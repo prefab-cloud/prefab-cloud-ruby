@@ -233,14 +233,14 @@ module Prefab
 
     def format_message(severity, datetime, progname, msg, path = nil, log_context = {})
       formatter = (@formatter || @default_formatter)
-
+      compact_context = log_context.reject{ |_, v| v.nil? || ((v.is_a? Array) && v.empty?) }
       formatter.call(
         severity: severity,
         datetime: datetime,
         progname: progname,
         path: path,
         message: msg,
-        log_context: log_context
+        log_context: compact_context
       )
     end
   end

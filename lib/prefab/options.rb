@@ -32,8 +32,8 @@ module Prefab
       progname = (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
 
       formatted_log_context = log_context.sort.map do |k, v|
-        v.nil? || ((v.is_a? Array) && v.empty?) ? nil : "#{k}=#{v}"
-      end.compact.join(" ")
+        "#{k}=#{v}"
+      end.join(" ")
       "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}#{log_context.any? ? " " + formatted_log_context : ""}\n"
     }
 
