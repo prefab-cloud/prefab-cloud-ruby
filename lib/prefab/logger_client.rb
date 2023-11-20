@@ -20,8 +20,6 @@ module Prefab
       @@shared_instance ||= LoggerClient.new($stdout)
     end
 
-    attr_reader :context_keys
-
     def initialize(logdev, log_path_aggregator: nil, formatter: Options::DEFAULT_LOG_FORMATTER, prefix: nil)
       super(logdev)
       self.formatter = formatter
@@ -30,27 +28,31 @@ module Prefab
       @recurse_check = Concurrent::Map.new(initial_capacity: 2)
       @prefix = "#{prefix}#{prefix && '.'}"
 
-      @context_keys = Concurrent::Set.new
+      @context_keys_map = Concurrent::Map.new(initial_capacity: 4)
 
       @log_path_aggregator = log_path_aggregator
       @@shared_instance = self
     end
 
     def add_context_keys(*keys)
-      @context_keys += keys
+      context_keys.merge(keys)
     end
 
     def with_context_keys(*keys)
-      @context_keys += keys
+      context_keys.merge(keys)
       yield
     ensure
-      @context_keys -= keys
+      context_keys.subtract(keys)
     end
 
     def internal_logger(path=nil)
       InternalLogger.new(path, self)
     end
-    
+
+    def context_keys
+      @context_keys_map.fetch_or_store(local_log_id, Concurrent::Set.new)
+    end
+
     # InternalLoggers Will Call This
     def add_internal(severity, message, progname, loc, log_context={}, &block)
       path_loc = get_loc_path(loc)
@@ -161,7 +163,7 @@ module Prefab
 
     def fetch_context_for_context_keys
       context = Prefab::Context.current.to_h
-      Hash[@context_keys.map do |key|
+      Hash[context_keys.map do |key|
         [key, context.dig(*key.split("."))]
       end]
     end

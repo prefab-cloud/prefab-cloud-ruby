@@ -542,6 +542,23 @@ class TestLogger < Minitest::Test
     end
   end
 
+  def test_context_key_threads
+    prefab, io = captured_logger
+
+    threads = []
+    1000.times.map do |i|
+      threads << Thread.new do
+        prefab.with_context({test: {"thread_#{i}": "thread_#{i}"}}) do
+          prefab.log.add_context_keys "test.thread_#{i}"
+          prefab.log.error "UH OH"
+          assert_logged io, 'ERROR', 'test.test_logger.test_context_key_threads',
+                        "UH OH test.thread_#{i}=thread_#{i}"
+        end
+      end
+    end
+    threads.each { |thr| thr.join }
+  end
+
   private
 
   def assert_logged(logged_io, level, path, message)
