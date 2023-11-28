@@ -1,6 +1,7 @@
 # Changelog
 
 ## Unreleased
+- ActiveJob tagged logger issue (#164)
 - Compact Log Format (#163)
 - Tagged Logging (#161)
 - ContextKey logging thread safety (#162)

@@ -24,7 +24,7 @@ module Prefab
 
     def initialize(logdev, log_path_aggregator: nil, formatter: Options::DEFAULT_LOG_FORMATTER, prefix: nil)
       super(logdev)
-      self.formatter = formatter
+      self.formatter = Prefab::Logging::FormatterBase.new(formatter_proc: formatter, logger_client: self)
       @config_client = BootstrappingConfigClient.new
       @silences = Concurrent::Map.new(initial_capacity: 2)
       @recurse_check = Concurrent::Map.new(initial_capacity: 2)
@@ -143,7 +143,7 @@ module Prefab
     def tagged(*tags)
       to_add = tags.flatten.compact
       if block_given?
-        new_log_tags = Prefab::Context.current.get(LOG_TAGS) || []
+        new_log_tags = current_tags
         new_log_tags += to_add unless to_add.empty?
         Prefab::Context.with_merged_context({ "log" => { "tags" => new_log_tags } }) do
           with_context_keys LOG_TAGS do
@@ -157,6 +157,10 @@ module Prefab
         Prefab::Context.current.set("req", {"tags": new_log_tags})
         self
       end
+    end
+
+    def current_tags
+      Prefab::Context.current.get(LOG_TAGS) || []
     end
 
     def flush
@@ -234,7 +238,7 @@ module Prefab
     def format_message(severity, datetime, progname, msg, path = nil, log_context = {})
       formatter = (@formatter || @default_formatter)
       compact_context = log_context.reject{ |_, v| v.nil? || ((v.is_a? Array) && v.empty?) }
-      formatter.call(
+      @formatter.call_proc(
         severity: severity,
         datetime: datetime,
         progname: progname,
