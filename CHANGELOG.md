@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.0 - 2023-11-28
 - ActiveJob tagged logger issue (#164)
 - Compact Log Format (#163)
 - Tagged Logging (#161)
