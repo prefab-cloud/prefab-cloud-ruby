@@ -1,28 +1,37 @@
 # Changelog
 
+## 1.4.1 - 2023-12-08
+
+- Include version in `get` request (#165)
+
 ## 1.4.0 - 2023-11-28
+
 - ActiveJob tagged logger issue (#164)
 - Compact Log Format (#163)
 - Tagged Logging (#161)
 - ContextKey logging thread safety (#162)
 
 ## 1.3.2 - 2023-11-15
+
 - Send back cloud.prefab logging telemetry (#160)
 
 ## 1.3.1 - 2023-11-14
+
 - Improve path of rails.controller logging & fix strong param include (#159)
 
 ## 1.3.0 - 2023-11-13
+
 - Less logging when wifi is off and we load from cache (#157)
 - Alpha: Add Provided & Secret Support (#152)
 - Alpha: x_datafile (#156)
 - Add single line action-controller output under rails.controller (#158)
 
 ## 1.2.1 - 2023-11-01
+
 - Update protobuf definitions (#154)
 
-
 ## 1.2.0 - 2023-10-30
+
 - Add `Prefab.get('key')` style usage after a `Prefab.init()` call (#151)
 - Add `add_context_keys` and `with_context_keys` method for LoggerClient (#145)
 
