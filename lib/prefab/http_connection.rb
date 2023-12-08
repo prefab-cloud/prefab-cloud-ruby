@@ -15,7 +15,7 @@ module Prefab
     end
 
     def get(path)
-      connection.get(path)
+      connection(PROTO_HEADERS).get(path)
     end
 
     def post(path, body)
