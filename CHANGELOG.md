@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 - 2023-12-14
+
+- Use reportable value even for invalid data (#166)
+
 ## 1.4.1 - 2023-12-08
 
 - Include version in `get` request (#165)

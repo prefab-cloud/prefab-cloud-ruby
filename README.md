@@ -23,10 +23,10 @@ See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 
 ## Supports
 
-* Feature Flags
-* Dynamic log levels
-* Live Config
-* WebUI for tweaking config, log levels, and feature flags
+- Feature Flags
+- Dynamic log levels
+- Live Config
+- WebUI for tweaking config, log levels, and feature flags
 
 ## Important note about Forking and realtime updates
 
@@ -55,6 +55,7 @@ end
 ```
 
 ## Logging & Debugging
+
 In classpath or ~/.prefab.default.config.yaml set
 
 ```
@@ -63,23 +64,25 @@ log-level:
 ```
 
 To debug issues before this config file has been read, set env var
+
 ```
 PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL=debug
 ```
 
 ## Contributing to prefab-cloud-ruby
 
-* Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
-* Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
-* Fork the project.
-* Start a feature/bugfix branch.
-* Commit and push until you are happy with your contribution.
-* Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
-* Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+- Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
+- Check out the issue tracker to make sure someone already hasn't requested it and/or contributed it.
+- Fork the project.
+- Start a feature/bugfix branch.
+- Commit and push until you are happy with your contribution.
+- Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
+- Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
 
 ## Release
 
 ```shell
+update the changelog
 update VERSION
 bundle exec rake gemspec:generate
 git commit & push
