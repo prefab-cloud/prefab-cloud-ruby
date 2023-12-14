@@ -13,9 +13,9 @@ module Prefab
     end
 
     def reportable_wrapped_value
-      if @config_value.confidential
+      if @config_value.confidential || @config_value.decrypt_with&.length&.positive?
         # Unique hash for differentiation
-        Prefab::ConfigValueWrapper.wrap("#{CONFIDENTIAL_PREFIX}#{Digest::MD5.hexdigest(unwrap)[0,5]}")
+        Prefab::ConfigValueWrapper.wrap("#{CONFIDENTIAL_PREFIX}#{Digest::MD5.hexdigest(unwrap)[0, 5]}")
       else
         @config_value
       end
@@ -52,7 +52,6 @@ module Prefab
       end
 
       raw
-
     end
 
     def self.deepest_value(config_value, config, context, resolver)
@@ -100,7 +99,7 @@ module Prefab
       when :BOOL then
         maybe_bool = YAML.load(value_string)
         case maybe_bool
-        when TrueClass,FalseClass
+        when TrueClass, FalseClass
           maybe_bool
         else
           raise Prefab::Errors::EnvVarParseError.new(value_string, config, env_var_name)

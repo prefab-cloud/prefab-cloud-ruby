@@ -162,6 +162,7 @@ class TestConfigValueUnwrapper < Minitest::Test
     encrypted = Prefab::Encryption.new(DECRYPTION_KEY_VALUE).encrypt(clear_text)
     config_value = PrefabProto::ConfigValue.new(string: encrypted, decrypt_with: "decryption.key")
     assert_equal clear_text, unwrap(config_value, CONFIG, EMPTY_CONTEXT)
+    assert reportable_value(config_value, CONFIG, EMPTY_CONTEXT).start_with? Prefab::ConfigValueUnwrapper::CONFIDENTIAL_PREFIX
   end
 
   def test_confidential
