@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.3 - 2024-01-17
+
+- Updated proto definition file
+
 ## 1.4.2 - 2023-12-14
 
 - Use reportable value even for invalid data (#166)
