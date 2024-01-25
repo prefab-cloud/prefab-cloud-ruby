@@ -154,7 +154,9 @@ class TestConfigValueUnwrapper < Minitest::Test
       lookup: "NON_EXISTENT_ENV_VAR_NAME"
     )
     config_value = PrefabProto::ConfigValue.new(provided: value)
-    assert_equal '', unwrap(config_value, CONFIG, EMPTY_CONTEXT)
+    assert_raises(Prefab::Errors::MissingEnvVarError) do
+      unwrap(config_value, CONFIG, EMPTY_CONTEXT)
+    end
   end
 
   def test_unwrapping_encrypted_values_decrypts

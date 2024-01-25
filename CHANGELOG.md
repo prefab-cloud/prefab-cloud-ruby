@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Raise when ENV var is missing
+
 ## 1.4.3 - 2024-01-17
 
 - Updated proto definition file

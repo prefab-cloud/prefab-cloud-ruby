@@ -34,14 +34,16 @@ module IntegrationTestHelpers
     end
   end
 
+  SEVERITY_LOOKUP = Prefab::LogPathAggregator::SEVERITY_KEY.invert
+
   def self.prepare_post_data(it)
     case it.aggregator
     when "log_path"
       aggregator = it.test_client.log_path_aggregator
 
-      it.data.each do |(path, data)|
-        data.each_with_index do |count, severity|
-          count.times { aggregator.push(path, severity) }
+      it.data.each do |data|
+        data['counts'].each_pair do |severity, count|
+          count.times { aggregator.push(data['logger_name'], SEVERITY_LOOKUP[severity]) }
         end
       end
 
@@ -125,8 +127,8 @@ module IntegrationTestHelpers
             contexts: data.map do |(k, vs)|
               PrefabProto::Context.new(
                 type: k,
-                values: vs.map do |v|
-                  [v["key"], PrefabProto::ConfigValue.new(v["value_type"] => v["value"])]
+                values: vs.each_pair.map do |key, value|
+                  [key, Prefab::ConfigValueWrapper.wrap(value)]
                 end.to_h
               )
             end

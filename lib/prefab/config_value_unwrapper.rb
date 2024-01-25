@@ -68,8 +68,7 @@ module Prefab
         if :ENV_VAR == config_value.provided.source
           raw = ENV[config_value.provided.lookup]
           if raw.nil?
-            LOG.warn "ENV Variable #{config_value.provided.lookup} not found. Using empty string."
-            new(Prefab::ConfigValueWrapper.wrap(""), resolver)
+            raise Prefab::Errors::MissingEnvVarError.new("Missing environment variable #{config_value.provided.lookup}")
           else
             coerced = coerce_into_type(raw, config, config_value.provided.lookup)
             new(Prefab::ConfigValueWrapper.wrap(coerced, confidential: config_value.confidential), resolver)
