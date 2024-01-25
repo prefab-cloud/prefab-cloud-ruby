@@ -96,6 +96,13 @@ class IntegrationTest
     case error_type
     when 'missing_default' then Prefab::Errors::MissingDefaultError
     when 'initialization_timeout' then Prefab::Errors::InitializationTimeoutError
+    when 'unable_to_decrypt' then OpenSSL::Cipher::CipherError
+    when 'missing_env_var' then Prefab::Errors::MissingEnvVarError
+    when 'unable_to_coerce_env_var' then Prefab::Errors::EnvVarParseError
+    else
+      unless error_type.nil?
+        throw "Unknown error type: #{error_type}"
+      end
     end
   end
 
