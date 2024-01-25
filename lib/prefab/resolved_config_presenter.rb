@@ -65,7 +65,11 @@ module Prefab
             if v.nil?
               elements << 'tombstone'
             else
-              value = @resolver.evaluate(v[:config])&.reportable_value
+              value = begin
+                @resolver.evaluate(v[:config])&.reportable_value
+              rescue StandardError => e
+                "ERROR EVALUATING: #{e.class} #{e.message}"
+              end
               elements << value.to_s.slice(0..34).ljust(35)
               elements << value.class.to_s.slice(0..6).ljust(7)
               elements << "Match: #{v[:match]}".slice(0..29).ljust(30)
