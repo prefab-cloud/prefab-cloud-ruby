@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.4 - 2024-01-26
 
 - Raise when ENV var is missing
 
