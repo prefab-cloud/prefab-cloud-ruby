@@ -9,7 +9,7 @@ class IntegrationTest
     @input = parse_input(test_data['input'])
     @expected = parse_expected(test_data['expected'])
     @data = test_data['data']
-    @expected_data = test_data['expected_data']
+    @expected_data = test_data['expected_data'] || []
     @aggregator = test_data['aggregator']
     @endpoint = test_data['endpoint']
     @test_client = capture_telemetry(base_client)

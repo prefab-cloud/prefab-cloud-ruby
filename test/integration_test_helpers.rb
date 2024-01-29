@@ -115,23 +115,23 @@ module IntegrationTestHelpers
     when "example_contexts"
       aggregator = it.test_client.example_contexts_aggregator
 
-      it.data.each do |hash|
-        aggregator.record(Prefab::Context.new(hash))
+      it.data.each do |key, values|
+        aggregator.record(Prefab::Context.new({ key => values }))
       end
 
       expected_data = []
-      it.expected_data.each do |data|
+      it.expected_data.each do |k, vs|
         expected_data << PrefabProto::ExampleContext.new(
           timestamp: 0,
           contextSet: PrefabProto::ContextSet.new(
-            contexts: data.map do |(k, vs)|
+            contexts: [
               PrefabProto::Context.new(
                 type: k,
                 values: vs.each_pair.map do |key, value|
                   [key, Prefab::ConfigValueWrapper.wrap(value)]
                 end.to_h
               )
-            end
+            ]
           )
         )
       end
