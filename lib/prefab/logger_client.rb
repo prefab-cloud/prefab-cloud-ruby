@@ -75,9 +75,9 @@ module Prefab
 
     def log(message, path, progname, severity, log_context = {})
       severity ||= ::Logger::UNKNOWN
-      @log_path_aggregator&.push(path, severity)
 
-      return true if @logdev.nil? || severity < level_of(path) || @silences[local_log_id]
+      return true if !should_log? severity, path
+      return true if @logdev.nil? || @silences[local_log_id]
 
       progname = @progname if progname.nil?
 
@@ -94,6 +94,11 @@ module Prefab
         format_message(format_severity(severity), Time.now, progname, message, path, stringify_keys(log_context.merge(fetch_context_for_context_keys)))
       )
       true
+    end
+
+    def should_log?(severity, path)
+      @log_path_aggregator&.push(path, severity)
+      severity >= level_of(path)
     end
 
     def debug(progname = nil, **log_context, &block)
