@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Refactor out a `should_log?` method (#170)
+
 ## 1.4.4 - 2024-01-26
 
 - Raise when ENV var is missing
