@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.4.5 - 2024-01-31
 
 - Refactor out a `should_log?` method (#170)
 
