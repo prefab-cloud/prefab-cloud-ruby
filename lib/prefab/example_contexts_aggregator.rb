@@ -9,8 +9,7 @@ module Prefab
   # It shouldn't send the same context more than once per hour.
   class ExampleContextsAggregator
     include Prefab::PeriodicSync
-
-    LOG = Prefab::InternalLogger.new(ExampleContextsAggregator)
+    LOG = Prefab::InternalLogger.new(self)
 
     attr_reader :data, :cache
 

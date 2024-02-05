@@ -2,14 +2,12 @@
 
 module Prefab
   class ConfigClient
+    LOG = Prefab::InternalLogger.new(self)
     RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
     SSE_READ_TIMEOUT = 300
     STALE_CACHE_WARN_HOURS = 5
     AUTH_USER = 'authuser'
-    LOGGING_KEY_PREFIX = "#{Prefab::LoggerClient::BASE_KEY}#{Prefab::LoggerClient::SEP}".freeze
-    LOG = Prefab::InternalLogger.new(ConfigClient)
-
     def initialize(base_client, timeout)
       @base_client = base_client
       @options = base_client.options
@@ -256,7 +254,7 @@ module Prefab
       LOG.debug "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
 
-      Prefab::LoggerClient.instance.config_client = self
+      Prefab.finish_init!
       presenter = Prefab::ConfigClientPresenter.new(
         size: @config_resolver.local_store.size,
         source: source,
@@ -281,7 +279,7 @@ module Prefab
       @streaming_thread = SSE::Client.new(url,
                                           headers: headers,
                                           read_timeout: SSE_READ_TIMEOUT,
-                                          logger: Prefab::SseLogger.new) do |client|
+                                          logger: Prefab::InternalLogger.new(SSE::Client)) do |client|
         client.on_event do |event|
           configs = PrefabProto::Configs.decode(Base64.decode64(event.data))
           load_configs(configs, :sse)

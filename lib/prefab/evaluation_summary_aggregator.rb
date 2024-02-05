@@ -8,8 +8,7 @@ module Prefab
   # server at a regular interval defined by `sync_interval`.
   class EvaluationSummaryAggregator
     include Prefab::PeriodicSync
-
-    LOG = Prefab::InternalLogger.new(EvaluationSummaryAggregator)
+    LOG = Prefab::InternalLogger.new(self)
 
     attr_reader :data
 

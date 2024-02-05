@@ -2,7 +2,7 @@ require 'yaml'
 
 module Prefab
   class YAMLConfigParser
-    LOG = Prefab::InternalLogger.new(YAMLConfigParser)
+    LOG = Prefab::InternalLogger.new(self)
 
     def initialize(file, client)
       @file = file

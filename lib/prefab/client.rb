@@ -4,9 +4,9 @@ require 'uuid'
 
 module Prefab
   class Client
+    LOG = Prefab::InternalLogger.new(self)
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
-    LOG = Prefab::InternalLogger.new(Client)
 
     attr_reader :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
 
@@ -15,10 +15,6 @@ module Prefab
       @namespace = @options.namespace
       @stubs = {}
       @instance_hash = UUID.new.generate
-      Prefab::LoggerClient.new(@options.logdev, formatter: @options.log_formatter,
-                                prefix: @options.log_prefix,
-                               log_path_aggregator: log_path_aggregator
-      )
 
       if @options.local_only?
         LOG.debug 'Prefab Running in Local Mode'
@@ -61,7 +57,7 @@ module Prefab
     end
 
     def log
-      Prefab::LoggerClient.instance
+      @log ||= Prefab::LoggerClient.new(client: self, log_path_aggregator: log_path_aggregator)
     end
 
     def context_shape_aggregator

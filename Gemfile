@@ -10,6 +10,8 @@ gem 'uuid'
 gem 'activesupport',  '>= 4'
 gem 'actionpack',  '>= 4'
 
+gem 'semantic_logger'
+
 group :development do
   gem 'benchmark-ips'
   gem 'bundler'
