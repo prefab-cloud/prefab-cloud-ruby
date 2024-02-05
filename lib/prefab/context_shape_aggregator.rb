@@ -5,8 +5,7 @@ require_relative 'periodic_sync'
 module Prefab
   class ContextShapeAggregator
     include Prefab::PeriodicSync
-
-    LOG = Prefab::InternalLogger.new(ContextShapeAggregator)
+    LOG = Prefab::InternalLogger.new(self)
 
     attr_reader :data
 

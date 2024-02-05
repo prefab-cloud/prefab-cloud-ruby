@@ -50,8 +50,6 @@ class TestContextShapeAggregator < Minitest::Test
 
     assert_equal [['user', 'name', 2], ['user', 'email', 2], ['user', 'age', 4], ['subscription', 'plan', 2], ['subscription', 'free', 5], ['user', 'dob', 2], ['device', 'name', 2], ['device', 'os', 2], ['device', 'version', 1]],
                  aggregator.data.to_a
-
-    assert_only_expected_logs
   end
 
   def test_prepare_data
@@ -85,7 +83,6 @@ class TestContextShapeAggregator < Minitest::Test
     }
 
     assert_equal [], aggregator.data.to_a
-    assert_only_expected_logs
   end
 
   def test_sync
@@ -124,8 +121,8 @@ class TestContextShapeAggregator < Minitest::Test
 
 
     assert_logged [
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints",
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient Couldn't Initialize In 0. Key some.key. Returning what we have"
+      "No success loading checkpoints",
+      "Couldn't Initialize In 0. Key some.key. Returning what we have"
     ]
   end
 

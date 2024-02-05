@@ -4,9 +4,6 @@ module Prefab
   # This class contains all the options that can be passed to the Prefab client.
   class Options
     attr_reader :api_key
-    attr_reader :logdev
-    attr_reader :log_prefix
-    attr_reader :log_formatter
     attr_reader :namespace
     attr_reader :prefab_api_url
     attr_reader :on_no_default
@@ -20,39 +17,6 @@ module Prefab
     attr_reader :datafile
     attr_reader :disable_action_controller_logging
     attr_accessor :is_fork
-
-    DEFAULT_LOG_FORMATTER = proc { |data|
-      severity = data[:severity]
-      datetime = data[:datetime]
-      progname = data[:progname]
-      path = data[:path]
-      msg = data[:message]
-      log_context = data[:log_context]
-
-      progname = (progname.nil? || progname.empty?) ? path : "#{progname}: #{path}"
-
-      formatted_log_context = log_context.sort.map do |k, v|
-        "#{k}=#{v}"
-      end.join(" ")
-      "#{severity.ljust(5)} #{datetime}:#{' ' if progname}#{progname} #{msg}#{log_context.any? ? " " + formatted_log_context : ""}\n"
-    }
-
-    JSON_LOG_FORMATTER = proc { |data|
-      log_context = data.delete(:log_context)
-      data.merge(log_context).compact.to_json << "\n"
-    }
-
-    COMPACT_LOG_FORMATTER = proc { |data|
-      severity = data[:severity]
-      msg = data[:message]
-      log_context = data[:log_context]
-      log_context["path"] = data[:path] || ""
-
-      formatted_log_context = log_context.sort.map do |k, v|
-        "#{k}=#{v}"
-      end.join(" ")
-      "#{severity.ljust(5)} #{msg&.strip} #{formatted_log_context}\n"
-    }
 
     module ON_INITIALIZATION_FAILURE
       RAISE = :raise
@@ -76,10 +40,7 @@ module Prefab
 
     private def init(
       api_key: ENV['PREFAB_API_KEY'],
-      logdev: $stdout,
       namespace: '',
-      log_formatter: DEFAULT_LOG_FORMATTER,
-      log_prefix: nil,
       prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
@@ -101,10 +62,7 @@ module Prefab
       disable_action_controller_logging: false
     )
       @api_key = api_key
-      @logdev = logdev
       @namespace = namespace
-      @log_formatter = log_formatter
-      @log_prefix = log_prefix
       @prefab_api_url = remove_trailing_slash(prefab_api_url)
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec

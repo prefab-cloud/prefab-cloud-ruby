@@ -45,7 +45,7 @@ class TestIntegration < Minitest::Test
               actual = get_actual_data[it.last_data_sent]
 
               expected.all? do |expected|
-                assert actual.include?(expected)
+                assert actual.include?(expected), "#{actual} should include #{expected}"
               end
             else
               raise "Unknown test type: #{it.test_type}"

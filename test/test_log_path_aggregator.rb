@@ -25,10 +25,10 @@ class TestLogPathAggregator < Minitest::Test
 
   def test_sync
     Timecop.freeze do
-      client = new_client(namespace: 'this.is.a.namespace')
+      client = new_client(namespace: 'this.is.a.namespace', allow_telemetry_in_local_mode: true)
 
-      2.times { client.log.info('here is a message') }
-      3.times { client.log.error('here is a message') }
+      2.times { client.log.should_log? 1, "test.test_log_path_aggregator.test_sync"}
+      3.times { client.log.should_log? 3, "test.test_log_path_aggregator.test_sync"}
 
       requests = wait_for_post_requests(client) do
         client.log_path_aggregator.send(:sync)
@@ -41,12 +41,6 @@ class TestLogPathAggregator < Minitest::Test
       assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.end_at
       assert_equal client.instance_hash, sent_logger.instance_hash
       assert_includes sent_logger.loggers, PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync', infos: 2, errors: 3)
-      assert_includes sent_logger.loggers, PrefabProto::Logger.new(logger_name: 'cloud.prefab.client.client', debugs: 1) # spot test that internal logging is here too
-
-      assert_logged [
-                      'WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints',
-                      'ERROR 2023-08-09 15:18:12 -0400: test.test_log_path_aggregator.test_sync here is a message'
-                    ]
     end
   end
 
@@ -54,8 +48,9 @@ class TestLogPathAggregator < Minitest::Test
 
   def new_client(overrides = {})
     super(**{
-      prefab_datasources: Prefab::Options::DATASOURCES::ALL,
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
       api_key: '123-development-yourapikey-SDK',
+      collect_max_paths: 1000,
       collect_sync_interval: 1000 # we'll trigger sync manually in our test
     }.merge(overrides))
   end

@@ -2,7 +2,7 @@
 
 module Prefab
   class ConfigValueUnwrapper
-    LOG = Prefab::InternalLogger.new(ConfigValueUnwrapper)
+    LOG = Prefab::InternalLogger.new(self)
     CONFIDENTIAL_PREFIX = "*****"
     attr_reader :weighted_value_index
 

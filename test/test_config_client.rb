@@ -27,8 +27,7 @@ class TestConfigClient < Minitest::Test
   def test_initialization_timeout_error
     options = Prefab::Options.new(
       api_key: '123-ENV-KEY-SDK',
-      initialization_timeout_sec: 0.01,
-      logdev: StringIO.new
+      initialization_timeout_sec: 0.01
     )
 
     err = assert_raises(Prefab::Errors::InitializationTimeoutError) do

@@ -711,10 +711,6 @@ class TestCriteriaEvaluator < Minitest::Test
   end
 
   class FakeBaseClient
-    def initialize
-      Prefab::LoggerClient.new($stdout)
-    end
-
     def evaluation_summary_aggregator
       @evaluation_summary_aggregator ||= Prefab::EvaluationSummaryAggregator.new(client: self, max_keys: 9999, sync_interval: 9999)
     end
