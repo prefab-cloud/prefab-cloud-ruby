@@ -146,6 +146,8 @@ GEM
     rdoc (6.3.3)
     ruby-progressbar (1.11.0)
     ruby2_keywords (0.0.4)
+    semantic_logger (4.15.0)
+      concurrent-ruby (~> 1.0)
     semver2 (3.4.2)
     simplecov (0.18.5)
       docile (~> 1.1)
@@ -180,6 +182,7 @@ DEPENDENCIES
   minitest-focus
   minitest-reporters
   rdoc
+  semantic_logger
   simplecov
   timecop
   uuid

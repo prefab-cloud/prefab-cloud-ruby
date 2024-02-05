@@ -4,8 +4,7 @@ require_relative 'periodic_sync'
 
 module Prefab
   class LogPathAggregator
-    LOG = Prefab::InternalLogger.new(LogPathAggregator)
-
+    LOG = Prefab::InternalLogger.new(self)
     include Prefab::PeriodicSync
 
     INCREMENT = ->(count) { (count || 0) + 1 }

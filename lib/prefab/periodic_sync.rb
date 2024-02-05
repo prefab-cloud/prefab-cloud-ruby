@@ -2,7 +2,8 @@
 
 module Prefab
   module PeriodicSync
-    LOG = Prefab::InternalLogger.new("periodsync")
+    LOG = Prefab::InternalLogger.new(self)
+
     def sync
       return if @data.size.zero?
 

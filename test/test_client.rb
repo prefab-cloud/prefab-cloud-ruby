@@ -185,7 +185,7 @@ class TestClient < Minitest::Test
                             collect_evaluation_summaries: true).evaluation_summary_aggregator.class
 
     assert_logged [
-      "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints"
+      "Prefab::ConfigClient -- No success loading checkpoints"
     ]
   end
 
@@ -409,15 +409,6 @@ class TestClient < Minitest::Test
 
     # nothing is summarized for log levels
     assert_summary client, {}
-  end
-
-  def test_fork_includes_logger_context_keys
-    client = new_client
-    client.log.add_context_keys "user.name"
-
-    forked = client.fork
-
-    assert forked.log.context_keys.to_a == %w(user.name)
   end
 
   private

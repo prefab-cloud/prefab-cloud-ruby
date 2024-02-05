@@ -1,99 +1,24 @@
 # frozen_string_literal: true
 
 module Prefab
-  class LoggerClient < ::Logger
+  class LoggerClient
     SEP = '.'
     BASE_KEY = 'log-level'
-    UNKNOWN_PATH = 'unknown.'
-    LOG_TAGS = 'log.tags'
-    REQ_TAGS = 'req.tags'
+    NO_DEFAULT = nil
 
     LOG_LEVEL_LOOKUPS = {
-      PrefabProto::LogLevel::NOT_SET_LOG_LEVEL => ::Logger::DEBUG,
-      PrefabProto::LogLevel::TRACE => ::Logger::DEBUG,
-      PrefabProto::LogLevel::DEBUG => ::Logger::DEBUG,
-      PrefabProto::LogLevel::INFO => ::Logger::INFO,
-      PrefabProto::LogLevel::WARN => ::Logger::WARN,
-      PrefabProto::LogLevel::ERROR => ::Logger::ERROR,
-      PrefabProto::LogLevel::FATAL => ::Logger::FATAL
+      PrefabProto::LogLevel::NOT_SET_LOG_LEVEL => :trace,
+      PrefabProto::LogLevel::TRACE => :trace,
+      PrefabProto::LogLevel::DEBUG => :debug,
+      PrefabProto::LogLevel::INFO => :info,
+      PrefabProto::LogLevel::WARN => :warn,
+      PrefabProto::LogLevel::ERROR => :error,
+      PrefabProto::LogLevel::FATAL => :fatal
     }.freeze
 
-    def self.instance
-      @@shared_instance ||= LoggerClient.new($stdout)
-    end
-
-    def initialize(logdev, log_path_aggregator: nil, formatter: Options::DEFAULT_LOG_FORMATTER, prefix: nil)
-      super(logdev)
-      self.formatter = Prefab::Logging::FormatterBase.new(formatter_proc: formatter, logger_client: self)
-      @config_client = BootstrappingConfigClient.new
-      @silences = Concurrent::Map.new(initial_capacity: 2)
-      @recurse_check = Concurrent::Map.new(initial_capacity: 2)
-      @prefix = "#{prefix}#{prefix && '.'}"
-
-      @context_keys_map = Concurrent::Map.new(initial_capacity: 4)
-
+    def initialize(client: ,log_path_aggregator: )
+      @config_client = client
       @log_path_aggregator = log_path_aggregator
-      @@shared_instance = self
-    end
-
-    def add_context_keys(*keys)
-      context_keys.merge(keys)
-    end
-
-    def with_context_keys(*keys)
-      context_keys.merge(keys)
-      yield
-    ensure
-      context_keys.subtract(keys)
-    end
-
-    def internal_logger(path = nil)
-      InternalLogger.new(path, self)
-    end
-
-    def context_keys
-      @context_keys_map.fetch_or_store(local_log_id, Concurrent::Set.new)
-    end
-
-    # InternalLoggers Will Call This
-    def add_internal(severity, message, progname, loc, log_context = {}, &block)
-      path_loc = get_loc_path(loc)
-      path = @prefix + path_loc
-
-      log(message, path, progname, severity, log_context, &block)
-    end
-
-    def log_internal(severity, message, path, log_context = {}, &block)
-      return if @recurse_check[local_log_id]
-      @recurse_check[local_log_id] = true
-      begin
-        log(message, path, nil, severity, log_context, &block)
-      ensure
-        @recurse_check[local_log_id] = false
-      end
-    end
-
-    def log(message, path, progname, severity, log_context = {})
-      severity ||= ::Logger::UNKNOWN
-
-      return true if !should_log? severity, path
-      return true if @logdev.nil? || @silences[local_log_id]
-
-      progname = @progname if progname.nil?
-
-      if message.nil?
-        if block_given?
-          message = yield
-        else
-          message = progname
-          progname = @progname
-        end
-      end
-
-      @logdev.write(
-        format_message(format_severity(severity), Time.now, progname, message, path, stringify_keys(log_context.merge(fetch_context_for_context_keys)))
-      )
-      true
     end
 
     def should_log?(severity, path)
@@ -101,106 +26,32 @@ module Prefab
       severity >= level_of(path)
     end
 
-    def debug(progname = nil, **log_context, &block)
-      add_internal(DEBUG, nil, progname, caller_locations(1, 1)[0], log_context, &block)
+    def semantic_filter(log)
+      class_path = class_path_name(log.name)
+      lookup_path = "#{logger_prefix}.#{class_path}"
+      level = SemanticLogger::Levels.index(log.level)
+      log.named_tags.merge!({ path: lookup_path })
+      should_log? level, lookup_path
     end
 
-    def info(progname = nil, **log_context, &block)
-      add_internal(INFO, nil, progname, caller_locations(1, 1)[0], log_context, &block)
-    end
-
-    def warn(progname = nil, **log_context, &block)
-      add_internal(WARN, nil, progname, caller_locations(1, 1)[0], log_context, &block)
-    end
-
-    def error(progname = nil, **log_context, &block)
-      add_internal(ERROR, nil, progname, caller_locations(1, 1)[0], log_context, &block)
-    end
-
-    def fatal(progname = nil, **log_context, &block)
-      add_internal(FATAL, nil, progname, caller_locations(1, 1)[0], log_context, &block)
-    end
-
-    def debug?
-      true
-    end
-
-    def info?
-      true
-    end
-
-    def warn?
-      true
-    end
-
-    def error?
-      true
-    end
-
-    def fatal?
-      true
-    end
-
-    def level
-      DEBUG
-    end
-
-    def tagged(*tags)
-      to_add = tags.flatten.compact
-      if block_given?
-        new_log_tags = current_tags
-        new_log_tags += to_add unless to_add.empty?
-        Prefab::Context.with_merged_context({ "log" => { "tags" => new_log_tags } }) do
-          with_context_keys LOG_TAGS do
-            yield self
-          end
-        end
-      else
-        new_log_tags = Prefab::Context.current.get(REQ_TAGS) || []
-        new_log_tags += to_add unless to_add.empty?
-        add_context_keys REQ_TAGS
-        Prefab::Context.current.set("req", {"tags": new_log_tags})
-        self
-      end
-    end
-
-    def current_tags
-      Prefab::Context.current.get(LOG_TAGS) || []
-    end
-
-    def flush
-      Prefab::Context.current.set("req", {"tags": nil})
-      super if defined?(super)
-    end
 
     def config_client=(config_client)
       @config_client = config_client
     end
 
-    def local_log_id
-      Thread.current.__id__
-    end
-
-    def silence
-      @silences[local_log_id] = true
-      yield self
-    ensure
-      @silences[local_log_id] = false
-    end
-
     private
 
-    NO_DEFAULT = nil
-
-    def stringify_keys(hash)
-      Hash[hash.map { |k, v| [k.to_s, v] }]
+    def class_path_name(class_name)
+      log_class = Logger.const_get(class_name)
+      if log_class.respond_to?(:superclass) && log_class.superclass != Object
+        underscore("#{log_class.superclass.name}.#{log_class.name}")
+      else
+        underscore("#{log_class.name}")
+      end.gsub(/[^a-z_]/i, '.')
     end
 
-    def fetch_context_for_context_keys
-      context = Prefab::Context.current.to_h
-      Hash[context_keys.map do |key|
-        [key, context.dig(*key.split("."))]
-      end]
+    def logger_prefix
+      Context.current.get("application.key") ||  "prefab-cloud-ruby"
     end
 
     # Find the closest match to 'log_level.path' in config
@@ -219,46 +70,16 @@ module Prefab
       end
 
       closest_log_level_match_int = PrefabProto::LogLevel.resolve(closest_log_level_match)
-      LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
+      internal_convert = LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
+      return SemanticLogger::Levels.index(internal_convert)
     end
 
-    def get_loc_path(loc)
-      loc_path = loc.absolute_path || loc.to_s
-      get_path(loc_path, loc.base_label)
-    end
-
-    # sanitize & clean the path of the caller so the key
-    # looks like log_level.app.models.user
-    def get_path(absolute_path, base_label)
-      path = (absolute_path || UNKNOWN_PATH).dup
-      path.slice! Dir.pwd
-      path.gsub!(%r{(.*)?(?=/lib)}im, '') # replace everything before first lib
-
-      path = path.gsub('/', SEP).gsub(/.rb.*/, '') + SEP + base_label
-      path.slice! '.lib'
-      path.slice! SEP
-      path
-    end
-
-    def format_message(severity, datetime, progname, msg, path = nil, log_context = {})
-      formatter = (@formatter || @default_formatter)
-      compact_context = log_context.reject{ |_, v| v.nil? || ((v.is_a? Array) && v.empty?) }
-      @formatter.call_proc(
-        severity: severity,
-        datetime: datetime,
-        progname: progname,
-        path: path,
-        message: msg,
-        log_context: compact_context
-      )
-    end
-  end
-
-  # StubConfigClient to be used while config client initializes
-  # since it may log
-  class BootstrappingConfigClient
-    def get(_key, default = nil, _properties = {})
-      ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].upcase.to_sym : default
+    def underscore(string)
+      string.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').
+        tr("-", "_").
+        downcase
     end
   end
 end

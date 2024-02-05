@@ -2,7 +2,7 @@
 
 module Prefab
   class ConfigLoader
-    LOG = Prefab::InternalLogger.new(ConfigLoader)
+    LOG = Prefab::InternalLogger.new(self)
 
     attr_reader :highwater_mark
 

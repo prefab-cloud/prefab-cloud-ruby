@@ -1,11 +1,13 @@
 # frozen_string_literal: true
 
 module Prefab
+  LOG = Prefab::InternalLogger.new(self)
   @@lock = Concurrent::ReadWriteLock.new
+  @config_has_loaded = false
 
   def self.init(options = Prefab::Options.new)
     unless @singleton.nil?
-      Prefab::LoggerClient.instance.warn 'Prefab already initialized.'
+      LOG.warn 'Prefab already initialized.'
       return @singleton
     end
 
@@ -44,6 +46,26 @@ module Prefab
   def self.instance
     ensure_initialized
     @singleton
+  end
+
+  def self.log_filter
+    InternalLogger.using_prefab_log_filter!
+    return Proc.new do |log|
+      if defined?(@singleton) && !@singleton.nil? && @singleton.config_client.initialized?
+        @singleton.log.semantic_filter(log)
+      else
+        bootstrap_log_level(log)
+      end
+    end
+  end
+
+  def self.finish_init!
+    @config_has_loaded = true
+  end
+
+  def self.bootstrap_log_level(log)
+    level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
+    SemanticLogger::Levels.index(level) <= SemanticLogger::Levels.index(log.level)
   end
 
   private

@@ -2,6 +2,7 @@
 
 module Prefab
   class FeatureFlagClient
+    LOG = Prefab::InternalLogger.new(self)
     def initialize(base_client)
       @base_client = base_client
     end
@@ -35,7 +36,7 @@ module Prefab
 
       variant.bool
     rescue StandardError
-      @base_client.log.info("is_on? methods only work for boolean feature flags variants. This feature flags variant is '#{variant}'. Returning false")
+      LOG.info("is_on? methods only work for boolean feature flags variants. This feature flags variant is '#{variant}'. Returning false")
       false
     end
   end
