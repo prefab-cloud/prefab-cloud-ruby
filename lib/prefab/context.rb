@@ -73,7 +73,7 @@ module Prefab
       end
 
       def merge_with_current(new_context_properties = {})
-        new(current.to_h.merge(new_context_properties))
+        new(current.to_h.merge(new_context_properties.to_h))
       end
     end
 
