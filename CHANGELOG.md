@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 - 2024-02-12
+
+- Fix potential inconsistent Context behavior (#172)
+
 ## 1.4.5 - 2024-01-31
 
 - Refactor out a `should_log?` method (#170)

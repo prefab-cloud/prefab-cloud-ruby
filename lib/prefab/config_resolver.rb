@@ -61,8 +61,6 @@ module Prefab
     def make_context(properties)
       if properties == NO_DEFAULT_PROVIDED || properties.nil?
         Context.current
-      elsif properties.is_a?(Context)
-        properties
       else
         Context.merge_with_current(properties)
       end.merge_default(default_context || {})
