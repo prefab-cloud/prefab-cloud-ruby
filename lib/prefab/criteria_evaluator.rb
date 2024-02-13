@@ -22,11 +22,7 @@ module Prefab
     def evaluate(properties)
       rtn = evaluate_for_env(@project_env_id, properties) ||
         evaluate_for_env(0, properties)
-      LOG.trace "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
       LOG.debug "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
-      LOG.info "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
-      LOG.warn "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
-      LOG.error "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}" unless @config.config_type == :LOG_LEVEL
       rtn
     end
 
