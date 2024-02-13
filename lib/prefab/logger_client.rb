@@ -32,9 +32,9 @@ module Prefab
                      "#{log_class.superclass.name.underscore}.#{log_class.name.underscore}"
                    else
                      "#{log_class.name.underscore}"
-                   end.gsub(/[^a-z]/i, '.')
+                   end.gsub(/[^a-z_]/i, '.')
       level = SemanticLogger::Levels.index(log.level)
-      lookup_path = "ruby.rails-logging-test-app.#{class_path}"
+      lookup_path = "#{logger_prefix}.#{class_path}"
       log.named_tags.merge!({ path: lookup_path })
       should_log? level, lookup_path
     end
@@ -44,6 +44,10 @@ module Prefab
     end
 
     private
+
+    def logger_prefix
+      Context.current.get("application.key") ||  "prefab-cloud-ruby"
+    end
 
     # Find the closest match to 'log_level.path' in config
     def level_of(path)
