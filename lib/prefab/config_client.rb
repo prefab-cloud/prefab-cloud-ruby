@@ -75,6 +75,10 @@ module Prefab
       end
     end
 
+    def initialized?
+      !@initialization_lock.write_locked?
+    end
+
     private
 
     def raw(key)
@@ -254,7 +258,6 @@ module Prefab
       LOG.debug "Unlocked Config via #{source}"
       @initialization_lock.release_write_lock
 
-      Prefab.finish_init!
       presenter = Prefab::ConfigClientPresenter.new(
         size: @config_resolver.local_store.size,
         source: source,

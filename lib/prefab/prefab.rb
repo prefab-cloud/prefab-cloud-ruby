@@ -48,10 +48,9 @@ module Prefab
     @singleton
   end
 
-
   def self.log_filter
     return Proc.new do |log|
-      if @config_has_loaded
+      if defined?(@singleton) && !@singleton.nil? && @singleton.config_client.initialized?
         @singleton.log.semantic_filter(log)
       else
         level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
