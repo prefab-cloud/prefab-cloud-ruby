@@ -28,7 +28,7 @@ module Prefab
 
     def semantic_filter(log)
       log_class = Logger.const_get(log.name)
-      class_path = if log_class.respond_to? :superclass
+      class_path = if log_class.respond_to?(:superclass) && log_class.superclass != Object
                      "#{log_class.superclass.name.underscore}.#{log_class.name.underscore}"
                    else
                      "#{log_class.name.underscore}"
