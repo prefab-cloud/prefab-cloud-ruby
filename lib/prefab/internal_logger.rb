@@ -2,8 +2,8 @@ module Prefab
   class InternalLogger < SemanticLogger::Logger
     @@recurse_check = Concurrent::Map.new(initial_capacity: 2)
 
-    def initialize(klass, level = nil, filter = nil)
-      super(klass, level, filter)
+    def initialize(klass)
+      super(klass, :trace)
     end
 
     def log(log, message = nil, progname = nil, &block)
