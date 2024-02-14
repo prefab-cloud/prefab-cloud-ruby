@@ -21,11 +21,7 @@ module Prefab
       @config_loader = Prefab::ConfigLoader.new(@base_client)
       @config_resolver = Prefab::ConfigResolver.new(@base_client, @config_loader)
 
-      @initialization_lock = Concurrent::ReadWriteLock.new
-      LOG.debug 'Initialize ConfigClient: AcquireWriteLock'
-      @initialization_lock.acquire_write_lock
-      LOG.debug 'Initialize ConfigClient: AcquiredWriteLock'
-      @initialized_future = Concurrent::Future.execute { @initialization_lock.acquire_read_lock }
+      @initialization_lock = Concurrent::CountDownLatch.new(1)
 
       if @options.local_only?
         finish_init!(:local_only, nil)
@@ -76,7 +72,7 @@ module Prefab
     end
 
     def initialized?
-      !@initialization_lock.write_locked?
+      @initialization_lock.count <= 0
     end
 
     private
@@ -95,14 +91,13 @@ module Prefab
 
     def _get(key, properties)
       # wait timeout sec for the initialization to be complete
-      @initialized_future.value(@options.initialization_timeout_sec)
-      if @initialized_future.incomplete?
+      success = @initialization_lock.wait(@options.initialization_timeout_sec)
+      if !success
         unless @options.on_init_failure == Prefab::Options::ON_INITIALIZATION_FAILURE::RETURN
           raise Prefab::Errors::InitializationTimeoutError.new(@options.initialization_timeout_sec, key)
         end
 
         LOG.warn("Couldn't Initialize In #{@options.initialization_timeout_sec}. Key #{key}. Returning what we have")
-        @initialization_lock.release_write_lock
       end
 
       @config_resolver.get key, properties
@@ -146,7 +141,7 @@ module Prefab
         false
       end
     rescue Faraday::ConnectionFailed => e
-      if @initialization_lock.write_locked?
+      if !initialized?
         LOG.warn "Connection Fail loading #{source} checkpoint."
       else
         LOG.debug "Connection Fail loading #{source} checkpoint."
@@ -253,10 +248,10 @@ module Prefab
     end
 
     def finish_init!(source, project_id)
-      return unless @initialization_lock.write_locked?
+      return if initialized?
 
       LOG.debug "Unlocked Config via #{source}"
-      @initialization_lock.release_write_lock
+      @initialization_lock.count_down
 
       presenter = Prefab::ConfigClientPresenter.new(
         size: @config_resolver.local_store.size,
