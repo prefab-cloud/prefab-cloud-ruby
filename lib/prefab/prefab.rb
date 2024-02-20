@@ -49,6 +49,7 @@ module Prefab
   end
 
   def self.log_filter
+    InternalLogger.using_prefab_log_filter!
     return Proc.new do |log|
       if defined?(@singleton) && !@singleton.nil? && @singleton.config_client.initialized?
         @singleton.log.semantic_filter(log)
