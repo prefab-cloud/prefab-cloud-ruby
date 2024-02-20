@@ -10,7 +10,6 @@ class MockBaseClient
     @options = options
     @namespace = namespace
     @config_client = MockConfigClient.new
-    Prefab::LoggerClient.new(options.logdev)
     @posts = []
   end
 

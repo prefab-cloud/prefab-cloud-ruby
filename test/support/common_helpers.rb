@@ -57,10 +57,9 @@ module CommonHelpers
 
   def prefab_options(overrides = {})
     $logs ||= StringIO.new
+    SemanticLogger.add_appender(io: $logs)
     Prefab::Options.new(
-      **DEFAULT_NEW_CLIENT_OPTIONS.merge(
-        overrides.merge(logdev: $logs)
-      )
+      **DEFAULT_NEW_CLIENT_OPTIONS.merge(overrides)
     )
   end
 

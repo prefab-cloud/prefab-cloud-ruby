@@ -5,6 +5,7 @@ module Prefab
   VERSION = File.read(File.dirname(__FILE__) + '/../VERSION').strip
 end
 
+require 'semantic_logger'
 require 'prefab/internal_logger'
 require 'concurrent/atomics'
 require 'concurrent'
