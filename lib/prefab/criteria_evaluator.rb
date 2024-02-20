@@ -105,7 +105,7 @@ module Prefab
     def in_segment?(criterion, properties)
       segment = @resolver.get(criterion.value_to_match.string, properties)
 
-      @base_client.log.info("Segment #{criterion.value_to_match.string} not found") unless segment
+      LOG.info("Segment #{criterion.value_to_match.string} not found") unless segment
 
       segment&.report_and_return(@base_client.evaluation_summary_aggregator)
     end
