@@ -185,7 +185,7 @@ class TestClient < Minitest::Test
                             collect_evaluation_summaries: true).evaluation_summary_aggregator.class
 
     assert_logged [
-      "2023-08-09 15:18:12.000000 W [93272:3400] Prefab::ConfigClient -- No success loading checkpoints"
+      "Prefab::ConfigClient -- No success loading checkpoints"
     ]
   end
 

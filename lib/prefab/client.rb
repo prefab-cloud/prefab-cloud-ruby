@@ -51,7 +51,6 @@ module Prefab
 
     def log_path_aggregator
       return nil if @options.collect_max_paths <= 0
-
       @log_path_aggregator ||= LogPathAggregator.new(client: self, max_paths: @options.collect_max_paths,
                                                      sync_interval: @options.collect_sync_interval)
     end

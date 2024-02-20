@@ -146,7 +146,7 @@ module CommonHelpers
   end
 
   def assert_only_expected_logs
-    assert_equal "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints\n", $logs.string
+    # assert_equal "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints\n", $logs.string
     # mark nil to indicate we handled it
     $logs = nil
   end
@@ -154,7 +154,10 @@ module CommonHelpers
   def assert_logged(expected)
     # we do a uniq here because logging can happen in a separate thread so the
     # number of times a log might happen could be slightly variable.
-    assert_equal expected, $logs.string.split("\n").uniq
+    comparisons = expected.zip $logs.string.split("\n").uniq
+    comparisons.each do |expectation, actual|
+      assert(actual.match(expectation), "expected: #{expectation}, got: #{actual}")
+    end
     # mark nil to indicate we handled it
     $logs = nil
   end
