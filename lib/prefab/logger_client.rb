@@ -27,23 +27,28 @@ module Prefab
     end
 
     def semantic_filter(log)
-      log_class = Logger.const_get(log.name)
-      class_path = if log_class.respond_to?(:superclass) && log_class.superclass != Object
-                     "#{log_class.superclass.name.underscore}.#{log_class.name.underscore}"
-                   else
-                     "#{log_class.name.underscore}"
-                   end.gsub(/[^a-z_]/i, '.')
-      level = SemanticLogger::Levels.index(log.level)
+      class_path = class_path_name(log.name)
       lookup_path = "#{logger_prefix}.#{class_path}"
+      level = SemanticLogger::Levels.index(log.level)
       log.named_tags.merge!({ path: lookup_path })
       should_log? level, lookup_path
     end
+
 
     def config_client=(config_client)
       @config_client = config_client
     end
 
     private
+
+    def class_path_name(class_name)
+      log_class = Logger.const_get(class_name)
+      if log_class.respond_to?(:superclass) && log_class.superclass != Object
+        underscore("#{log_class.superclass.name}.#{log_class.name}")
+      else
+        underscore("#{log_class.name}")
+      end.gsub(/[^a-z_]/i, '.')
+    end
 
     def logger_prefix
       Context.current.get("application.key") ||  "prefab-cloud-ruby"
@@ -67,6 +72,14 @@ module Prefab
       closest_log_level_match_int = PrefabProto::LogLevel.resolve(closest_log_level_match)
       internal_convert = LOG_LEVEL_LOOKUPS[closest_log_level_match_int]
       return SemanticLogger::Levels.index(internal_convert)
+    end
+
+    def underscore(string)
+      string.gsub(/::/, '/').
+        gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+        gsub(/([a-z\d])([A-Z])/,'\1_\2').
+        tr("-", "_").
+        downcase
     end
   end
 end

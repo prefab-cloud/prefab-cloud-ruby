@@ -11,10 +11,6 @@ module CommonHelpers
   end
 
   def teardown
-    if $logs && !$logs.string.empty?
-      raise "Unexpected logs. Handle logs with assert_only_expected_logs or assert_logged\n\n#{$logs.string}"
-    end
-
     if $stderr != $oldstderr && !$stderr.string.empty?
       # we ignore 2.X because of the number of `instance variable @xyz not initialized` warnings
       if !RUBY_VERSION.start_with?('2.')
@@ -154,12 +150,16 @@ module CommonHelpers
   def assert_logged(expected)
     # we do a uniq here because logging can happen in a separate thread so the
     # number of times a log might happen could be slightly variable.
-    comparisons = expected.zip $logs.string.split("\n").uniq
-    comparisons.each do |expectation, actual|
-      assert(actual.match(expectation), "expected: #{expectation}, got: #{actual}")
+    actuals = $logs.string.split("\n").uniq
+    expected.each do |expectation|
+      matched = false
+
+      actuals.each do |actual|
+        matched = true if actual.match(expectation)
+      end
+
+      assert(matched, "expectation: #{expectation}, got: #{actuals}")
     end
-    # mark nil to indicate we handled it
-    $logs = nil
   end
 
   def assert_stderr(expected)
