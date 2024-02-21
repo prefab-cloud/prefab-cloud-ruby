@@ -54,14 +54,18 @@ module Prefab
       if defined?(@singleton) && !@singleton.nil? && @singleton.config_client.initialized?
         @singleton.log.semantic_filter(log)
       else
-        level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
-        SemanticLogger::Levels.index(level) <= SemanticLogger::Levels.index(log.level)
+        bootstrap_log_level(log)
       end
     end
   end
 
   def self.finish_init!
     @config_has_loaded = true
+  end
+
+  def self.bootstrap_log_level(log)
+    level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
+    SemanticLogger::Levels.index(level) <= SemanticLogger::Levels.index(log.level)
   end
 
   private

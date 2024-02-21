@@ -27,9 +27,9 @@ class TestLogger < Minitest::Test
   end
 
   def test_bootstrap_log_level
-    assert !Prefab.log_filter.call(SemanticLogger::Log.new("TestLogger",:info))
+    assert !Prefab.bootstrap_log_level(SemanticLogger::Log.new("TestLogger",:info))
     with_env('PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL', 'info') do
-      assert Prefab.log_filter.call(SemanticLogger::Log.new("TestLogger",:info))
+      assert Prefab.bootstrap_log_level(SemanticLogger::Log.new("TestLogger",:info))
     end
   end
 
