@@ -6,7 +6,8 @@ module CommonHelpers
   def setup
     $oldstderr, $stderr = $stderr, StringIO.new
 
-    $logs = nil
+    $logs ||= StringIO.new
+    SemanticLogger.add_appender(io: $logs)
     Timecop.freeze('2023-08-09 15:18:12 -0400')
   end
 
@@ -52,8 +53,6 @@ module CommonHelpers
   end
 
   def prefab_options(overrides = {})
-    $logs ||= StringIO.new
-    SemanticLogger.add_appender(io: $logs)
     Prefab::Options.new(
       **DEFAULT_NEW_CLIENT_OPTIONS.merge(overrides)
     )
