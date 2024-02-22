@@ -127,14 +127,10 @@ module Prefab
 
     # When starting a forked process, use this to re-use the options
     # on_worker_boot do
-    #   $prefab = $prefab.fork
-    #   $prefab.set_rails_loggers
+    #   Prefab.fork
     # end
     def fork
-      log_options = self.log.context_keys.to_a # get keys pre-fork
-      Prefab::Client.new(@options.for_fork).tap do |client|
-        client.log.add_context_keys(*log_options)
-      end
+      Prefab::Client.new(@options.for_fork)
     end
 
     private

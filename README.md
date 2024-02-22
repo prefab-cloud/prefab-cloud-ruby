@@ -61,6 +61,7 @@ gem "rails_semantic_logger"
 ```
 ```ruby
 #application.rb
+SemanticLogger.sync!
 SemanticLogger.default_level = :trace # Prefab will take over the filtering
 SemanticLogger.add_appender(
   io: $stdout,
