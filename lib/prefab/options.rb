@@ -136,6 +136,8 @@ module Prefab
       when :periodic_example
         @collect_example_contexts = true
         @collect_max_example_contexts = context_max_size
+        @collect_shapes = true
+        @collect_max_shapes = context_max_size
       when :shape_only
         @collect_shapes = true
         @collect_max_shapes = context_max_size
