@@ -33,40 +33,49 @@ See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
 Many ruby web servers fork. When the process is forked, the current realtime update stream is disconnected. If you're using Puma or Unicorn, do the following.
 
 ```ruby
-#config/initializers/prefab.rb
-$prefab = Prefab::Client.new
-$prefab.set_rails_loggers
+#config/application.rb
+Prefab.init # reads PREFAB_API_KEY env var
 ```
 
 ```ruby
 #puma.rb
 on_worker_boot do
-  $prefab = $prefab.fork
-  $prefab.set_rails_loggers
+  Prefab.fork
 end
 ```
 
 ```ruby
 # unicorn.rb
 after_fork do |server, worker|
-  $prefab = $prefab.fork
-  $prefab.set_rails_loggers
+  Prefab.fork
 end
 ```
 
 ## Logging & Debugging
 
-In classpath or ~/.prefab.default.config.yaml set
+To use dynamic logging. Install https://logger.rocketjob.io/rails.html and then add Prefab as a dynamic filter.
 
 ```
-log-level:
-  cloud.prefab: debug
+gem "amazing_print"
+gem "rails_semantic_logger"
 ```
+```ruby
+#application.rb
+SemanticLogger.default_level = :trace # Prefab will take over the filtering
+SemanticLogger.add_appender(
+  io: $stdout,
+  formatter: Rails.env.development? ? :default : :json,
+  filter: Prefab.log_filter,
+)
+Prefab.init
+````
 
-To debug issues before this config file has been read, set env var
-
-```
-PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL=debug
+```ruby
+#puma.rb
+on_worker_boot do
+    SemanticLogger.reopen
+    Prefab.fork
+end
 ```
 
 ## Contributing to prefab-cloud-ruby
@@ -91,4 +100,4 @@ REMOTE_BRANCH=main LOCAL_BRANCH=main bundle exec rake release
 
 ## Copyright
 
-Copyright (c) 2023 Jeff Dwyer. See LICENSE.txt for further details.
+Copyright (c) 2024 Prefab, Inc. See LICENSE.txt for further details.

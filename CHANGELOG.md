@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Use semantic_logger for internal logging (#173)
+- Remove Prefab::LoggerClient as a logger for end users (#173)
+- Provide log_filter for end users (#173)
+
 ## 1.5.0 - 2024-02-12
 
 - Fix potential inconsistent Context behavior (#172)
