@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.5.1 - 2024-02-22
 
-- Fix: Send context shapes by default
+- Fix: Send context shapes by default (#174)
 
 ## 1.5.0 - 2024-02-12
 
