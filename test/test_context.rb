@@ -15,33 +15,17 @@ class TestContext < Minitest::Test
     assert_empty context.contexts
   end
 
-  def test_initialize_with_named_context
-    named_context = Prefab::Context::NamedContext.new('test', foo: 'bar')
-    context = Prefab::Context.new(named_context)
-    assert_equal 1, context.contexts.size
-    assert_equal named_context, context.contexts['test']
-  end
-
   def test_initialize_with_hash
     context = Prefab::Context.new(test: { foo: 'bar' })
     assert_equal 1, context.contexts.size
-    assert_equal 'bar', context.contexts['test'].get('foo')
+    assert_equal 'bar', context.get("test.foo")
   end
 
   def test_initialize_with_multiple_hashes
     context = Prefab::Context.new(test: { foo: 'bar' }, other: { foo: 'baz' })
     assert_equal 2, context.contexts.size
-    assert_equal 'bar', context.contexts['test'].get('foo')
-    assert_equal 'baz', context.contexts['other'].get('foo')
-  end
-
-  def test_initialize_with_invalid_hash
-    _, err = capture_io do
-      Prefab::Context.new({ foo: 'bar', baz: 'qux' })
-    end
-
-    assert_match '[DEPRECATION] Prefab contexts should be a hash with a key of the context name and a value of a hash',
-                 err
+    assert_equal 'bar', context.get("test.foo")
+    assert_equal 'baz', context.get("other.foo")
   end
 
   def test_initialize_with_invalid_argument
@@ -59,28 +43,6 @@ class TestContext < Minitest::Test
     Prefab::Context.current = context
     assert_instance_of Prefab::Context, context
     assert_equal stringify(EXAMPLE_PROPERTIES), context.to_h
-  end
-
-  def test_merge_with_current
-    context = Prefab::Context.new(EXAMPLE_PROPERTIES)
-    Prefab::Context.current = context
-    assert_equal stringify(EXAMPLE_PROPERTIES), context.to_h
-
-    new_context = Prefab::Context.merge_with_current({ user: { key: 'brand-new', other: 'different' },
-                                                       address: { city: 'New York' } })
-    assert_equal stringify({
-                             # Note that the user's `name` from the original
-                             # context is not included. This is because we don't _merge_ the new
-                             # properties if they collide with an existing context name. We _replace_
-                             # them.
-                             user: { key: 'brand-new', other: 'different' },
-                             team: EXAMPLE_PROPERTIES[:team],
-                             address: { city: 'New York' }
-                           }),
-                 new_context.to_h
-
-    # the original/current context is unchanged
-    assert_equal stringify(EXAMPLE_PROPERTIES), Prefab::Context.current.to_h
   end
 
   def test_with_context
@@ -105,9 +67,14 @@ class TestContext < Minitest::Test
 
   def test_with_context_merge_nesting
     Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
-      Prefab::Context.with_merged_context({ user: { key: 'abc', other: 'different' } }) do
+      Prefab::Context.with_merged_context({ user: { key: 'hij', other: 'different' } }) do
         context = Prefab::Context.current
-        assert_equal({ 'user' => { 'key' => 'abc', 'other' => 'different' }, "team"=>{"key"=>"abc", "plan"=>"pro"} }, context.to_h)
+        assert_equal context.get('user.name'), 'Ted'
+        assert_equal context.get('user.key'), 'hij'
+        assert_equal context.get('user.other'), 'different'
+
+        assert_equal context.get('team.key'), 'abc'
+        assert_equal context.get('team.plan'), 'pro'
       end
 
       context = Prefab::Context.current
