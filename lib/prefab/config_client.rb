@@ -60,7 +60,7 @@ module Prefab
         @base_client.example_contexts_aggregator.record(context)
       end
 
-      evaluation = _get(key, context)
+      evaluation = _get(key, properties)
 
       @base_client.context_shape_aggregator&.push(context)
 
@@ -168,7 +168,7 @@ module Prefab
         ]
       end.to_h
 
-      @config_resolver.default_context = default_contexts || {}
+      Prefab::Context.default_context = default_contexts || {}
 
       configs.configs.each do |config|
         @config_loader.set(config, source)

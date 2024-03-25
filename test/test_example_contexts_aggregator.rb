@@ -10,10 +10,7 @@ class TestExampleContextsAggregator < Minitest::Test
     aggregator = Prefab::ExampleContextsAggregator.new(client: MockBaseClient.new, max_contexts: 2,
                                                        sync_interval: EFFECTIVELY_NEVER)
 
-    context = Prefab::Context.new(
-      user: { key: 'abc' },
-      device: { key: 'def', mobile: true }
-    )
+    context = Prefab::Context.new(user: { key: 'abc' }, device: { key: 'def', mobile: true })
 
     aggregator.record(context)
     assert_equal [context], aggregator.data

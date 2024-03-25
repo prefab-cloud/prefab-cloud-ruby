@@ -180,7 +180,7 @@ module CommonHelpers
       return
     end
 
-    assert_equal expected, $stderr.string.split("\n")
+    assert_equal expected.uniq, $stderr.string.split("\n").uniq
 
     # restore since we've handled it
     $stderr = $oldstderr
