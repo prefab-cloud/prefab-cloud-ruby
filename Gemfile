@@ -7,7 +7,7 @@ gem 'google-protobuf', platforms: :ruby
 gem 'ld-eventsource'
 gem 'uuid'
 
-gem 'activesupport',  '>= 4'
+gem 'activesupport', '>= 4'
 gem 'actionpack',  '>= 4'
 
 gem 'semantic_logger', require: "semantic_logger/sync"
@@ -18,6 +18,7 @@ group :development do
   gem 'juwelier', '~> 2.4.9'
   gem 'rdoc'
   gem 'simplecov', '>= 0'
+  gem "allocation_stats"
 end
 
 group :test do
