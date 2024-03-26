@@ -34,18 +34,26 @@ module Prefab
     attr_reader :contexts, :seen_at
 
     class << self
+      def global_context=(context)
+        @global_context = join(hash: context, parent: nil, id: :global_context)
+      end
+
+      def global_context
+        @global_context ||= join(parent: nil, id: :global_context)
+      end
+
       def default_context=(context)
-        @default_context = join(hash: context, parent: nil, id: :default)
+        @default_context = join(hash: context, parent: global_context, id: :default_context)
 
         self.current.update_parent(@default_context)
       end
 
       def default_context
-        @default_context ||= join(parent: nil, id: :default_context)
+        @default_context ||= join(parent: global_context, id: :default_context)
       end
 
       def current=(context)
-        Thread.current[THREAD_KEY] = context
+        Thread.current[THREAD_KEY] = join(hash: context || {}, parent: default_context, id: :block)
       end
 
       def current
@@ -123,7 +131,7 @@ module Prefab
       end
     end
 
-    def get(property_key)
+    def get(property_key, scope: nil)
       if !property_key.include?(".")
         property_key = BLANK_CONTEXT_NAME + '.' + property_key
       end
@@ -131,12 +139,36 @@ module Prefab
       if @flattened.key?(property_key)
         @flattened[property_key]
       else
-        @parent&.get(property_key)
+        scope ||= property_key.split('.').first
+
+        if @contexts[scope]
+          # If the key is in the present scope, parent values should not be used.
+          # We can consider the parent value clobbered by the present scope.
+          nil
+        else
+          @parent&.get(property_key, scope: scope)
+        end
       end
     end
 
     def to_h
       contexts.transform_values(&:to_h)
+    end
+
+    def to_s
+      "#<Prefab::Context:#{object_id} id=#{@id} #{to_h}>"
+    end
+
+    # Visualize a tree of the context up through its parents
+    #
+    # example:
+    #
+    # | jit:                            {"user"=>{"name"=>"Frank"}}
+    # |-- block:                        {"clock"=>{"timezone"=>"PST"}}
+    # |---- default_context:            {"prefab-api-key"=>{"user-id"=>123}}
+    # |------ global_context:           {"cpu"=>{"count"=>4, "speed"=>"2.4GHz"}, "clock"=>{"timezone"=>"UTC"}}
+    def tree(depth = 0)
+      "|" + ("-" * depth) + " #{id}: #{(" " * (30 - id.to_s.length - depth ))}#{to_h}\n" + (@parent&.tree(depth + 2) || '')
     end
 
     def clear
@@ -191,6 +223,10 @@ module Prefab
       else
         super
       end
+    end
+
+    def id
+      @id
     end
   end
 end

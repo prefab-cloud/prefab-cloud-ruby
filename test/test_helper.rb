@@ -11,7 +11,7 @@ Dir.glob(File.join(File.dirname(__FILE__), 'support', '**', '*.rb')).each do |fi
   require file
 end
 
-MiniTest::Test.class_eval do
+Minitest::Test.class_eval do
   include CommonHelpers
   extend CommonHelpers
 end

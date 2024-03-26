@@ -29,6 +29,9 @@ module Prefab
       end
 
       context.clear
+
+      Prefab::Context.global_context = @options.global_context
+
       # start config client
       config_client
     end
