@@ -3,7 +3,7 @@
 module Prefab
   # Records the result of evaluating a config's criteria and forensics for reporting
   class Evaluation
-    attr_reader :value
+    attr_reader :value, :context
 
     def initialize(config:, value:, value_index:, config_row_index:, context:, resolver:)
       @config = config
@@ -32,6 +32,7 @@ module Prefab
 
     def report(evaluation_summary_aggregator)
       return if @config.config_type == :LOG_LEVEL
+
       evaluation_summary_aggregator&.record(
         config_key: @config.key,
         config_type: @config.config_type,

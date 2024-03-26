@@ -40,7 +40,7 @@ class TestContext < Minitest::Test
 
   def test_current_set
     context = Prefab::Context.new(EXAMPLE_PROPERTIES)
-    Prefab::Context.current = context
+    Prefab::Context.current = context.to_h
     assert_instance_of Prefab::Context, context
     assert_equal stringify(EXAMPLE_PROPERTIES), context.to_h
   end
@@ -69,7 +69,7 @@ class TestContext < Minitest::Test
     Prefab::Context.with_context(EXAMPLE_PROPERTIES) do
       Prefab::Context.with_merged_context({ user: { key: 'hij', other: 'different' } }) do
         context = Prefab::Context.current
-        assert_equal context.get('user.name'), 'Ted'
+        assert_nil context.get('user.name')
         assert_equal context.get('user.key'), 'hij'
         assert_equal context.get('user.other'), 'different'
 
@@ -152,6 +152,35 @@ class TestContext < Minitest::Test
         )
       ]
     ), contexts.to_proto(namespace)
+  end
+
+  def test_parent_lookup
+    global_context = { cpu: { count: 4, speed: '2.4GHz' }, clock: { timezone: 'UTC' } }
+    default_context = { 'prefab-api-key' => { 'user-id' => 123 } }
+    local_context = { clock: { timezone: 'PST' }, user: { name: 'Ted', email: 'ted@example.com' } }
+    jit_context = { user: { name: 'Frank' } }
+
+    Prefab::Context.global_context = global_context
+    Prefab::Context.default_context = default_context
+    Prefab::Context.current = local_context
+
+    context = Prefab::Context.join(parent: Prefab::Context.current, hash: jit_context, id: :jit)
+
+    # This digs all the way to the global context
+    assert_equal 4, context.get('cpu.count')
+    assert_equal '2.4GHz', context.get('cpu.speed')
+
+    # This digs to the default context
+    assert_equal 123, context.get('prefab-api-key.user-id')
+
+    # This digs to the local context
+    assert_equal 'PST', context.get('clock.timezone')
+
+    # This uses the jit context
+    assert_equal 'Frank', context.get('user.name')
+
+    # This is nil in the jit context because `user` was clobbered
+    assert_nil context.get('user.email')
   end
 
   private

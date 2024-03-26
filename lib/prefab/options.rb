@@ -16,6 +16,7 @@ module Prefab
     attr_reader :use_local_cache
     attr_reader :datafile
     attr_reader :disable_action_controller_logging
+    attr_reader :global_context
     attr_accessor :is_fork
 
     module ON_INITIALIZATION_FAILURE
@@ -59,7 +60,8 @@ module Prefab
       allow_telemetry_in_local_mode: false,
       x_datafile: ENV['PREFAB_DATAFILE'],
       x_use_local_cache: false,
-      disable_action_controller_logging: false
+      disable_action_controller_logging: false,
+      global_context: {}
     )
       @api_key = api_key
       @namespace = namespace
@@ -81,6 +83,7 @@ module Prefab
       @use_local_cache = x_use_local_cache
       @disable_action_controller_logging = disable_action_controller_logging
       @is_fork = false
+      @global_context = global_context
 
       # defaults that may be overridden by context_upload_mode
       @collect_shapes = false
