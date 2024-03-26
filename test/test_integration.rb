@@ -50,6 +50,12 @@ class TestIntegration < Minitest::Test
             else
               raise "Unknown test type: #{it.test_type}"
             end
+
+            if test_case["name"].match(/doesn't raise on init timeout/)
+              assert_logged [
+                "Prefab::ConfigClient -- Couldn't Initialize In 0.01. Key any-key. Returning what we have"
+              ]
+            end
           end
         end
       end

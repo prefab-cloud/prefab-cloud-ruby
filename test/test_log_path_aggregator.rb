@@ -8,7 +8,7 @@ class TestLogPathAggregator < Minitest::Test
   SLEEP_TIME = 0.01
 
   def test_push
-    client = new_client
+    client = new_client(prefab_datasources: Prefab::Options::DATASOURCES::ALL,)
     aggregator = Prefab::LogPathAggregator.new(client: client, max_paths: 2, sync_interval: 1000)
 
     aggregator.push('test.test_log_path_aggregator.test_push.1', ::Logger::INFO)
@@ -19,16 +19,14 @@ class TestLogPathAggregator < Minitest::Test
     # we've reached the limit, so no more
     aggregator.push('test.test_log_path_aggregator.test_push.3', ::Logger::INFO)
     assert_equal 2, aggregator.data.size
-
-    assert_only_expected_logs
   end
 
   def test_sync
     Timecop.freeze do
       client = new_client(namespace: 'this.is.a.namespace', allow_telemetry_in_local_mode: true)
 
-      2.times { client.log.should_log? 1, "test.test_log_path_aggregator.test_sync"}
-      3.times { client.log.should_log? 3, "test.test_log_path_aggregator.test_sync"}
+      2.times { client.log.should_log? 1, "test.test_log_path_aggregator.test_sync" }
+      3.times { client.log.should_log? 3, "test.test_log_path_aggregator.test_sync" }
 
       requests = wait_for_post_requests(client) do
         client.log_path_aggregator.send(:sync)
@@ -40,7 +38,9 @@ class TestLogPathAggregator < Minitest::Test
       assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.start_at
       assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.end_at
       assert_equal client.instance_hash, sent_logger.instance_hash
-      assert_includes sent_logger.loggers, PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync', infos: 2, errors: 3)
+      assert_includes sent_logger.loggers,
+                      PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync', infos: 2,
+                                              errors: 3)
     end
   end
 

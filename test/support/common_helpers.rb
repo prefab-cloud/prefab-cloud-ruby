@@ -6,13 +6,24 @@ module CommonHelpers
   def setup
     $oldstderr, $stderr = $stderr, StringIO.new
 
-    $logs ||= StringIO.new
-    SemanticLogger.add_appender(io: $logs)
+    $logs = StringIO.new
+    SemanticLogger.add_appender(io: $logs, filter: Prefab.log_filter)
     SemanticLogger.sync!
     Timecop.freeze('2023-08-09 15:18:12 -0400')
   end
 
   def teardown
+    if $logs && !$logs.string.empty?
+      log_lines = $logs.string.split("\n").reject do |line|
+        line.match(/Prefab::ConfigClient -- No success loading checkpoints/)
+      end
+
+      if log_lines.size > 0
+        $logs = nil
+        raise "Unexpected logs. Handle logs with assert_logged\n\n#{log_lines}"
+      end
+    end
+
     if $stderr != $oldstderr && !$stderr.string.empty?
       # we ignore 2.X because of the number of `instance variable @xyz not initialized` warnings
       if !RUBY_VERSION.start_with?('2.')
@@ -42,7 +53,6 @@ module CommonHelpers
   }.freeze
 
   def new_client(overrides = {})
-
     config = overrides.delete(:config)
     project_env_id = overrides.delete(:project_env_id)
 
@@ -141,12 +151,6 @@ module CommonHelpers
     Prefab::Context.new(properties)
   end
 
-  def assert_only_expected_logs
-    # assert_equal "WARN  2023-08-09 15:18:12 -0400: cloud.prefab.client.configclient No success loading checkpoints\n", $logs.string
-    # mark nil to indicate we handled it
-    $logs = nil
-  end
-
   def assert_logged(expected)
     # we do a uniq here because logging can happen in a separate thread so the
     # number of times a log might happen could be slightly variable.
@@ -160,6 +164,8 @@ module CommonHelpers
 
       assert(matched, "expectation: #{expectation}, got: #{actuals}")
     end
+    # mark nil to indicate we handled it
+    $logs = nil
   end
 
   def assert_stderr(expected)
