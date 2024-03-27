@@ -130,3 +130,5 @@ REMOTE_BRANCH=main LOCAL_BRANCH=main bundle exec rake release
 ## Copyright
 
 Copyright (c) 2024 Prefab, Inc. See LICENSE.txt for further details.
+
+[semantic logger]: https://logger.rocketjob.io/

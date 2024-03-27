@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.6.0 - 2024-03-27
 
 - Use semantic_logger for internal logging (#173)
 - Remove Prefab::LoggerClient as a logger for end users (#173)
