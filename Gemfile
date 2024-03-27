@@ -7,8 +7,7 @@ gem 'google-protobuf', platforms: :ruby
 gem 'ld-eventsource'
 gem 'uuid'
 
-gem 'activesupport',  '>= 4'
-gem 'actionpack',  '>= 4'
+gem 'activesupport', '>= 4'
 
 gem 'semantic_logger', require: "semantic_logger/sync"
 

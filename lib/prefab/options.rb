@@ -15,7 +15,6 @@ module Prefab
     attr_reader :collect_sync_interval
     attr_reader :use_local_cache
     attr_reader :datafile
-    attr_reader :disable_action_controller_logging
     attr_reader :global_context
     attr_accessor :is_fork
 
@@ -60,7 +59,6 @@ module Prefab
       allow_telemetry_in_local_mode: false,
       x_datafile: ENV['PREFAB_DATAFILE'],
       x_use_local_cache: false,
-      disable_action_controller_logging: false,
       global_context: {}
     )
       @api_key = api_key
@@ -81,7 +79,6 @@ module Prefab
       @collect_max_evaluation_summaries = collect_max_evaluation_summaries
       @allow_telemetry_in_local_mode = allow_telemetry_in_local_mode
       @use_local_cache = x_use_local_cache
-      @disable_action_controller_logging = disable_action_controller_logging
       @is_fork = false
       @global_context = global_context
 
