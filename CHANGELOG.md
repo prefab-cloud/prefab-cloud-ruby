@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.1 - 2024-03-28
+
+- Performance optimizations (#178)
+- Global context (#182)
+
 ## 1.6.0 - 2024-03-27
 
 - Use semantic_logger for internal logging (#173)
