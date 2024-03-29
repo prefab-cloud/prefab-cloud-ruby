@@ -31,7 +31,7 @@ module Prefab
     end
 
     THREAD_KEY = :prefab_context
-    attr_reader :contexts, :seen_at
+    attr_reader :contexts, :seen_at, :id, :parent
 
     class << self
       def global_context=(context)
@@ -173,6 +173,7 @@ module Prefab
 
     def clear
       @contexts = {}
+      @flattened = {}
     end
 
     def context(name)
@@ -187,6 +188,18 @@ module Prefab
       self
     end
 
+    def reportable_tree
+      ctx = self
+      reportables = []
+
+      while ctx
+        reportables.unshift(ctx)
+        ctx = ctx.parent
+      end
+
+      reportables
+    end
+
     def to_proto(namespace)
       prefab_context = {
         'current-time' => ConfigValueWrapper.wrap(Prefab::TimeHelpers.now_in_ms)
@@ -194,8 +207,16 @@ module Prefab
 
       prefab_context['namespace'] = ConfigValueWrapper.wrap(namespace) if namespace&.length&.positive?
 
+      reportable_contexts = {}
+
+      reportable_tree.each do |ctx|
+        ctx.contexts.each do |name, context|
+          reportable_contexts[name] = context
+        end
+      end
+
       PrefabProto::ContextSet.new(
-        contexts: contexts.map do |name, context|
+        contexts: reportable_contexts.map do |name, context|
           context.to_proto
         end.concat([PrefabProto::Context.new(type: 'prefab',
                                              values: prefab_context)])
@@ -223,10 +244,6 @@ module Prefab
       else
         super
       end
-    end
-
-    def id
-      @id
     end
   end
 end

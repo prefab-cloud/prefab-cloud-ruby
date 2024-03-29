@@ -7,6 +7,8 @@ module CommonHelpers
     $oldstderr, $stderr = $stderr, StringIO.new
 
     $logs = StringIO.new
+    Prefab::Context.global_context.clear
+    Prefab::Context.default_context.clear
     SemanticLogger.add_appender(io: $logs, filter: Prefab.log_filter)
     SemanticLogger.sync!
     Timecop.freeze('2023-08-09 15:18:12 -0400')
