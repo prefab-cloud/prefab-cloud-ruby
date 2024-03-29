@@ -28,12 +28,10 @@ module Prefab
 
     def semantic_filter(log)
       class_path = class_path_name(log.name)
-      lookup_path = "#{logger_prefix}.#{class_path}"
       level = SemanticLogger::Levels.index(log.level)
-      log.named_tags.merge!({ path: lookup_path })
-      should_log? level, lookup_path
+      log.named_tags.merge!({ path: class_path })
+      should_log? level, class_path
     end
-
 
     def config_client=(config_client)
       @config_client = config_client
@@ -48,10 +46,6 @@ module Prefab
       else
         underscore("#{log_class.name}")
       end.gsub(/[^a-z_]/i, '.')
-    end
-
-    def logger_prefix
-      Context.current.get("application.key") ||  "prefab-cloud-ruby"
     end
 
     # Find the closest match to 'log_level.path' in config
