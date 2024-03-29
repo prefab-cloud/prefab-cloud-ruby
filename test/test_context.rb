@@ -154,6 +154,93 @@ class TestContext < Minitest::Test
     ), contexts.to_proto(namespace)
   end
 
+  def test_to_proto_with_parent
+    global_context = { cpu: { count: 4, speed: '2.4GHz' }, clock: { timezone: 'UTC' }, magic: { key: "global-key" } }
+    default_context = { 'prefab-api-key' => { 'user-id' => 123 } }
+
+    Prefab::Context.global_context = global_context
+    Prefab::Context.default_context = default_context
+
+    Prefab::Context.current = {
+      user: { id: 2, email: 'parent-email' },
+      magic: { key: 'parent-key', rabbits: 3 },
+      clock: { timezone: 'PST' }
+    }
+
+    contexts = Prefab::Context.join(hash: {
+                                      user: {
+                                        id: 1,
+                                        email: 'user-email'
+                                      },
+                                      team: {
+                                        id: 2,
+                                        name: 'team-name'
+                                      }
+                                    }, id: :jit, parent: Prefab::Context.current)
+
+    expected = PrefabProto::ContextSet.new(
+      contexts: [
+        # Via global
+        PrefabProto::Context.new(
+          type: "cpu",
+          values: {
+            "count" => PrefabProto::ConfigValue.new(int: 4),
+            "speed" => PrefabProto::ConfigValue.new(string: "2.4GHz")
+          }
+        ),
+        # Via default
+        PrefabProto::Context.new(
+          type: "clock",
+          values: {
+            "timezone" => PrefabProto::ConfigValue.new(string: 'PST'),
+          }
+        ),
+        # via current
+        PrefabProto::Context.new(
+          type: "magic",
+          values: {
+            "key" => PrefabProto::ConfigValue.new(string: 'parent-key'),
+            "rabbits" => PrefabProto::ConfigValue.new(int: 3)
+          }
+        ),
+        # via default
+        PrefabProto::Context.new(
+          type: "prefab-api-key",
+          values: {
+            "user-id" => PrefabProto::ConfigValue.new(int: 123)
+          }
+        ),
+        # via jit
+        PrefabProto::Context.new(
+          type: "user",
+          values: {
+            "id" => PrefabProto::ConfigValue.new(int: 1),
+            "email" => PrefabProto::ConfigValue.new(string: "user-email")
+          }
+        ),
+        # via jit
+        PrefabProto::Context.new(
+          type: "team",
+          values: {
+            "id" => PrefabProto::ConfigValue.new(int: 2),
+            "name" => PrefabProto::ConfigValue.new(string: "team-name")
+          }
+        ),
+        # via to_proto
+        PrefabProto::Context.new(
+          type: "prefab",
+          values: {
+            'current-time' => PrefabProto::ConfigValue.new(int: Prefab::TimeHelpers.now_in_ms),
+          }
+        )
+      ]
+    )
+
+    actual = contexts.to_proto("")
+
+    assert_equal expected, actual
+  end
+
   def test_parent_lookup
     global_context = { cpu: { count: 4, speed: '2.4GHz' }, clock: { timezone: 'UTC' } }
     default_context = { 'prefab-api-key' => { 'user-id' => 123 } }

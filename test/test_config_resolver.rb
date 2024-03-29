@@ -449,6 +449,37 @@ class TestConfigResolver < Minitest::Test
     end
   end
 
+  def test_context_lookup_with_no_local_context
+    global_context = { cpu: { count: 4, speed: '2.4GHz' }, clock: { timezone: 'UTC' } }
+    default_context = { 'prefab-api-key' => { 'user-id' => 123 } }
+    jit_context = { user: { name: 'Frank' } }
+
+    config = PrefabProto::Config.new( key: 'example', rows: [ PrefabProto::ConfigRow.new( values: [ PrefabProto::ConditionalValue.new( value: PrefabProto::ConfigValue.new(string: 'valueB2')) ]) ])
+
+    client = new_client(global_context: global_context, config: [config])
+
+    # we fake getting the default context from the API
+    Prefab::Context.default_context = default_context
+
+    resolver = client.resolver
+
+    context = resolver.get("example", jit_context).context
+
+    # This digs all the way to the global context
+    assert_equal 4, context.get('cpu.count')
+    assert_equal '2.4GHz', context.get('cpu.speed')
+    assert_equal 'UTC', context.get('clock.timezone')
+
+    # This digs to the default context
+    assert_equal 123, context.get('prefab-api-key.user-id')
+
+    # This uses the jit context
+    assert_equal 'Frank', context.get('user.name')
+
+    # This is nil in the jit context because `user` was clobbered
+    assert_nil context.get('user.email')
+  end
+
   private
 
   def resolver_for_namespace(namespace, loader, project_env_id: TEST_ENV_ID)
