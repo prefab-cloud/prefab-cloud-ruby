@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.6.2 - 2024-03-29
+
+- Fix context telemetry when JIT and Block contexts are combined (#185)
+- Remove logger prefix (#186)
+
 ## 1.6.1 - 2024-03-28
 
 - Performance optimizations (#178)
