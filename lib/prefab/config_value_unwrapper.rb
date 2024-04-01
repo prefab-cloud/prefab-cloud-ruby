@@ -36,6 +36,8 @@ module Prefab
               @config_value.public_send(@config_value.type)
             when :string_list
               @config_value.string_list.values
+            when :duration
+              Prefab::Duration.new(@config_value.duration.definition)
             else
               LOG.error "Unknown type: #{@config_value.type}"
               raise "Unknown type: #{@config_value.type}"

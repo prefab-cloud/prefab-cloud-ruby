@@ -47,6 +47,8 @@ class TestIntegration < Minitest::Test
               expected.all? do |expected|
                 assert actual.include?(expected), "#{actual} should include #{expected}"
               end
+            when :duration
+              assert_equal it.expected[:millis], it.test_client.send(it.func, *it.input).in_seconds * 1000
             else
               raise "Unknown test type: #{it.test_type}"
             end

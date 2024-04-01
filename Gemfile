@@ -6,6 +6,7 @@ gem 'googleapis-common-protos-types', platforms: :ruby
 gem 'google-protobuf', platforms: :ruby
 gem 'ld-eventsource'
 gem 'uuid'
+gem 'iso8601'
 
 gem 'activesupport', '>= 4'
 
