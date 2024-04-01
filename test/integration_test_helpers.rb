@@ -5,12 +5,10 @@ module IntegrationTestHelpers
   RAISE_IF_NO_TESTS_FOUND = ENV['PREFAB_INTEGRATION_TEST_RAISE'] == 'true'
 
   def self.find_integration_tests
-    version = find_integration_test_version
-
-    files = find_versioned_test_files(version)
+    files = find_test_files
 
     if files.none?
-      message = "No integration tests found for version: #{version}"
+      message = "No integration tests found"
       raise message if RAISE_IF_NO_TESTS_FOUND
 
       puts message
@@ -19,19 +17,9 @@ module IntegrationTestHelpers
     files
   end
 
-  def self.find_integration_test_version
-    File.read(File.join(SUBMODULE_PATH, 'version')).strip
-  rescue StandardError => e
-    puts "No version found for integration tests: #{e.message}"
-  end
-
-  def self.find_versioned_test_files(version)
-    if version.nil?
-      []
-    else
-      Dir[File.join(SUBMODULE_PATH, "tests/#{version}/**/*")]
-        .select { |file| file =~ /\.ya?ml$/ }
-    end
+  def self.find_test_files
+    Dir[File.join(SUBMODULE_PATH, "tests/current/**/*")]
+      .select { |file| file =~ /\.ya?ml$/ }
   end
 
   SEVERITY_LOOKUP = Prefab::LogPathAggregator::SEVERITY_KEY.invert

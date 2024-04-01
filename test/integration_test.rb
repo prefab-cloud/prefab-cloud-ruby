@@ -8,6 +8,7 @@ class IntegrationTest
     @func = parse_function(test_data['function'])
     @input = parse_input(test_data['input'])
     @expected = parse_expected(test_data['expected'])
+    @type = test_data['type']
     @data = test_data['data']
     @expected_data = test_data['expected_data'] || []
     @aggregator = test_data['aggregator']
@@ -18,6 +19,8 @@ class IntegrationTest
   def test_type
     if @data
       :telemetry
+    elsif @type == "DURATION"
+      :duration
     elsif @input[0] && @input[0].start_with?('log-level.')
       :log_level
     elsif @expected[:status] == 'raise'
@@ -88,7 +91,8 @@ class IntegrationTest
       status: expected['status'],
       error: parse_error_type(expected['error']),
       message: expected['message'],
-      value: expected['value']
+      value: expected['value'],
+      millis: expected['millis'],
     }
   end
 

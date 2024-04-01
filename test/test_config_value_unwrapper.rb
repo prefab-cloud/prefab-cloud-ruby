@@ -49,6 +49,22 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal %w[a b c], unwrap(config_value, CONFIG, EMPTY_CONTEXT)
   end
 
+  def test_unwrapping_duration
+    duration = PrefabProto::IsoDuration.new(definition: "PT1.5S")
+    config_value = PrefabProto::ConfigValue.new(duration: duration)
+    assert_equal 1.5, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_seconds
+    assert_equal 0.025, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_minutes
+    assert_in_delta 0.00041667, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_hours, 0.00001
+
+    duration = PrefabProto::IsoDuration.new(definition: "P4DT12H30M5S")
+    config_value = PrefabProto::ConfigValue.new(duration: duration)
+    assert_in_delta 0.6458, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_weeks, 0.0001
+    assert_in_delta 4.521, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_days, 0.001
+    assert_in_delta 108.5, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_hours, 0.1
+    assert_in_delta 6510.083, unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_minutes, 0.001
+    assert_equal 390605 ,unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_seconds
+  end
+
   def test_unwrapping_weighted_values
     # single value
     config_value = PrefabProto::ConfigValue.new(weighted_values: weighted_values([['abc', 1]]))
