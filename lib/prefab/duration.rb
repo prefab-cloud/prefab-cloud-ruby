@@ -1,15 +1,26 @@
 # frozen_string_literal: true
 
-require 'iso8601'
-
 module Prefab
   class Duration
+    PATTERN = /P(?:(?<days>\d+(?:\.\d+)?)D)?(?:T(?:(?<hours>\d+(?:\.\d+)?)H)?(?:(?<minutes>\d+(?:\.\d+)?)M)?(?:(?<seconds>\d+(?:\.\d+)?)S)?)?/
+    MINUTES_IN_SECONDS = 60
+    HOURS_IN_SECONDS = 60 * MINUTES_IN_SECONDS
+    DAYS_IN_SECONDS = 24 * HOURS_IN_SECONDS
+
     def initialize(definition)
       @seconds = self.class.parse(definition)
     end
 
     def self.parse(definition)
-      ISO8601::Duration.new(definition).to_seconds
+      match = PATTERN.match(definition)
+      return 0 unless match
+
+      days = match[:days]&.to_f || 0
+      hours = match[:hours]&.to_f || 0
+      minutes = match[:minutes]&.to_f || 0
+      seconds = match[:seconds]&.to_f || 0
+
+      (days * DAYS_IN_SECONDS + hours * HOURS_IN_SECONDS + minutes * MINUTES_IN_SECONDS + seconds)
     end
 
     def in_seconds
