@@ -77,7 +77,6 @@ GEM
     http-form_data (2.3.0)
     i18n (1.14.4)
       concurrent-ruby (~> 1.0)
-    iso8601 (0.13.0)
     juwelier (2.4.9)
       builder
       bundler
@@ -164,7 +163,6 @@ DEPENDENCIES
   faraday
   google-protobuf
   googleapis-common-protos-types
-  iso8601
   juwelier (~> 2.4.9)
   ld-eventsource
   minitest
