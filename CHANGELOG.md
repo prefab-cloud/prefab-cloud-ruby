@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 - 2024-04-10
+
+- Add duration support (#187)
+
 ## 1.6.2 - 2024-03-29
 
 - Fix context telemetry when JIT and Block contexts are combined (#185)
