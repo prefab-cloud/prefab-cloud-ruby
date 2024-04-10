@@ -19,7 +19,7 @@ result = client.enabled? "my-first-feature-flag", context
 puts "my-first-feature-flag is: #{result}"
 ```
 
-See full documentation https://docs.prefab.cloud/docs/ruby-sdk/ruby
+See full documentation https://docs.prefab.cloud/docs/sdks/ruby
 
 ## Supports
 
