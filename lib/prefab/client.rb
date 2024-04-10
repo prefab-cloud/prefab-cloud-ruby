@@ -14,7 +14,7 @@ module Prefab
       @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
       @namespace = @options.namespace
       @stubs = {}
-      @instance_hash = UUID.new.generate
+      @instance_hash = ::UUID.new.generate
 
       if @options.local_only?
         LOG.debug 'Prefab Running in Local Mode'
