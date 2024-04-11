@@ -130,7 +130,9 @@ module Prefab
       Prefab::Client.new(@options.for_fork)
     end
 
-    private
+    def defined?(key)
+      !!config_client.send(:raw, key)
+    end
 
     def is_ff?(key)
       raw = config_client.send(:raw, key)
