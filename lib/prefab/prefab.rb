@@ -28,9 +28,9 @@ module Prefab
     @singleton.set_rails_loggers
   end
 
-  def self.get(key, properties = NO_DEFAULT_PROVIDED)
+  def self.get(key, default = NO_DEFAULT_PROVIDED, jit_context = NO_DEFAULT_PROVIDED)
     ensure_initialized key
-    @singleton.get(key, properties)
+    @singleton.get(key, default, jit_context)
   end
 
   def self.enabled?(feature_name, jit_context = NO_DEFAULT_PROVIDED)
@@ -66,6 +66,16 @@ module Prefab
   def self.bootstrap_log_level(log)
     level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
     SemanticLogger::Levels.index(level) <= SemanticLogger::Levels.index(log.level)
+  end
+
+  def self.defined?(key)
+    ensure_initialized key
+    @singleton.defined?(key)
+  end
+
+  def self.is_ff?(key)
+    ensure_initialized key
+    @singleton.is_ff?(key)
   end
 
   private

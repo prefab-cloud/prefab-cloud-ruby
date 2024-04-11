@@ -411,6 +411,22 @@ class TestClient < Minitest::Test
     assert_summary client, {}
   end
 
+  def test_defined
+    client = new_client
+
+    refute client.defined?('does_not_exist')
+    assert client.defined?('sample_int')
+    assert client.defined?('disabled_flag')
+  end
+
+  def test_is_ff
+    client = new_client
+
+    assert client.is_ff?('flag_with_a_value')
+    refute client.is_ff?('sample_int')
+    refute client.is_ff?('does_not_exist')
+  end
+
   private
 
   def basic_value_config
