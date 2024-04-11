@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.1 - 2024-04-11
+
+- Ergonomics (#191)
+
 ## 1.7.0 - 2024-04-10
 
 - Add duration support (#187)
