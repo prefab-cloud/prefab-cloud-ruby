@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
 class IntegrationTest
-  attr_reader :func, :input, :expected, :data, :expected_data, :aggregator, :endpoint, :test_client
+  attr_reader :func, :input, :expected, :data, :expected_data, :aggregator, :endpoint, :test_client, :block_context
 
   def initialize(test_data)
+    @global_context = test_data['contexts']['global'] if test_data['contexts']
+    @block_context = test_data['contexts']['block'] if test_data['contexts']
+    @local_context = test_data['contexts']['local'] if test_data['contexts']
+
     @client_overrides = parse_client_overrides(test_data['client_overrides'])
     @func = parse_function(test_data['function'])
     @input = parse_input(test_data['input'])
@@ -74,14 +78,16 @@ class IntegrationTest
 
   def parse_config_input(input)
     if !input['default'].nil?
-      [input['key'], input['default']]
+      [input['key'], input['default'], @local_context]
+    elsif @local_context
+      [input['key'], Prefab::NO_DEFAULT_PROVIDED, @local_context]
     else
       [input['key']]
     end
   end
 
   def parse_ff_input(input)
-    [input['flag'], input['default'], input['context']]
+    [input['flag'], input['default'], @local_context]
   end
 
   def parse_expected(expected)
@@ -122,6 +128,7 @@ class IntegrationTest
       prefab_datasources: Prefab::Options::DATASOURCES::ALL,
       api_key: ENV['PREFAB_INTEGRATION_TEST_API_KEY'],
       prefab_api_url: 'https://api.staging-prefab.cloud',
+      global_context: @global_context || {},
     }.merge(@client_overrides))
   end
 
