@@ -96,7 +96,6 @@ module Prefab
       @contexts = {}
       @flattened = {}
       @seen_at = Time.now.utc.to_i
-      warned = false
 
       if hash.is_a?(Hash)
         hash.map do |name, values|

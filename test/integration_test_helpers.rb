@@ -65,7 +65,7 @@ module IntegrationTestHelpers
 
       aggregator.instance_variable_set("@data", Concurrent::Hash.new)
 
-      it.data.each do |key|
+      it.data["keys"].each do |key|
         it.test_client.get(key)
       end
 
@@ -129,7 +129,7 @@ module IntegrationTestHelpers
     end
   end
 
-  def self.with_parent_context_maybe(context, &block)
+  def self.with_block_context_maybe(context, &block)
     if context
       Prefab::Context.with_context(context, &block)
     else

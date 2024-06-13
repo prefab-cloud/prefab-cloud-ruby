@@ -10,13 +10,11 @@ class TestIntegration < Minitest::Test
     tests = YAML.load(File.read(test_file))['tests']
 
     tests.each do |test|
-      parent_context = test['context']
-
       test['cases'].each do |test_case|
         define_method(:"test_#{test['name']}_#{test_case['name']}") do
           it = IntegrationTest.new(test_case)
 
-          IntegrationTestHelpers.with_parent_context_maybe(parent_context) do
+          IntegrationTestHelpers.with_block_context_maybe(it.block_context) do
             case it.test_type
             when :raise
               err = assert_raises(it.expected[:error]) do
