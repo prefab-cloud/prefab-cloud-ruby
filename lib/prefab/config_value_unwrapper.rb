@@ -38,6 +38,8 @@ module Prefab
               @config_value.string_list.values
             when :duration
               Prefab::Duration.new(@config_value.duration.definition)
+            when :json
+              JSON.parse(@config_value.json.json)
             else
               LOG.error "Unknown type: #{@config_value.type}"
               raise "Unknown type: #{@config_value.type}"
