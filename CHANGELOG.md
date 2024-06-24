@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.2 - 2024-06-24
+
+- Support JSON config values (#194)
+
 ## 1.7.1 - 2024-04-11
 
 - Ergonomics (#191)
