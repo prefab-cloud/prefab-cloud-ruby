@@ -268,6 +268,7 @@ module Prefab
       auth = "#{AUTH_USER}:#{@base_client.api_key}"
       auth_string = Base64.strict_encode64(auth)
       headers = {
+        'Accept' => 'text/event-stream',
         'x-prefab-start-at-id' => start_at_id,
         'Authorization' => "Basic #{auth_string}",
         'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
