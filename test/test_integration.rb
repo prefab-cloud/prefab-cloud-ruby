@@ -8,10 +8,19 @@ require 'yaml'
 class TestIntegration < Minitest::Test
   IntegrationTestHelpers.find_integration_tests.map do |test_file|
     tests = YAML.load(File.read(test_file))['tests']
+    test_names = []
 
     tests.each do |test|
       test['cases'].each do |test_case|
-        define_method(:"test_#{test['name']}_#{test_case['name']}") do
+        new_name = "test_#{test['name']}_#{test_case['name']}"
+
+        if test_names.include?(new_name)
+          raise "Duplicate test name: #{new_name}"
+        end
+
+        test_names << new_name
+
+        define_method(:"#{new_name}") do
           it = IntegrationTest.new(test_case)
 
           IntegrationTestHelpers.with_block_context_maybe(it.block_context) do
@@ -38,7 +47,7 @@ class TestIntegration < Minitest::Test
 
               wait_for -> { it.last_post_result&.status == 200 }
 
-              assert it.endpoint == it.last_post_endpoint
+              assert_equal "/api/v1/telemetry", it.last_post_endpoint
 
               actual = get_actual_data[it.last_data_sent]
 
@@ -56,6 +65,8 @@ class TestIntegration < Minitest::Test
                 "Prefab::ConfigClient -- Couldn't Initialize In 0.01. Key any-key. Returning what we have"
               ]
             end
+          ensure
+            it.teardown
           end
         end
       end

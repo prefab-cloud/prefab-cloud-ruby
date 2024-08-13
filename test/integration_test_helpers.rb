@@ -2,16 +2,12 @@
 
 module IntegrationTestHelpers
   SUBMODULE_PATH = 'test/prefab-cloud-integration-test-data'
-  RAISE_IF_NO_TESTS_FOUND = ENV['PREFAB_INTEGRATION_TEST_RAISE'] == 'true'
 
   def self.find_integration_tests
     files = find_test_files
 
     if files.none?
-      message = "No integration tests found"
-      raise message if RAISE_IF_NO_TESTS_FOUND
-
-      puts message
+      raise "No integration tests found"
     end
 
     files
@@ -44,7 +40,7 @@ module IntegrationTestHelpers
         end
       end
 
-      [aggregator, ->(data) { data.loggers }, expected_loggers.values]
+      [aggregator, ->(data) { data.events[0].loggers.loggers }, expected_loggers.values]
     when "context_shape"
       aggregator = it.test_client.context_shape_aggregator
 
@@ -59,7 +55,7 @@ module IntegrationTestHelpers
         )
       end
 
-      [aggregator, ->(data) { data.shapes }, expected]
+      [aggregator, ->(data) { data.events[0].context_shapes.shapes }, expected]
     when "evaluation_summary"
       aggregator = it.test_client.evaluation_summary_aggregator
 

@@ -45,11 +45,13 @@ module Prefab
     end
 
     def PROP_IS_ONE_OF(criterion, properties)
-      matches?(criterion, value_from_properties(criterion, properties), properties)
+      Array(value_from_properties(criterion, properties)).any? do |prop|
+        matches?(criterion, prop, properties)
+      end
     end
 
     def PROP_IS_NOT_ONE_OF(criterion, properties)
-      !matches?(criterion, value_from_properties(criterion, properties), properties)
+      !PROP_IS_ONE_OF(criterion, properties)
     end
 
     def PROP_ENDS_WITH_ONE_OF(criterion, properties)
@@ -57,7 +59,7 @@ module Prefab
     end
 
     def PROP_DOES_NOT_END_WITH_ONE_OF(criterion, properties)
-      !prop_ends_with_one_of?(criterion, value_from_properties(criterion, properties))
+      !PROP_ENDS_WITH_ONE_OF(criterion, properties)
     end
 
     def HIERARCHICAL_MATCH(criterion, properties)

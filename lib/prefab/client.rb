@@ -8,7 +8,7 @@ module Prefab
     MAX_SLEEP_SEC = 10
     BASE_SLEEP_SEC = 0.5
 
-    attr_reader :namespace, :interceptor, :api_key, :prefab_api_url, :options, :instance_hash
+    attr_reader :namespace, :interceptor, :api_key, :options, :instance_hash
 
     def initialize(options = Prefab::Options.new)
       @options = options.is_a?(Prefab::Options) ? options : Prefab::Options.new(options)
@@ -23,9 +23,6 @@ module Prefab
       else
         @api_key = @options.api_key
         raise Prefab::Errors::InvalidApiKeyError, @api_key if @api_key.nil? || @api_key.empty? || api_key.count('-') < 1
-
-        @prefab_api_url = @options.prefab_api_url
-        LOG.debug "Prefab Connecting to: #{@prefab_api_url}"
       end
 
       context.clear
@@ -46,6 +43,10 @@ module Prefab
 
     def config_client(timeout: 5.0)
       @config_client ||= Prefab::ConfigClient.new(self, timeout)
+    end
+
+    def stop
+      @config_client.stop
     end
 
     def feature_flag_client
@@ -111,7 +112,7 @@ module Prefab
     end
 
     def post(path, body)
-      Prefab::HttpConnection.new(@options.prefab_api_url, @api_key).post(path, body)
+      Prefab::HttpConnection.new(@options.telemetry_destination, @api_key).post(path, body)
     end
 
     def inspect

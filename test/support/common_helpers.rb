@@ -47,11 +47,14 @@ module CommonHelpers
     ENV[key] = old_value
   end
 
+  EFFECTIVELY_NEVER = 99_999 # we sync manually
+
   DEFAULT_NEW_CLIENT_OPTIONS = {
     prefab_config_override_dir: 'none',
     prefab_config_classpath_dir: 'test',
     prefab_envs: ['unit_tests'],
-    prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY
+    prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+    collect_sync_interval: EFFECTIVELY_NEVER,
   }.freeze
 
   def new_client(overrides = {})

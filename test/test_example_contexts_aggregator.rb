@@ -4,8 +4,6 @@ require 'test_helper'
 require 'timecop'
 
 class TestExampleContextsAggregator < Minitest::Test
-  EFFECTIVELY_NEVER = 99_999 # we sync manually
-
   def test_record
     aggregator = Prefab::ExampleContextsAggregator.new(client: MockBaseClient.new, max_contexts: 2,
                                                        sync_interval: EFFECTIVELY_NEVER)

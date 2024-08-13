@@ -5,16 +5,29 @@ require 'test_helper'
 class TestOptions < Minitest::Test
   API_KEY = 'abcdefg'
 
-  def test_prefab_api_url
-    assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+  def test_api_override_env_var
+    assert_equal Prefab::Options::DEFAULT_SOURCES, Prefab::Options.new.sources
 
-    with_env 'PREFAB_API_URL', 'https://api.prefab.cloud' do
-      assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+    # blank doesn't take effect
+    with_env('PREFAB_API_URL_OVERRIDE', '') do
+      assert_equal Prefab::Options::DEFAULT_SOURCES, Prefab::Options.new.sources
     end
 
-    with_env 'PREFAB_API_URL', 'https://api.prefab.cloud/' do
-      assert_equal 'https://api.prefab.cloud', Prefab::Options.new.prefab_api_url
+    # non-blank does take effect
+    with_env('PREFAB_API_URL_OVERRIDE', 'https://override.example.com') do
+      assert_equal ["https://override.example.com"], Prefab::Options.new.sources
     end
+  end
+
+  def test_overriding_sources
+    assert_equal Prefab::Options::DEFAULT_SOURCES, Prefab::Options.new.sources
+
+    # a plain string ends up wrapped in an array
+    source = 'https://example.com'
+    assert_equal [source], Prefab::Options.new(sources: source).sources
+
+    sources = ['https://example.com', 'https://example2.com']
+    assert_equal sources, Prefab::Options.new(sources: sources).sources
   end
 
   def test_works_with_named_arguments

@@ -3,18 +3,14 @@
 module Prefab
   class ConfigClient
     LOG = Prefab::InternalLogger.new(self)
-    RECONNECT_WAIT = 5
     DEFAULT_CHECKPOINT_FREQ_SEC = 60
-    SSE_READ_TIMEOUT = 300
     STALE_CACHE_WARN_HOURS = 5
-    AUTH_USER = 'authuser'
+
     def initialize(base_client, timeout)
       @base_client = base_client
       @options = base_client.options
       LOG.debug 'Initialize ConfigClient'
       @timeout = timeout
-
-      @stream_lock = Concurrent::ReadWriteLock.new
 
       @checkpoint_freq_secs = DEFAULT_CHECKPOINT_FREQ_SEC
 
@@ -34,9 +30,27 @@ module Prefab
       end
     end
 
+    def stop
+      @sse_config_client&.close
+    end
+
     def start_streaming
-      @stream_lock.with_write_lock do
-        start_sse_streaming_connection_thread(@config_loader.highwater_mark) if @streaming_thread.nil?
+      Thread.new do
+        # wait for the config loader to have a highwater mark before we connect the SSE
+        loop do
+          break if @config_loader.highwater_mark > 0
+
+          sleep 0.1
+        end
+
+        stream_lock = Concurrent::ReadWriteLock.new
+        @sse_config_client = Prefab::SSEConfigClient.new(@options, @config_loader)
+
+        @sse_config_client.start do |configs|
+          stream_lock.with_write_lock do
+            load_configs(configs, :sse)
+          end
+        end
       end
     end
 
@@ -104,29 +118,24 @@ module Prefab
     end
 
     def load_checkpoint
-      success = load_checkpoint_api_cdn
-
-      return if success
-
-      success = load_checkpoint_api
-
+      success = load_source_checkpoint
       return if success
 
       success = load_cache
-
       return if success
 
       LOG.warn 'No success loading checkpoints'
     end
 
-    def load_checkpoint_api_cdn
-      conn = Prefab::HttpConnection.new("#{@options.url_for_api_cdn}/api/v1/configs/0", @base_client.api_key)
-      load_url(conn, :remote_cdn_api)
-    end
+    def load_source_checkpoint
+      @options.config_sources.each do |source|
+        conn = Prefab::HttpConnection.new("#{source}/api/v1/configs/0", @base_client.api_key)
+        result = load_url(conn, :remote_api)
 
-    def load_checkpoint_api
-      conn = Prefab::HttpConnection.new("#{@options.prefab_api_url}/api/v1/configs/0", @base_client.api_key)
-      load_url(conn, :remote_api)
+        return true if result
+      end
+
+      return false
     end
 
     def load_url(conn, source)
@@ -262,28 +271,6 @@ module Prefab
       )
       LOG.info presenter.to_s
       LOG.debug to_s
-    end
-
-    def start_sse_streaming_connection_thread(start_at_id)
-      auth = "#{AUTH_USER}:#{@base_client.api_key}"
-      auth_string = Base64.strict_encode64(auth)
-      headers = {
-        'Accept' => 'text/event-stream',
-        'x-prefab-start-at-id' => start_at_id,
-        'Authorization' => "Basic #{auth_string}",
-        'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
-      }
-      url = "#{@base_client.prefab_api_url}/api/v1/sse/config"
-      LOG.debug "SSE Streaming Connect to #{url} start_at #{start_at_id}"
-      @streaming_thread = SSE::Client.new(url,
-                                          headers: headers,
-                                          read_timeout: SSE_READ_TIMEOUT,
-                                          logger: Prefab::InternalLogger.new(SSE::Client)) do |client|
-        client.on_event do |event|
-          configs = PrefabProto::Configs.decode(Base64.decode64(event.data))
-          load_configs(configs, :sse)
-        end
-      end
     end
   end
 end
