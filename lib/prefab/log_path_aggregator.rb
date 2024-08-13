@@ -51,15 +51,16 @@ module Prefab
           aggregate[path]['logger_name'] = path
         end
 
-        loggers = PrefabProto::Loggers.new(
-          loggers: aggregate.values,
-          start_at: start_at_was,
-          end_at: Prefab::TimeHelpers.now_in_ms,
-          instance_hash: @client.instance_hash,
-          namespace: @client.namespace
+        loggers = PrefabProto::LoggersTelemetryEvent.new(loggers: aggregate.values,
+                                                         start_at: start_at_was,
+                                                         end_at: Prefab::TimeHelpers.now_in_ms)
+
+        events = PrefabProto::TelemetryEvents.new(
+          instance_hash: instance_hash,
+          events: [PrefabProto::TelemetryEvent.new(loggers: loggers)]
         )
 
-        result = post('/api/v1/known-loggers', loggers)
+        result = post('/api/v1/telemetry', events)
 
         LOG.debug "Uploaded #{to_ship.size} paths: #{result.status}"
       end

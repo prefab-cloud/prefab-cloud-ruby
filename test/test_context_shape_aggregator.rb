@@ -98,30 +98,36 @@ class TestContextShapeAggregator < Minitest::Test
 
     assert_equal [
       [
-        '/api/v1/context-shapes',
-        PrefabProto::ContextShapes.new(shapes: [
-                                         PrefabProto::ContextShape.new(
-                                           name: 'user', field_types: {
-                                             'age' => 4, 'dob' => 2, 'email' => 2, 'name' => 2
-                                           }
-                                         ),
-                                         PrefabProto::ContextShape.new(
-                                           name: 'subscription', field_types: {
-                                             'plan' => 2, 'free' => 5, 'trial' => 5
-                                           }
-                                         ),
-                                         PrefabProto::ContextShape.new(
-                                           name: 'device', field_types: {
-                                             'version' => 1, 'os' => 2, 'name' => 2
-                                           }
-                                         )
-                                       ])
+        '/api/v1/telemetry',
+        PrefabProto::TelemetryEvents.new(
+          instance_hash: client.instance_hash,
+          events: [
+            PrefabProto::TelemetryEvent.new(context_shapes:
+
+            PrefabProto::ContextShapes.new(shapes: [
+                                             PrefabProto::ContextShape.new(
+                                               name: 'user', field_types: {
+                                                 'age' => 4, 'dob' => 2, 'email' => 2, 'name' => 2
+                                               }
+                                             ),
+                                             PrefabProto::ContextShape.new(
+                                               name: 'subscription', field_types: {
+                                                 'plan' => 2, 'free' => 5, 'trial' => 5
+                                               }
+                                             ),
+                                             PrefabProto::ContextShape.new(
+                                               name: 'device', field_types: {
+                                                 'version' => 1, 'os' => 2, 'name' => 2
+                                               }
+                                             )
+                                           ]))
+          ]
+        )
       ]
     ], requests
 
-
     assert_logged [
-      "No success loading checkpoints",
+      'No success loading checkpoints',
       "Couldn't Initialize In 0. Key some.key. Returning what we have"
     ]
   end

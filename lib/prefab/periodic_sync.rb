@@ -32,6 +32,10 @@ module Prefab
       @client.post(url, data)
     end
 
+    def instance_hash
+      @client.instance_hash
+    end
+
     def start_periodic_sync(sync_interval)
       @start_at = Prefab::TimeHelpers.now_in_ms
 

@@ -32,15 +32,27 @@ class TestLogPathAggregator < Minitest::Test
         client.log_path_aggregator.send(:sync)
       end
 
-      assert_equal '/api/v1/known-loggers', requests[0][0]
-      sent_logger = requests[0][1]
-      assert_equal 'this.is.a.namespace', sent_logger.namespace
-      assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.start_at
-      assert_equal Prefab::TimeHelpers.now_in_ms, sent_logger.end_at
-      assert_equal client.instance_hash, sent_logger.instance_hash
-      assert_includes sent_logger.loggers,
-                      PrefabProto::Logger.new(logger_name: 'test.test_log_path_aggregator.test_sync', infos: 2,
-                                              errors: 3)
+      assert_equal [
+        [
+          '/api/v1/telemetry',
+          PrefabProto::TelemetryEvents.new(
+            instance_hash: client.instance_hash,
+            events: [
+              PrefabProto::TelemetryEvent.new(loggers:
+
+              PrefabProto::LoggersTelemetryEvent.new(loggers: [
+                                                       PrefabProto::Logger.new(
+                                                         logger_name: 'test.test_log_path_aggregator.test_sync',
+                                                         infos: 2,
+                                                         errors: 3
+                                                       )
+                                                     ],
+                                                     start_at: Prefab::TimeHelpers.now_in_ms,
+                                                     end_at: Prefab::TimeHelpers.now_in_ms,))
+            ]
+          )
+        ]
+      ], requests
     end
   end
 

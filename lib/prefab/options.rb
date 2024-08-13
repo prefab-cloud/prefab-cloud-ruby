@@ -5,7 +5,10 @@ module Prefab
   class Options
     attr_reader :api_key
     attr_reader :namespace
-    attr_reader :prefab_api_url
+    attr_reader :sources
+    attr_reader :sse_sources
+    attr_reader :telemetry_destination
+    attr_reader :config_sources
     attr_reader :on_no_default
     attr_reader :initialization_timeout_sec
     attr_reader :on_init_failure
@@ -38,10 +41,16 @@ module Prefab
     DEFAULT_MAX_EXAMPLE_CONTEXTS = 100_000
     DEFAULT_MAX_EVAL_SUMMARIES = 100_000
 
+    DEFAULT_SOURCES = [
+      "https://belt.prefab.cloud",
+      "https://suspenders.prefab.cloud",
+    ].freeze
+
     private def init(
+      sources: nil,
       api_key: ENV['PREFAB_API_KEY'],
       namespace: '',
-      prefab_api_url: ENV['PREFAB_API_URL'] || 'https://api.prefab.cloud',
+      prefab_api_url: nil,
       on_no_default: ON_NO_DEFAULT::RAISE, # options :raise, :warn_and_return_nil,
       initialization_timeout_sec: 10, # how long to wait before on_init_failure
       on_init_failure: ON_INITIALIZATION_FAILURE::RAISE,
@@ -63,7 +72,6 @@ module Prefab
     )
       @api_key = api_key
       @namespace = namespace
-      @prefab_api_url = remove_trailing_slash(prefab_api_url)
       @on_no_default = on_no_default
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
@@ -87,6 +95,25 @@ module Prefab
       @collect_max_shapes = 0
       @collect_example_contexts = false
       @collect_max_example_contexts = 0
+
+      if ENV['PREFAB_API_URL_OVERRIDE'] && ENV['PREFAB_API_URL_OVERRIDE'].length > 0
+        sources = ENV['PREFAB_API_URL_OVERRIDE']
+      end
+
+      @sources = Array(sources || DEFAULT_SOURCES).map {|source| remove_trailing_slash(source) }
+
+      @sse_sources = @sources
+      @config_sources = @sources
+
+      @telemetry_destination = @sources.select do |source|
+        source.start_with?('https://') && (source.include?("belt") || source.include?("suspenders"))
+      end.map do |source|
+        source.sub(/(belt|suspenders)\./, 'telemetry.')
+      end[0]
+
+      if prefab_api_url
+        warn '[DEPRECATION] prefab_api_url is deprecated. Please provide `sources` if you need to override the default sources'
+      end
 
       case context_upload_mode
       when :none
@@ -138,11 +165,6 @@ module Prefab
       return 0 unless telemetry_allowed?(@collect_evaluation_summaries)
 
       @collect_max_evaluation_summaries
-    end
-
-    # https://api.prefab.cloud -> https://api-prefab-cloud.global.ssl.fastly.net
-    def url_for_api_cdn
-      ENV['PREFAB_CDN_URL'] || "#{@prefab_api_url.gsub(/\./, '-')}.global.ssl.fastly.net"
     end
 
     def api_key_id

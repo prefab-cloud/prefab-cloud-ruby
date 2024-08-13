@@ -46,16 +46,22 @@ module Prefab
       pool.post do
         LOG.debug "Uploading context shapes for #{to_ship.values.size}"
 
-        shapes = PrefabProto::ContextShapes.new(
-          shapes: to_ship.map do |name, shape|
-            PrefabProto::ContextShape.new(
-              name: name,
-              field_types: shape
-            )
-          end
+        events = PrefabProto::TelemetryEvents.new(
+          instance_hash: instance_hash,
+          events: [
+            PrefabProto::TelemetryEvent.new(context_shapes:
+              PrefabProto::ContextShapes.new(
+                shapes: to_ship.map do |name, shape|
+                  PrefabProto::ContextShape.new(
+                    name: name,
+                    field_types: shape
+                  )
+                end
+              ))
+          ]
         )
 
-        result = post('/api/v1/context-shapes', shapes)
+        result = post('/api/v1/telemetry', events)
 
         LOG.debug "Uploaded #{to_ship.values.size} shapes: #{result.status}"
       end

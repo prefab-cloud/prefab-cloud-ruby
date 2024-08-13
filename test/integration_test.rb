@@ -20,6 +20,10 @@ class IntegrationTest
     @test_client = capture_telemetry(base_client)
   end
 
+  def teardown
+    test_client.stop
+  end
+
   def test_type
     if @data
       :telemetry
@@ -53,7 +57,11 @@ class IntegrationTest
   def parse_client_overrides(overrides)
     Hash[
       (overrides || {}).map do |(k, v)|
-        [k.to_sym, v]
+        if k.to_s == "prefab_api_url"
+          [:sources, [v]]
+        else
+          [k.to_sym, v]
+        end
       end
     ]
   end
@@ -127,17 +135,22 @@ class IntegrationTest
       prefab_envs: ['unit_tests'],
       prefab_datasources: Prefab::Options::DATASOURCES::ALL,
       api_key: ENV['PREFAB_INTEGRATION_TEST_API_KEY'],
-      prefab_api_url: 'https://api.staging-prefab.cloud',
+      sources: [
+        'https://belt.staging-prefab.cloud',
+        'https://suspenders.staging-prefab.cloud',
+      ],
       global_context: @global_context || {},
     }.merge(@client_overrides))
   end
 
   def capture_telemetry(client)
+    super_method = client.method(:post)
+
     client.define_singleton_method(:post) do |url, data|
       client.instance_variable_set(:@last_data_sent, data)
       client.instance_variable_set(:@last_post_endpoint, url)
 
-      result = super(url, data)
+      result = super_method.call(url, data)
 
       client.instance_variable_set(:@last_post_result, result)
 
