@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0 - 2024-08-22
+
+- Load config from belt and failover to suspenders (#195)
+
 ## 1.7.2 - 2024-06-24
 
 - Support JSON config values (#194)
