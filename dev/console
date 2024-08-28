@@ -17,5 +17,11 @@ spec.require_paths.each do |path|
   require "./lib/prefab-cloud-ruby"
 end
 
+SemanticLogger.add_appender(io: $stdout)
+
+if !ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL']
+  puts "run with PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL=debug (or trace) for more output"
+end
+
 # Start an IRB session
 IRB.start(__FILE__)

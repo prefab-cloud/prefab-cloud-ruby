@@ -37,7 +37,7 @@ module Prefab
 
             if closed_count > SECONDS_BETWEEN_RECONNECT
               closed_count = 0
-              connect(&load_configs)
+              @client = connect(&load_configs)
             end
           end
         end
@@ -58,9 +58,10 @@ module Prefab
         end
 
         client.on_error do |error|
-          LOG.error "SSE Streaming Error: #{error} for url #{url}"
+          LOG.error "SSE Streaming Error: #{error.inspect} for url #{url}"
 
           if error.is_a?(HTTP::ConnectionError)
+            LOG.debug "Closing SSE connection for url #{url}"
             client.close
           end
         end
