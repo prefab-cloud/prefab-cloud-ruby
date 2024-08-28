@@ -2,7 +2,8 @@ module Prefab
   class InternalLogger < SemanticLogger::Logger
 
     def initialize(klass)
-      super(klass, :warn)
+      default_level = ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'] ? ENV['PREFAB_LOG_CLIENT_BOOTSTRAP_LOG_LEVEL'].downcase.to_sym : :warn
+      super(klass, default_level)
       instances << self
     end
 
