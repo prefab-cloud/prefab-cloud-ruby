@@ -28,14 +28,7 @@ class TestConfigClientMigration < Minitest::Test
   def test_migration_value
     assert_equal 'fallback value', @config_client.get('exists in fallback')
     assert_equal 'fallback value', @config_client.get('exists in fallback', "unused default")
-    assert_equal nil, @config_client.get("doesn't exist in fallback")
-    assert_equal 'default value', @config_client.get("doesn't exist in fallback", "default value")
-  end
-  
-  def test_booleans
-    assert_equal 'fallback value', @config_client.get('exists in fallback')
-    assert_equal 'fallback value', @config_client.get('exists in fallback', "unused default")
-    assert_equal nil, @config_client.get("doesn't exist in fallback")
+    assert_nil @config_client.get("doesn't exist in fallback")
     assert_equal 'default value', @config_client.get("doesn't exist in fallback", "default value")
   end
 end
