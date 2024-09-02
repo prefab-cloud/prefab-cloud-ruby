@@ -107,6 +107,26 @@ on_worker_boot do
 end
 ```
 
+## Migrating to Prefab
+```ruby
+#config/application.rb
+LegacyFeatureFlagProvider.init
+Prefab.init(migration_fallback: (key, default=nil) -> LegacyFeatureFlagProvider.get(key, default))
+
+#controllers/application_controller.rb
+class ApplicationController < ActionController::Base
+  around_action do |_, block|
+    LegacyFeatureFlagProvider.set_context(context)
+    Prefab.with_context(context, &block)
+  end
+
+#models/my_model.rb
+# Prefab.get("key") will look in Prefab, if no key is found it will call the migration_fallback
++ Prefab.get("key") 
+- LegacyFeatureFlagProvider.get("key")
+```
+
+
 ## Contributing to prefab-cloud-ruby
 
 - Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet.
