@@ -9,7 +9,7 @@ gem 'uuid'
 
 gem 'activesupport', '>= 4'
 
-gem 'semantic_logger', require: "semantic_logger/sync"
+gem 'semantic_logger', '!= 4.16.0', require: "semantic_logger/sync"
 
 group :development do
   gem 'benchmark-ips'
