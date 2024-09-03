@@ -169,7 +169,7 @@ DEPENDENCIES
   minitest-focus
   minitest-reporters
   rdoc
-  semantic_logger
+  semantic_logger (!= 4.16.0)
   simplecov
   timecop
   uuid
