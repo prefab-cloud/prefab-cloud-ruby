@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.2 - 2024-09-03
+
+- Forbid bad semantic_logger version (#198)
+
 ## 1.8.1 - 2024-09-03
 
 - Fix SSE reconnection bug (#197)
