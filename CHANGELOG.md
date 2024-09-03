@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.1 - 2024-09-03
+
+- Fix SSE reconnection bug (#197)
+
 ## 1.8.0 - 2024-08-22
 
 - Load config from belt and failover to suspenders (#195)
