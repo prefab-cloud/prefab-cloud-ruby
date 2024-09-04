@@ -11,6 +11,14 @@ rescue Bundler::BundlerError => e
 end
 
 require 'rake'
+
+require 'rake/testtask'
+Rake::TestTask.new(:test) do |test|
+  test.libs << 'lib' << 'test'
+  test.pattern = 'test/**/test_*.rb'
+  test.verbose = true
+end
+
 task default: :test
 
 unless ENV['CI']
@@ -28,12 +36,6 @@ unless ENV['CI']
     # dependencies defined in Gemfile
   end
   Juwelier::RubygemsDotOrgTasks.new
-  require 'rake/testtask'
-  Rake::TestTask.new(:test) do |test|
-    test.libs << 'lib' << 'test'
-    test.pattern = 'test/**/test_*.rb'
-    test.verbose = true
-  end
 
   desc 'Code coverage detail'
   task :simplecov do

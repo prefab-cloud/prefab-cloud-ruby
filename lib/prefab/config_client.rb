@@ -46,9 +46,9 @@ module Prefab
         stream_lock = Concurrent::ReadWriteLock.new
         @sse_config_client = Prefab::SSEConfigClient.new(@options, @config_loader)
 
-        @sse_config_client.start do |configs|
+        @sse_config_client.start do |configs, _event, source|
           stream_lock.with_write_lock do
-            load_configs(configs, :sse)
+            load_configs(configs, source)
           end
         end
       end

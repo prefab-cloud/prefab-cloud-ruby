@@ -24,4 +24,5 @@ group :test do
   gem 'minitest-focus'
   gem 'minitest-reporters'
   gem 'timecop'
+  gem 'webrick'
 end
