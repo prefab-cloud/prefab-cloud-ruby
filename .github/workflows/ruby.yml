@@ -40,7 +40,7 @@ jobs:
     - name: Install dependencies
       run: bundle install --without development --jobs 4 --retry 3
     - name: Run tests
-      run: bundle exec rake
+      run: bundle exec rake --trace
       env:
         PREFAB_INTEGRATION_TEST_API_KEY: ${{ secrets.PREFAB_INTEGRATION_TEST_API_KEY }}
         PREFAB_INTEGRATION_TEST_ENCRYPTION_KEY: ${{ secrets.PREFAB_INTEGRATION_TEST_ENCRYPTION_KEY }}

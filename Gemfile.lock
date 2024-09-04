@@ -151,6 +151,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uuid (2.3.9)
       macaddr (~> 1.0)
+    webrick (1.8.1)
 
 PLATFORMS
   ruby
@@ -173,6 +174,7 @@ DEPENDENCIES
   simplecov
   timecop
   uuid
+  webrick
 
 BUNDLED WITH
    2.3.5
