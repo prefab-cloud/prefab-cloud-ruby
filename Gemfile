@@ -12,6 +12,7 @@ gem 'activesupport', '>= 4'
 gem 'semantic_logger', '!= 4.16.0', require: "semantic_logger/sync"
 
 group :development do
+  gem 'allocation_stats'
   gem 'benchmark-ips'
   gem 'bundler'
   gem 'juwelier', '~> 2.4.9'

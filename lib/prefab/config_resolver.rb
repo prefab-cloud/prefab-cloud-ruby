@@ -23,6 +23,10 @@ module Prefab
       Prefab::ResolvedConfigPresenter.new(self, @lock, @local_store)
     end
 
+    def keys
+      @local_store.keys
+    end
+
     def raw(key)
       @local_store.dig(key, :config)
     end
