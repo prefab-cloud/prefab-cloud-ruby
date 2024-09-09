@@ -78,6 +78,16 @@ module Prefab
     @singleton.is_ff?(key)
   end
 
+  def self.bootstrap_javascript(context)
+    ensure_initialized
+    Prefab::JavaScriptStub.new(@singleton).bootstrap(context)
+  end
+
+  def self.generate_javascript_stub(context)
+    ensure_initialized
+    Prefab::JavaScriptStub.new(@singleton).generate_stub(context)
+  end
+
   private
 
   def self.ensure_initialized(key = nil)

@@ -20,7 +20,7 @@ require 'prefab-cloud-ruby'
 
 $prefab = Prefab::Client.new(collect_logger_counts: false, collect_evaluation_summaries: false,
                              context_upload_mode: :none)
-$prefab.get('prefab.auth.allowed_origins')
+$prefab.get('a.live.integer')
 
 puts '-' * 80
 
@@ -50,11 +50,11 @@ def measure(description)
 end
 
 measure "no-JIT context (#{$runs} runs)" do
-  $prefab.get('prefab.auth.allowed_origins')
+  $prefab.get('a.live.integer')
 end
 
 puts "\n\n"
 
 measure "with JIT context (#{$runs} runs)" do
-  $prefab.get('prefab.auth.allowed_origins', { a: { b: "c" } })
+  $prefab.get('a.live.integer', { a: { b: "c" } })
 end

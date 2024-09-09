@@ -50,5 +50,9 @@ module Prefab
     def to_f
       in_seconds.to_f
     end
+
+    def as_json
+      { ms:  in_seconds * 1000, seconds: in_seconds }
+    end
   end
 end

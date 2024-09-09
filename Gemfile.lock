@@ -13,6 +13,7 @@ GEM
       tzinfo (~> 2.0)
     addressable (2.8.6)
       public_suffix (>= 2.0.2, < 6.0)
+    allocation_stats (0.1.5)
     ansi (1.5.0)
     base64 (0.2.0)
     benchmark-ips (2.13.0)
@@ -158,6 +159,7 @@ PLATFORMS
 
 DEPENDENCIES
   activesupport (>= 4)
+  allocation_stats
   benchmark-ips
   bundler
   concurrent-ruby (~> 1.0, >= 1.0.5)

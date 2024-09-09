@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
   s.required_rubygems_version = Gem::Requirement.new(">= 0".freeze) if s.respond_to? :required_rubygems_version=
   s.require_paths = ["lib".freeze]
   s.authors = ["Jeff Dwyer".freeze]
-  s.date = "2024-09-04"
+  s.date = "2024-09-09"
   s.description = "Feature Flags, Live Config, and Dynamic Log Levels as a service".freeze
   s.email = "jdwyer@prefab.cloud".freeze
   s.extra_rdoc_files = [
@@ -37,6 +37,7 @@ Gem::Specification.new do |s|
     "dev/allocation_stats",
     "dev/benchmark",
     "dev/console",
+    "dev/script_setup.rb",
     "lib/prefab-cloud-ruby.rb",
     "lib/prefab/client.rb",
     "lib/prefab/config_client.rb",
@@ -65,6 +66,7 @@ Gem::Specification.new do |s|
     "lib/prefab/feature_flag_client.rb",
     "lib/prefab/http_connection.rb",
     "lib/prefab/internal_logger.rb",
+    "lib/prefab/javascript_stub.rb",
     "lib/prefab/local_config_parser.rb",
     "lib/prefab/log_path_aggregator.rb",
     "lib/prefab/logger_client.rb",
