@@ -28,6 +28,34 @@ module Prefab
       unwrapped_value
     end
 
+    def js_value
+      case @config.value_type
+      when :STRING_LIST
+        { stringList: deepest_value.raw_config_value.string_list.values.to_a }
+      when :DURATION
+        value = Prefab::Duration.new(deepest_value.raw_config_value.duration.definition).as_json
+        { duration: value }
+      when :JSON
+        { json: deepest_value.raw_config_value.json.json }
+      else
+        deepest_value.raw_config_value
+      end
+    end
+
+    def to_js_payload
+      {
+        value: js_value,
+        configEvaluationMetadata: {
+          type: @config.config_type,
+          id: @config.id.to_s,
+          valueType: @config.value_type,
+          configRowIndex: @config_row_index,
+          conditionalValueIndex: @value_index,
+          weightedValueIndex: deepest_value.weighted_value_index
+        }.compact
+      }
+    end
+
     private
 
     def report(evaluation_summary_aggregator)

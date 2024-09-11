@@ -22,7 +22,7 @@ module Prefab
       configs, warnings = data(context)
       <<~JS
         window._prefabBootstrap = {
-          configs: #{JSON.dump(configs)},
+          evaluations: #{JSON.dump(configs)},
           context: #{JSON.dump(context)}
         }
         #{log_warnings(warnings)}
@@ -54,18 +54,6 @@ module Prefab
 
     private
 
-    def underlying_value(value)
-      v = Prefab::ConfigValueUnwrapper.new(value, @client.resolver).unwrap
-      case v
-      when Google::Protobuf::RepeatedField
-        v.to_a
-      when Prefab::Duration
-        v.as_json
-      else
-        v
-      end
-    end
-
     def log_warnings(warnings)
       return '' if warnings.empty?
 
@@ -84,7 +72,9 @@ module Prefab
           config = @client.resolver.raw(key)
 
           if config.config_type == :FEATURE_FLAG || config.send_to_client_sdk
-            permitted[key] = underlying_value(@client.resolver.get(key, context).value)
+            evaluation = @client.resolver.get(key, context)
+
+            permitted[key] = evaluation.to_js_payload
           end
         rescue StandardError => e
           LOG.warn("Could not resolve key #{key}: #{e}")
