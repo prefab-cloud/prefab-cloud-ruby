@@ -6,7 +6,7 @@ require 'webrick'
 class TestSSEConfigClient < Minitest::Test
   def test_client
     sources = [
-      'https://api.staging-prefab.cloud/'
+      'https://belt.staging-prefab.cloud/'
     ]
 
     options = Prefab::Options.new(sources: sources, api_key: ENV.fetch('PREFAB_INTEGRATION_TEST_API_KEY', nil))
@@ -16,6 +16,7 @@ class TestSSEConfigClient < Minitest::Test
     client = Prefab::SSEConfigClient.new(options, config_loader)
 
     assert_equal 4, client.headers['x-prefab-start-at-id']
+    assert_equal "https://stream.staging-prefab.cloud", client.source
 
     result = nil
 
