@@ -8,16 +8,6 @@ module Prefab
       @client = client || Prefab.instance
     end
 
-    # Generate the JavaScript snippet to bootstrap the client SDK. This will
-    # include the configuration values that are permitted to be sent to the
-    # client SDK.
-    #
-    # If the context provided to the client SDK is not the same as the context
-    # used to generate the configuration values, the client SDK will still
-    # generate a fetch to get the correct values for the context.
-    #
-    # Any keys that could not be resolved will be logged as a warning to the
-    # console.
     def bootstrap(context)
       configs, warnings = data(context)
       <<~JS
@@ -29,24 +19,20 @@ module Prefab
       JS
     end
 
-    # Generate the JavaScript snippet to *replace* the client SDK. Use this to
-    # get `prefab.get` and `prefab.isEnabled` functions on the window object.
-    #
-    # Only use this if you are not using the client SDK and do not need
-    # client-side context.
-    #
-    # Any keys that could not be resolved will be logged as a warning to the
-    # console.
-    def generate_stub(context)
+    def generate_stub(context, callback = nil)
       configs, warnings = data(context)
       <<~JS
         window.prefab = window.prefab || {};
         window.prefab.config = #{JSON.dump(configs)};
         window.prefab.get = function(key) {
-          return window.prefab.config[key];
+          var value = window.prefab.config[key];
+        #{callback && "  #{callback}(key, value);"}
+          return value;
         };
         window.prefab.isEnabled = function(key) {
-          return window.prefab.config[key] === true;
+          var value = window.prefab.config[key] === true;
+        #{callback && "  #{callback}(key, value);"}
+          return value;
         };
         #{log_warnings(warnings)}
       JS
@@ -70,7 +56,7 @@ module Prefab
       return '' if warnings.empty?
 
       <<~JS
-        console.warn('The following keys could not be resolved:', #{JSON.dump(@warnings)});
+        console.warn('The following keys could not be resolved:', #{JSON.dump(warnings)});
       JS
     end
 
@@ -83,7 +69,7 @@ module Prefab
         begin
           config = @client.resolver.raw(key)
 
-          if config.config_type == :FEATURE_FLAG || config.send_to_client_sdk
+          if config.config_type == :FEATURE_FLAG || config.send_to_client_sdk || config.config_type == :LOG_LEVEL
             permitted[key] = underlying_value(@client.resolver.get(key, context).value)
           end
         rescue StandardError => e

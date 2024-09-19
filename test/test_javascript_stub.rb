@@ -87,7 +87,7 @@ class JavascriptStubTest < Minitest::Test
 
     assert_equal %(
 window._prefabBootstrap = {
-  configs: {"basic-config":"default_value","feature-flag":false},
+  configs: {"log-level":"INFO","basic-config":"default_value","feature-flag":false},
   context: {}
 }
     ).strip, result.strip
@@ -96,7 +96,7 @@ window._prefabBootstrap = {
 
     assert_equal %(
 window._prefabBootstrap = {
-  configs: {"basic-config":"default_value","feature-flag":true},
+  configs: {"log-level":"INFO","basic-config":"default_value","feature-flag":true},
   context: {"user":{"email":"gmail.com"}}
 }
     ).strip, result.strip
@@ -107,25 +107,33 @@ window._prefabBootstrap = {
 
     assert_equal %(
 window.prefab = window.prefab || {};
-window.prefab.config = {"basic-config":"default_value","feature-flag":false};
+window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":false};
 window.prefab.get = function(key) {
-  return window.prefab.config[key];
+  var value = window.prefab.config[key];
+
+  return value;
 };
 window.prefab.isEnabled = function(key) {
-  return window.prefab.config[key] === true;
+  var value = window.prefab.config[key] === true;
+
+  return value;
 };
     ).strip, result.strip
 
-    result = Prefab::JavaScriptStub.new(@client).generate_stub({ user: { email: 'gmail.com' } })
+    result = Prefab::JavaScriptStub.new(@client).generate_stub({ user: { email: 'gmail.com' } }, "myEvalCallback")
 
     assert_equal %(
 window.prefab = window.prefab || {};
-window.prefab.config = {"basic-config":"default_value","feature-flag":true};
+window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":true};
 window.prefab.get = function(key) {
-  return window.prefab.config[key];
+  var value = window.prefab.config[key];
+  myEvalCallback(key, value);
+  return value;
 };
 window.prefab.isEnabled = function(key) {
-  return window.prefab.config[key] === true;
+  var value = window.prefab.config[key] === true;
+  myEvalCallback(key, value);
+  return value;
 };
 
     ).strip, result.strip
