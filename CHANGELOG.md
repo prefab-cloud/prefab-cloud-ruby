@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.4 - 2024-09-19
+
+- Use `stream` subdomain for SSE (#203)
+
 ## 1.8.3 - 2024-09-16
 
 - Add JavaScript stub & bootstrapping (#200)
