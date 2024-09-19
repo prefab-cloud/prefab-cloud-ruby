@@ -78,14 +78,40 @@ module Prefab
     @singleton.is_ff?(key)
   end
 
+  # Generate the JavaScript snippet to bootstrap the client SDK. This will
+  # include the configuration values that are permitted to be sent to the
+  # client SDK.
+  #
+  # If the context provided to the client SDK is not the same as the context
+  # used to generate the configuration values, the client SDK will still
+  # generate a fetch to get the correct values for the context.
+  #
+  # Any keys that could not be resolved will be logged as a warning to the
+  # console.
   def self.bootstrap_javascript(context)
     ensure_initialized
     Prefab::JavaScriptStub.new(@singleton).bootstrap(context)
   end
 
-  def self.generate_javascript_stub(context)
+  # Generate the JavaScript snippet to *replace* the client SDK. Use this to
+  # get `prefab.get` and `prefab.isEnabled` functions on the window object.
+  #
+  # Only use this if you are not using the client SDK and do not need
+  # client-side context.
+  #
+  # Any keys that could not be resolved will be logged as a warning to the
+  # console.
+  #
+  # You can pass an optional callback function to be called with the key and
+  # value of each configuration value. This can be useful for logging,
+  # tracking experiment exposure, etc.
+  #
+  # e.g.
+  # - `Prefab.generate_javascript_stub(context, "reportExperimentExposure")`
+  # - `Prefab.generate_javascript_stub(context, "(key,value)=>{console.log({eval: 'eval', key,value})}")`
+  def self.generate_javascript_stub(context, callback = nil)
     ensure_initialized
-    Prefab::JavaScriptStub.new(@singleton).generate_stub(context)
+    Prefab::JavaScriptStub.new(@singleton).generate_stub(context, callback)
   end
 
   private
