@@ -106,7 +106,7 @@ module Prefab
         @source_index = 0
       end
 
-      return @prefab_options.sse_sources[@source_index]
+      return @prefab_options.sse_sources[@source_index].sub(/(belt|suspenders)\./, 'stream.')
     end
   end
 end
