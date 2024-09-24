@@ -3,16 +3,17 @@
 module Prefab
   class JavaScriptStub
     LOG = Prefab::InternalLogger.new(self)
+    CAMELS = {}
 
     def initialize(client = nil)
       @client = client || Prefab.instance
     end
 
     def bootstrap(context)
-      configs, warnings = data(context)
+      configs, warnings = data(context, :bootstrap)
       <<~JS
         window._prefabBootstrap = {
-          configs: #{JSON.dump(configs)},
+          evaluations: #{JSON.dump(configs)},
           context: #{JSON.dump(context)}
         }
         #{log_warnings(warnings)}
@@ -20,7 +21,7 @@ module Prefab
     end
 
     def generate_stub(context, callback = nil)
-      configs, warnings = data(context)
+      configs, warnings = data(context, :stub)
       <<~JS
         window.prefab = window.prefab || {};
         window.prefab.config = #{JSON.dump(configs)};
@@ -41,7 +42,7 @@ module Prefab
     private
 
     def underlying_value(value)
-      v = Prefab::ConfigValueUnwrapper.new(value, @client.resolver).unwrap
+      v = Prefab::ConfigValueUnwrapper.new(value, @client.resolver).unwrap(raw_json: true)
       case v
       when Google::Protobuf::RepeatedField
         v.to_a
@@ -60,7 +61,7 @@ module Prefab
       JS
     end
 
-    def data(context)
+    def data(context, mode)
       permitted = {}
       warnings = []
       resolver_keys = @client.resolver.keys
@@ -70,7 +71,12 @@ module Prefab
           config = @client.resolver.raw(key)
 
           if config.config_type == :FEATURE_FLAG || config.send_to_client_sdk || config.config_type == :LOG_LEVEL
-            permitted[key] = underlying_value(@client.resolver.get(key, context).value)
+            value = @client.resolver.get(key, context).value
+            if mode == :bootstrap
+              permitted[key] = { value: { to_camel_case(value.type) => underlying_value(value) } }
+            else
+              permitted[key] = underlying_value(value)
+            end
           end
         rescue StandardError => e
           LOG.warn("Could not resolve key #{key}: #{e}")
@@ -80,6 +86,14 @@ module Prefab
       end
 
       [permitted, warnings]
+    end
+
+    def to_camel_case(str)
+      CAMELS[str] ||= begin
+        str.to_s.split('_').map.with_index { |word, index|
+          index == 0 ? word : word.capitalize
+        }.join
+      end
     end
   end
 end

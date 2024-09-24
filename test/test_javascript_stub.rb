@@ -48,6 +48,34 @@ class JavascriptStubTest < Minitest::Test
       rows: [DEFAULT_ROW]
     )
 
+    json_config = PrefabProto::Config.new(
+      id: 234,
+      key: 'json-config',
+      config_type: PrefabProto::ConfigType::CONFIG,
+      send_to_client_sdk: true,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(value: PrefabProto::ConfigValue.new(json: PrefabProto::Json.new(json: '{"key":"value"}')))
+          ]
+        )
+      ]
+    )
+
+    duration_config = PrefabProto::Config.new(
+      id: 236,
+      key: 'duration-config',
+      config_type: PrefabProto::ConfigType::CONFIG,
+      send_to_client_sdk: true,
+      rows: [
+        PrefabProto::ConfigRow.new(
+          values: [
+            PrefabProto::ConditionalValue.new(value: PrefabProto::ConfigValue.new(duration: PrefabProto::IsoDuration.new(definition: "P4DT12H30M5S")))
+          ]
+        )
+      ]
+    )
+
     ff = PrefabProto::Config.new(
       id: 456,
       key: 'feature-flag',
@@ -72,7 +100,7 @@ class JavascriptStubTest < Minitest::Test
     )
 
     @client = new_client(
-      config: [log_level, config_for_sdk, config_not_for_sdk, ff],
+      config: [log_level, config_for_sdk, config_not_for_sdk, ff, json_config, duration_config],
       project_env_id: PROJECT_ENV_ID,
       collect_evaluation_summaries: true,
       prefab_config_override_dir: '/tmp',
@@ -85,20 +113,29 @@ class JavascriptStubTest < Minitest::Test
   def test_bootstrap
     result = Prefab::JavaScriptStub.new(@client).bootstrap({})
 
+
+    File.open('/tmp/prefab_config.json', 'w') do |f|
+      f.write(result)
+    end
     assert_equal %(
 window._prefabBootstrap = {
-  configs: {"log-level":"INFO","basic-config":"default_value","feature-flag":false},
+  evaluations: {"log-level":{"value":{"logLevel":"INFO"}},"basic-config":{"value":{"string":"default_value"}},"feature-flag":{"value":{"bool":false}},"json-config":{"value":{"json":"{\\"key\\":\\"value\\"}"}},"duration-config":{"value":{"duration":{"ms":390605000.0,"seconds":390605.0}}}},
   context: {}
 }
     ).strip, result.strip
 
     result = Prefab::JavaScriptStub.new(@client).bootstrap({ user: { email: 'gmail.com' } })
 
+    File.open('/tmp/prefab_config.json', 'w') do |f|
+      f.write(result)
+    end
+
     assert_equal %(
 window._prefabBootstrap = {
-  configs: {"log-level":"INFO","basic-config":"default_value","feature-flag":true},
+  evaluations: {"log-level":{"value":{"logLevel":"INFO"}},"basic-config":{"value":{"string":"default_value"}},"feature-flag":{"value":{"bool":true}},"json-config":{"value":{"json":"{\\"key\\":\\"value\\"}"}},"duration-config":{"value":{"duration":{"ms":390605000.0,"seconds":390605.0}}}},
   context: {"user":{"email":"gmail.com"}}
 }
+
     ).strip, result.strip
   end
 
@@ -107,7 +144,7 @@ window._prefabBootstrap = {
 
     assert_equal %(
 window.prefab = window.prefab || {};
-window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":false};
+window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":false,"json-config":"{\\"key\\":\\"value\\"}","duration-config":{"ms":390605000.0,"seconds":390605.0}};
 window.prefab.get = function(key) {
   var value = window.prefab.config[key];
 
@@ -120,11 +157,11 @@ window.prefab.isEnabled = function(key) {
 };
     ).strip, result.strip
 
-    result = Prefab::JavaScriptStub.new(@client).generate_stub({ user: { email: 'gmail.com' } }, "myEvalCallback")
+    result = Prefab::JavaScriptStub.new(@client).generate_stub({ user: { email: 'gmail.com' } }, 'myEvalCallback')
 
     assert_equal %(
 window.prefab = window.prefab || {};
-window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":true};
+window.prefab.config = {"log-level":"INFO","basic-config":"default_value","feature-flag":true,"json-config":"{\\"key\\":\\"value\\"}","duration-config":{"ms":390605000.0,"seconds":390605.0}};
 window.prefab.get = function(key) {
   var value = window.prefab.config[key];
   myEvalCallback(key, value);
