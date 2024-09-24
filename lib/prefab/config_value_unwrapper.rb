@@ -30,7 +30,7 @@ module Prefab
     end
 
     # this will return the actual value of confidential, use reportable_value unless you need it
-    def unwrap
+    def unwrap(raw_json: false)
       raw = case @config_value.type
             when :int, :string, :double, :bool, :log_level
               @config_value.public_send(@config_value.type)
@@ -39,7 +39,11 @@ module Prefab
             when :duration
               Prefab::Duration.new(@config_value.duration.definition)
             when :json
-              JSON.parse(@config_value.json.json)
+              if raw_json
+                @config_value.json.json
+              else
+                JSON.parse(@config_value.json.json)
+              end
             else
               LOG.error "Unknown type: #{@config_value.type}"
               raise "Unknown type: #{@config_value.type}"
