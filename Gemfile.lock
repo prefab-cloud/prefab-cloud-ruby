@@ -62,7 +62,7 @@ GEM
       faraday (>= 0.8, < 2)
       hashie (~> 3.5, >= 3.5.2)
       oauth2 (~> 1.0)
-    google-protobuf (3.25.3)
+    google-protobuf (3.25.5)
     googleapis-common-protos-types (1.14.0)
       google-protobuf (~> 3.18)
     hashie (3.6.0)
@@ -152,7 +152,7 @@ GEM
       concurrent-ruby (~> 1.0)
     uuid (2.3.9)
       macaddr (~> 1.0)
-    webrick (1.8.1)
+    webrick (1.8.2)
 
 PLATFORMS
   ruby
