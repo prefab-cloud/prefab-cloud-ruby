@@ -66,6 +66,7 @@ module Prefab
       collect_evaluation_summaries: true,
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false,
+      datafile: ENV['PREFAB_DATAFILE'],
       x_datafile: ENV['PREFAB_DATAFILE'],
       x_use_local_cache: false,
       global_context: {}
@@ -76,7 +77,13 @@ module Prefab
       @initialization_timeout_sec = initialization_timeout_sec
       @on_init_failure = on_init_failure
       @prefab_datasources = prefab_datasources
-      @datafile = x_datafile
+
+      @datafile = datafile || x_datafile
+
+      if !x_datafile.nil?
+        warn '[DEPRECATION] x_datafile is deprecated. Please provide `datafile` instead'
+      end
+
       @prefab_config_classpath_dir = prefab_config_classpath_dir
       @prefab_config_override_dir = prefab_config_override_dir
       @prefab_envs = Array(prefab_envs)

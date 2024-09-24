@@ -1,0 +1,87 @@
+{
+  "configs": [
+    {
+      "id": "16825372746571694",
+      "projectId": "202",
+      "key": "log-level",
+      "changedBy": {
+        "email": "jeffrey.chupp@prefab.cloud"
+      },
+      "configType": "DELETED"
+    },
+    {
+      "id": "17271108409487302",
+      "projectId": "202",
+      "key": "flag.list.environments",
+      "changedBy": {
+        "email": "jeffrey.chupp@prefab.cloud"
+      },
+      "rows": [
+        {
+          "projectEnvId": "308",
+          "values": [
+            {
+              "criteria": [
+                {
+                  "propertyName": "user.key",
+                  "operator": "PROP_IS_ONE_OF",
+                  "valueToMatch": {
+                    "stringList": {
+                      "values": [
+                        "5905ecd1-9bbf-4711-a663-4f713628a78c"
+                      ]
+                    }
+                  }
+                }
+              ],
+              "value": {
+                "bool": true
+              }
+            },
+            {
+              "value": {
+                "bool": true
+              }
+            }
+          ]
+        }
+      ],
+      "allowableValues": [
+        {
+          "bool": false
+        },
+        {
+          "bool": true
+        }
+      ],
+      "configType": "FEATURE_FLAG",
+      "valueType": "BOOL"
+    },
+    {
+      "id": "17271831941669987",
+      "projectId": "202",
+      "key": "my.test.string",
+      "changedBy": {
+        "userId": "3",
+        "apiKeyId": "481"
+      },
+      "rows": [
+        {
+          "values": [
+            {
+              "value": {
+                "string": "hello world"
+              }
+            }
+          ]
+        }
+      ],
+      "configType": "CONFIG",
+      "valueType": "STRING"
+    }
+  ],
+  "configServicePointer": {
+    "projectId": "202",
+    "projectEnvId": "308"
+  }
+}
