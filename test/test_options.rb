@@ -85,4 +85,9 @@ class TestOptions < Minitest::Test
     options = Prefab::Options.new(context_upload_mode: :none)
     assert_equal 0, options.collect_max_shapes
   end
+
+  def test_loading_a_datafile
+    options = Prefab::Options.new(datafile: "#{Dir.pwd}/test/fixtures/datafile.json")
+    assert_equal "#{Dir.pwd}/test/fixtures/datafile.json", options.datafile
+  end
 end

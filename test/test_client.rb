@@ -427,6 +427,14 @@ class TestClient < Minitest::Test
     refute client.is_ff?('does_not_exist')
   end
 
+  def test_with_datafile
+    datafile = "#{Dir.pwd}/test/fixtures/datafile.json"
+    client = new_client(datafile: datafile, prefab_datasources: :all)
+
+    assert client.get('flag.list.environments')
+    assert_equal "hello world", client.get('my.test.string')
+  end
+
   private
 
   def basic_value_config
