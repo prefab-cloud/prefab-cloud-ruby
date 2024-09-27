@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.5 - 2024-09-27
+
+- Fix JS bootstrapping and improve performance (#206)
+- Promote `datafile` from `x_datafile` (#205)
+
 ## 1.8.4 - 2024-09-19
 
 - Use `stream` subdomain for SSE (#203)
