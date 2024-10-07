@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.6 - 2024-10-07
+
+- Fix deprecation warning caused by x_datafile being set by default (#208)
+
 ## 1.8.5 - 2024-09-27
 
 - Fix JS bootstrapping and improve performance (#206)
