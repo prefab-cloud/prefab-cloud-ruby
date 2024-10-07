@@ -67,7 +67,7 @@ module Prefab
       collect_max_evaluation_summaries: DEFAULT_MAX_EVAL_SUMMARIES,
       allow_telemetry_in_local_mode: false,
       datafile: ENV['PREFAB_DATAFILE'],
-      x_datafile: ENV['PREFAB_DATAFILE'],
+      x_datafile: nil, # DEPRECATED in favor of `datafile`
       x_use_local_cache: false,
       global_context: {}
     )
