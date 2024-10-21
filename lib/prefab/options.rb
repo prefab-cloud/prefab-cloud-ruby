@@ -20,6 +20,7 @@ module Prefab
     attr_reader :datafile
     attr_reader :global_context
     attr_accessor :is_fork
+    attr_reader :migration_fallback
 
     module ON_INITIALIZATION_FAILURE
       RAISE = :raise
@@ -69,7 +70,8 @@ module Prefab
       datafile: ENV['PREFAB_DATAFILE'],
       x_datafile: nil, # DEPRECATED in favor of `datafile`
       x_use_local_cache: false,
-      global_context: {}
+      global_context: {},
+      migration_fallback: nil
     )
       @api_key = api_key
       @namespace = namespace
@@ -111,6 +113,7 @@ module Prefab
 
       @sse_sources = @sources
       @config_sources = @sources
+      @migration_fallback = Prefab::MigrationFallback.new(migration_fallback)
 
       @telemetry_destination = @sources.select do |source|
         source.start_with?('https://') && (source.include?("belt") || source.include?("suspenders"))

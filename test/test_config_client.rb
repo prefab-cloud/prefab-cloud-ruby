@@ -105,4 +105,13 @@ class TestConfigClient < Minitest::Test
     end
   end
 
+  def test_migration_fallback
+    options = Prefab::Options.new(
+      migration_fallback: ->(key, context, default) { "fallback value" },
+      prefab_datasources: Prefab::Options::DATASOURCES::LOCAL_ONLY,
+    )
+
+    config_client = Prefab::ConfigClient.new(MockBaseClient.new(options), 10)
+    assert_equal "fallback value", config_client.get('anything')
+  end
 end
