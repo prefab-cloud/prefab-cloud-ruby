@@ -81,7 +81,7 @@ module Prefab
       if evaluation
         evaluation.report_and_return(@base_client.evaluation_summary_aggregator)
       else
-        handle_default(key, default)
+        handle_default(key, context, default)
       end
     end
 
@@ -95,7 +95,12 @@ module Prefab
       @config_resolver.raw(key)
     end
 
-    def handle_default(key, default)
+    def handle_default(key, context, default)
+      if @options.migration_fallback
+
+        return @options.migration_fallback.get(key, context, default)
+      end
+
       return default if default != NO_DEFAULT_PROVIDED
 
       raise Prefab::Errors::MissingDefaultError, key if @options.on_no_default == Prefab::Options::ON_NO_DEFAULT::RAISE
