@@ -19,6 +19,7 @@ module Prefab
     attr_reader :use_local_cache
     attr_reader :datafile
     attr_reader :global_context
+    attr_reader :migration_fallback # Add migration attribute reader
     attr_accessor :is_fork
 
     module ON_INITIALIZATION_FAILURE
@@ -69,7 +70,8 @@ module Prefab
       datafile: ENV['PREFAB_DATAFILE'],
       x_datafile: nil, # DEPRECATED in favor of `datafile`
       x_use_local_cache: false,
-      global_context: {}
+      global_context: {},
+      migration_fallback: nil # Add migration parameter with default value
     )
       @api_key = api_key
       @namespace = namespace
@@ -96,6 +98,7 @@ module Prefab
       @use_local_cache = x_use_local_cache
       @is_fork = false
       @global_context = global_context
+      @migration_fallback = migration_fallback # Initialize migration attribute
 
       # defaults that may be overridden by context_upload_mode
       @collect_shapes = false
