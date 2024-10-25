@@ -41,7 +41,7 @@ module Prefab
             when :json
               if raw_json
                 @config_value.json.json
-              else                
+              else
                 JSON.parse(@config_value.json.json, symbolize_names: @resolver.symbolize_json_names?)
               end
             else

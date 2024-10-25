@@ -65,12 +65,10 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal 390605 ,unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_seconds
   end
 
-  def test_unwrapping_json
-    
+  def test_unwrapping_json    
     json = PrefabProto::Json.new(json: '{"a": 1, "b": "c"}')
     config_value = PrefabProto::ConfigValue.new(json: json)
-    assert_equal({"a" => 1, "b" => "c"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))
-    
+    assert_equal({"a" => 1, "b" => "c"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))    
   end
   
   def test_unwrapping_json_with_symbolize_json_names_true
