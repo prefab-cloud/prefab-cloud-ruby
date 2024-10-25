@@ -20,6 +20,7 @@ module Prefab
     attr_reader :datafile
     attr_reader :global_context
     attr_accessor :is_fork
+    attr_reader :symbolize_json_names
 
     module ON_INITIALIZATION_FAILURE
       RAISE = :raise
@@ -69,6 +70,7 @@ module Prefab
       datafile: ENV['PREFAB_DATAFILE'],
       x_datafile: nil, # DEPRECATED in favor of `datafile`
       x_use_local_cache: false,
+      symbolize_json_names: false,
       global_context: {}
     )
       @api_key = api_key
@@ -96,6 +98,7 @@ module Prefab
       @use_local_cache = x_use_local_cache
       @is_fork = false
       @global_context = global_context
+      @symbolize_json_names = symbolize_json_names
 
       # defaults that may be overridden by context_upload_mode
       @collect_shapes = false

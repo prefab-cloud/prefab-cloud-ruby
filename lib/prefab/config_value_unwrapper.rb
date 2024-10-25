@@ -41,8 +41,8 @@ module Prefab
             when :json
               if raw_json
                 @config_value.json.json
-              else
-                JSON.parse(@config_value.json.json)
+              else                
+                JSON.parse(@config_value.json.json, symbolize_names: @resolver.symbolize_json_names?)
               end
             else
               LOG.error "Unknown type: #{@config_value.type}"
