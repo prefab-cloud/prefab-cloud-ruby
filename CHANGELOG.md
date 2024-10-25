@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.7 - 2024-10-25
+
+- Add option symbolize_json_names (#211)
+
+
 ## 1.8.6 - 2024-10-07
 
 - Fix deprecation warning caused by x_datafile being set by default (#208)
