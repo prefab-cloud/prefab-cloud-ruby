@@ -69,6 +69,10 @@ module Prefab
       end
     end
 
+    def symbolize_json_names?
+      @base_client.options.symbolize_json_names
+    end
+
     private
 
     def make_local

@@ -65,10 +65,25 @@ class TestConfigValueUnwrapper < Minitest::Test
     assert_equal 390605 ,unwrap(config_value, CONFIG, EMPTY_CONTEXT).in_seconds
   end
 
-  def test_unwrapping_json
+  def test_unwrapping_json    
     json = PrefabProto::Json.new(json: '{"a": 1, "b": "c"}')
     config_value = PrefabProto::ConfigValue.new(json: json)
-    assert_equal({"a" => 1, "b" => "c"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))
+    assert_equal({"a" => 1, "b" => "c"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))    
+  end
+  
+  def test_unwrapping_json_with_symbolize_json_names_true
+    @mock_resolver = MockResolver.new(symbolize_json_names: true)
+    json = PrefabProto::Json.new(json: '{"a": 1, "b": "c"}')
+    config_value = PrefabProto::ConfigValue.new(json: json)
+    assert_equal({:a => 1, :b => "c"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))
+
+    json = PrefabProto::Json.new(json: '{"foo": { "bar": "baz"}, "cow": "moo"}')
+    config_value = PrefabProto::ConfigValue.new(json: json)
+    assert_equal({:foo=>{:bar=>"baz"}, :cow=>"moo"}, unwrap(config_value, CONFIG, EMPTY_CONTEXT))
+
+    json = PrefabProto::Json.new(json: '[{"foo": { "bar": "baz"}}, {"cow": "moo"}]')
+    config_value = PrefabProto::ConfigValue.new(json: json)
+    assert_equal([{:foo=>{:bar=>"baz"}}, {:cow=>"moo"}], unwrap(config_value, CONFIG, EMPTY_CONTEXT))
   end
 
   def test_unwrapping_weighted_values
@@ -228,6 +243,15 @@ class TestConfigValueUnwrapper < Minitest::Test
   end
 
   class MockResolver
+
+    def initialize(symbolize_json_names: false)
+      @symbolize_json_names = symbolize_json_names
+    end
+
+    def symbolize_json_names?
+      @symbolize_json_names
+    end
+
     def get(key)
       if DECRYPTION_KEY_NAME == key
         Prefab::Evaluation.new(config: PrefabProto::Config.new(key: key),
