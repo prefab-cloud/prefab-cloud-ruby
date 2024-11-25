@@ -64,6 +64,22 @@ module Prefab
       !PROP_ENDS_WITH_ONE_OF(criterion, properties)
     end
 
+    def PROP_STARTS_WITH_ONE_OF(criterion, properties)
+      prop_starts_with_one_of?(criterion, value_from_properties(criterion, properties))
+    end
+
+    def PROP_DOES_NOT_START_WITH_ONE_OF(criterion, properties)
+      !PROP_STARTS_WITH_ONE_OF(criterion, properties)
+    end
+
+    def PROP_CONTAINS_ONE_OF(criterion, properties)
+      prop_contains_one_of?(criterion, value_from_properties(criterion, properties))
+    end
+
+    def PROP_DOES_NOT_CONTAIN_ONE_OF(criterion, properties)
+      !PROP_CONTAINS_ONE_OF(criterion, properties)
+    end
+
     def HIERARCHICAL_MATCH(criterion, properties)
       value = value_from_properties(criterion, properties)
       value&.start_with?(criterion.value_to_match.string)
@@ -133,6 +149,22 @@ module Prefab
 
       criterion.value_to_match.string_list.values.any? do |ending|
         value.end_with?(ending)
+      end
+    end
+
+    def prop_starts_with_one_of?(criterion, value)
+      return false unless value
+
+      criterion.value_to_match.string_list.values.any? do |beginning|
+        value.start_with?(beginning)
+      end
+    end
+
+    def prop_contains_one_of?(criterion, value)
+      return false unless value
+
+      criterion.value_to_match.string_list.values.any? do |substring|
+        value.include?(substring)
       end
     end
   end
