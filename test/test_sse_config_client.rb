@@ -2,6 +2,7 @@
 
 require 'test_helper'
 require 'webrick'
+require 'ostruct'
 
 class TestSSEConfigClient < Minitest::Test
   def test_client
