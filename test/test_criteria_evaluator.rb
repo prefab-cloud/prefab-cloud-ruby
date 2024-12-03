@@ -238,6 +238,131 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { email: 'example@hotmail.com' })).unwrapped_value
   end
 
+  def test_prop_starts_with_one_of
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_STARTS_WITH_ONE_OF,
+                  value_to_match: string_list(['one', 'two']),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'three dogs' })).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'one tree' })).unwrapped_value
+  end
+
+  def test_prop_does_not_start_with_one_of
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_DOES_NOT_START_WITH_ONE_OF,
+                  value_to_match: string_list(['one', 'two']),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'three dogs' })).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'one tree' })).unwrapped_value
+  end
+
+
+  def test_prop_contains_one_of
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_CONTAINS_ONE_OF,
+                  value_to_match: string_list(['one', 'two']),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'three dogs' })).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'see one tree' })).unwrapped_value
+  end
+
+  def test_prop_does_not_contain_one_of
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_DOES_NOT_CONTAIN_ONE_OF,
+                  value_to_match: string_list(['one', 'two']),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'three dogs' })).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'see one tree' })).unwrapped_value
+  end
+
   def test_in_seg
     segment_key = 'segment_key'
 
