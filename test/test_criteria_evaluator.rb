@@ -937,6 +937,62 @@ class TestCriteriaEvaluator < Minitest::Test
 
   end
 
+  def test_less_than_works
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_LESS_THAN, property_name: 'user.age', value_to_match: 10)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
+  end
+
+  def test_less_or_equal_to_works
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_LESS_THAN_OR_EQUAL, property_name: 'user.age', value_to_match: 10)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
+  end
+
+
+  def test_greater_than_works
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_GREATER_THAN, property_name: 'user.age', value_to_match: 10)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 12})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
+  end
+
+  def test_greater_than_or_equal_to_works
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_GREATER_THAN_OR_EQUAL, property_name: 'user.age', value_to_match: 10)
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 12})).unwrapped_value
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
+  end
+
   private
 
   def silence_stderr
@@ -979,6 +1035,57 @@ class TestCriteriaEvaluator < Minitest::Test
 
     def instance_hash
       'fake-base-client-instance_hash'
+    end
+  end
+
+
+  def create_prefab_config(
+    key: KEY,
+    project_env_id: PROJECT_ENV_ID,
+    operator:,
+    value_to_match:,
+    property_name:,
+    desired_value_config: DESIRED_VALUE_CONFIG
+  )
+    PrefabProto::Config.new(
+      key: key,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: project_env_id,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: operator,
+                  value_to_match: build_config_value(value_to_match),
+                  property_name: property_name
+                )
+              ],
+              value: desired_value_config
+            )
+          ]
+        )
+      ]
+    )
+  end
+
+  def build_config_value(value)
+    case value
+    when Integer
+      PrefabProto::ConfigValue.new(int: value)
+    when Float
+      PrefabProto::ConfigValue.new(double: value)
+    when String
+      PrefabProto::ConfigValue.new(string: value)
+    when Array
+      if value.all? { |v| v.is_a?(String) }
+        PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: value))
+      else
+        raise ArgumentError, "Unsupported array type: Only arrays of strings are supported."
+      end
+    else
+      raise ArgumentError, "Unsupported value type: #{value.class}"
     end
   end
 end
