@@ -194,11 +194,29 @@ module Prefab
         return MatchResult.error unless regex_definition.is_a?(String)
 
         value = value_from_properties(criterion, properties)
-        matches = Regexp.new("^#{regex_definition}$").match?(value.to_s)
+
+        regex = compile_regex_safely(ensure_anchored_regex(regex_definition))
+        return MatchResult.error unless regex
+
+        matches = regex.match?(value.to_s)
         matches ? MatchResult.matched : MatchResult.not_matched
       rescue RegexpError
         MatchResult.error
       end
+    end
+
+    def compile_regex_safely(pattern)
+      begin
+        Regexp.new(pattern)
+      rescue RegexpError
+        nil
+      end
+    end
+
+    def ensure_anchored_regex(pattern)
+      return pattern if pattern.start_with?("^") && pattern.end_with?("$")
+
+      "^#{pattern}$"
     end
 
     class MatchResult
