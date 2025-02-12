@@ -21,7 +21,7 @@ module Prefab
 
     def evaluate(properties)
       rtn = evaluate_for_env(@project_env_id, properties) ||
-            evaluate_for_env(0, properties)
+        evaluate_for_env(0, properties)
       LOG.trace {
         "Eval Key #{@config.key} Result #{rtn&.reportable_value} with #{properties.to_h}"
       } unless @config.config_type == :LOG_LEVEL
@@ -95,6 +95,24 @@ module Prefab
       value && value >= criterion.value_to_match.int_range.start && value < criterion.value_to_match.int_range.end
     end
 
+    def PROP_MATCHES(criterion, properties)
+      result = check_regex_match(criterion, properties)
+      if result.error
+        false
+      else
+        result.matched
+      end
+    end
+
+    def PROP_DOES_NOT_MATCH(criterion, properties)
+      result = check_regex_match(criterion, properties)
+      if result.error
+        false
+      else
+        !result.matched
+      end
+    end
+
     def value_from_properties(criterion, properties)
       criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
@@ -165,6 +183,60 @@ module Prefab
 
       criterion.value_to_match.string_list.values.any? do |substring|
         value.include?(substring)
+      end
+    end
+
+    def check_regex_match(criterion, properties)
+      begin
+        regex_definition = Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config.key,
+                                                                      properties, @resolver).unwrap
+
+        return MatchResult.error unless regex_definition.is_a?(String)
+
+        value = value_from_properties(criterion, properties)
+
+        regex = compile_regex_safely(ensure_anchored_regex(regex_definition))
+        return MatchResult.error unless regex
+
+        matches = regex.match?(value.to_s)
+        matches ? MatchResult.matched : MatchResult.not_matched
+      rescue RegexpError
+        MatchResult.error
+      end
+    end
+
+    def compile_regex_safely(pattern)
+      begin
+        Regexp.new(pattern)
+      rescue RegexpError
+        nil
+      end
+    end
+
+    def ensure_anchored_regex(pattern)
+      return pattern if pattern.start_with?("^") && pattern.end_with?("$")
+
+      "^#{pattern}$"
+    end
+
+    class MatchResult
+      attr_reader :matched, :error
+
+      def self.matched
+        new(matched: true)
+      end
+
+      def self.not_matched
+        new(matched: false)
+      end
+
+      def self.error
+        new(matched: false, error: true)
+      end
+
+      def initialize(matched:, error: false)
+        @matched = matched
+        @error = error
       end
     end
   end

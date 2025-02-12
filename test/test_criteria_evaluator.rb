@@ -808,6 +808,132 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal 'ghi', evaluator.evaluate(context).unwrapped_value
   end
 
+  def test_prop_regex_matches
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_MATCHES,
+                  value_to_match: PrefabProto::ConfigValue.new(string: "a+b+"),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'aabb' })).unwrapped_value
+  end
+
+  def test_prop_regex_does_not_match
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_DOES_NOT_MATCH,
+                  value_to_match: PrefabProto::ConfigValue.new(string: "a+b+"),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'aabb' })).unwrapped_value
+  end
+
+  def test_prop_regex_does_not_match_returns_false_bad_regex
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_DOES_NOT_MATCH,
+                  value_to_match: PrefabProto::ConfigValue.new(string: "[a+b+"),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
+
+    assert_stderr [ "warning: character class has duplicated range: /^[a+b+$/" ]
+  end
+
+
+  def test_prop_regex_match_returns_false_bad_regex
+    config = PrefabProto::Config.new(
+      key: KEY,
+      rows: [
+        DEFAULT_ROW,
+        PrefabProto::ConfigRow.new(
+          project_env_id: PROJECT_ENV_ID,
+          values: [
+            PrefabProto::ConditionalValue.new(
+              criteria: [
+                PrefabProto::Criterion.new(
+                  operator: PrefabProto::Criterion::CriterionOperator::PROP_MATCHES,
+                  value_to_match: PrefabProto::ConfigValue.new(string: "[a+b+"),
+                  property_name: 'user.testProperty'
+                )
+              ],
+              value: DESIRED_VALUE_CONFIG
+            )
+          ]
+        )
+      ]
+    )
+
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
+
+    assert_stderr [ "warning: character class has duplicated range: /^[a+b+$/" ]
+  end
+
   private
 
   def string_list(values)
