@@ -990,6 +990,50 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
   end
 
+  def test_date_before_works
+    date = "2024-12-01T00:00:00Z"
+    millis = Time.iso8601(date).utc.to_i * 1000
+    config_with_string = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_BEFORE, property_name: 'user.joinDate', value_to_match: date)
+    evaluator_with_string_config = Prefab::CriteriaEvaluator.new(config_with_string, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                              namespace: nil)
+    config_with_millis = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_BEFORE, property_name: 'user.joinDate', value_to_match: millis)
+    evaluator_with_millis_config = Prefab::CriteriaEvaluator.new(config_with_millis, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                                                 namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: millis-10000})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: "2024-11-01T00:00:00Z"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: millis+10000})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: "2024-12-02T00:00:00Z"})).unwrapped_value
+
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context({})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: millis-10000})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: "2024-11-01T00:00:00Z"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: millis+10000})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: "2024-12-02T00:00:00Z"})).unwrapped_value
+  end
+
+  def test_date_after_works
+    date = "2024-12-01T00:00:00Z"
+    millis = Time.iso8601(date).utc.to_i * 1000
+    config_with_string = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_AFTER, property_name: 'user.joinDate', value_to_match: date)
+    evaluator_with_string_config = Prefab::CriteriaEvaluator.new(config_with_string, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                                                 namespace: nil)
+    config_with_millis = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_AFTER, property_name: 'user.joinDate', value_to_match: millis)
+    evaluator_with_millis_config = Prefab::CriteriaEvaluator.new(config_with_millis, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
+                                                                 namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: millis-10000})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: "2024-11-01T00:00:00Z"})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: millis+10000})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_millis_config.evaluate(context(user: {joinDate: "2024-12-02T00:00:00Z"})).unwrapped_value
+
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: millis-10000})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: "2024-11-01T00:00:00Z"})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: millis+10000})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: "2024-12-02T00:00:00Z"})).unwrapped_value
+  end
+
   private
 
   def string_list(values)
