@@ -137,10 +137,17 @@ module Prefab
       evaluate_date_comparison(criterion, properties, :>).matched
     end
 
+
+    def value_from_properties(criterion, properties)
+      criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
+    end
+
+    private
+
     def evaluate_date_comparison(criterion, properties, operator)
       context_millis = as_millis(value_from_properties(criterion, properties))
       config_millis = as_millis(Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config,
-                                                 properties, @resolver).unwrap)
+                                                                           properties, @resolver).unwrap)
 
       unless config_millis && context_millis
         return MatchResult.error
@@ -148,12 +155,6 @@ module Prefab
 
       MatchResult.new(matched: context_millis.send(operator, config_millis))
     end
-
-    def value_from_properties(criterion, properties)
-      criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
-    end
-
-    private
 
     def evaluate_number_comparison(criterion, properties, &predicate)
       context_value = value_from_properties(criterion, properties)
