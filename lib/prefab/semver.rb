@@ -21,6 +21,7 @@ class SemanticVersion
   attr_reader :major, :minor, :patch, :prerelease, :build_metadata
 
   def self.parse(version_string)
+    raise ArgumentError, "version string cannot be nil" if version_string.nil?
     raise ArgumentError, "version string cannot be empty" if version_string.empty?
 
     match = SEMVER_PATTERN.match(version_string)
