@@ -113,11 +113,68 @@ module Prefab
       end
     end
 
+    def PROP_LESS_THAN(criterion, properties)
+      evaluate_number_comparison(criterion, properties) { |cmp| cmp < 0 }.matched
+    end
+
+    def PROP_LESS_THAN_OR_EQUAL(criterion, properties)
+      evaluate_number_comparison(criterion, properties) { |cmp| cmp <= 0 }.matched
+    end
+
+    def PROP_GREATER_THAN(criterion, properties)
+      evaluate_number_comparison(criterion, properties) { |cmp| cmp > 0 }.matched
+    end
+
+    def PROP_GREATER_THAN_OR_EQUAL(criterion, properties)
+      evaluate_number_comparison(criterion, properties) { |cmp| cmp >= 0 }.matched
+    end
+
     def value_from_properties(criterion, properties)
       criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
 
     private
+
+    def evaluate_number_comparison(criterion, properties, &predicate)
+      context_value = value_from_properties(criterion, properties)
+      value_to_match = extract_numeric_value(criterion.value_to_match)
+
+      return MatchResult.error if value_to_match.nil?
+
+      # Ensure context_value is a number or can be converted to one
+      if context_value.is_a?(String)
+        begin
+          context_value = Float(context_value)
+        rescue ArgumentError
+          return MatchResult.error
+        end
+      end
+
+      return MatchResult.error unless context_value.is_a?(Numeric)
+
+      # Compare the values and apply the predicate method
+      comparison_result = context_value <=> value_to_match
+      return MatchResult.error if comparison_result.nil?
+
+      predicate.call(comparison_result) ? MatchResult.matched : MatchResult.not_matched
+    end
+
+    def extract_numeric_value(config_value)
+      case config_value.type
+      when :int
+        config_value.int
+      when :double
+        config_value.double
+      when :string
+        begin
+          Float(config_value.string) if config_value.string =~ /\A[-+]?\d*\.?\d+\z/
+        rescue ArgumentError
+          nil
+        end
+      else
+        nil
+      end
+    end
 
     def evaluate_for_env(env_id, properties)
       @config.rows.each_with_index do |row, index|
