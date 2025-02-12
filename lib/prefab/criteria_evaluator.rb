@@ -114,27 +114,27 @@ module Prefab
     end
 
     def PROP_LESS_THAN(criterion, properties)
-      evaluate_number_comparison(criterion, properties) { |cmp| cmp < 0 }.matched
+      evaluate_number_comparison(criterion, properties, COMPARE_TO_OPERATORS[:less_than]).matched
     end
 
     def PROP_LESS_THAN_OR_EQUAL(criterion, properties)
-      evaluate_number_comparison(criterion, properties) { |cmp| cmp <= 0 }.matched
+      evaluate_number_comparison(criterion, properties, COMPARE_TO_OPERATORS[:less_than_or_equal]).matched
     end
 
     def PROP_GREATER_THAN(criterion, properties)
-      evaluate_number_comparison(criterion, properties) { |cmp| cmp > 0 }.matched
+      evaluate_number_comparison(criterion, properties, COMPARE_TO_OPERATORS[:greater_than]).matched
     end
 
     def PROP_GREATER_THAN_OR_EQUAL(criterion, properties)
-      evaluate_number_comparison(criterion, properties) { |cmp| cmp >= 0 }.matched
+      evaluate_number_comparison(criterion, properties,COMPARE_TO_OPERATORS[:greater_than_or_equal]) .matched
     end
 
     def PROP_BEFORE(criterion, properties)
-      evaluate_date_comparison(criterion, properties, :<).matched
+      evaluate_date_comparison(criterion, properties, COMPARE_TO_OPERATORS[:less_than]).matched
     end
 
     def PROP_AFTER(criterion, properties)
-      evaluate_date_comparison(criterion, properties, :>).matched
+      evaluate_date_comparison(criterion, properties, COMPARE_TO_OPERATORS[:greater_than]).matched
     end
 
     def PROP_SEMVER_LESS_THAN(criterion, properties)
@@ -173,7 +173,7 @@ module Prefab
       predicate.call(context_version <=> config_version) ? MatchResult.matched : MatchResult.not_matched
     end
 
-    def evaluate_date_comparison(criterion, properties, operator)
+    def evaluate_date_comparison(criterion, properties, predicate)
       context_millis = as_millis(value_from_properties(criterion, properties))
       config_millis = as_millis(Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config,
                                                                            properties, @resolver).unwrap)
@@ -182,10 +182,10 @@ module Prefab
         return MatchResult.error
       end
 
-      MatchResult.new(matched: context_millis.send(operator, config_millis))
+      predicate.call(context_millis <=> config_millis) ? MatchResult.matched : MatchResult.not_matched
     end
 
-    def evaluate_number_comparison(criterion, properties, &predicate)
+    def evaluate_number_comparison(criterion, properties, predicate)
       context_value = value_from_properties(criterion, properties)
       value_to_match = extract_numeric_value(criterion.value_to_match)
 
