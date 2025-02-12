@@ -895,11 +895,10 @@ class TestCriteriaEvaluator < Minitest::Test
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                               namespace: nil)
-    #silencing stderr because of "warning: character class has duplicated range: /^[a+b+$/"
-    silence_stderr do
-     assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
-     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
-    end
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
+
+    assert_stderr [ "warning: character class has duplicated range: /^[a+b+$/" ]
   end
 
 
@@ -928,24 +927,14 @@ class TestCriteriaEvaluator < Minitest::Test
 
     evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client,
                                               namespace: nil)
-    #silencing stderr because of "warning: character class has duplicated range: /^[a+b+$/"
 
-    silence_stderr do
-      assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
-      assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
-    end
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: { testProperty: 'abc' })).unwrapped_value
 
+    assert_stderr [ "warning: character class has duplicated range: /^[a+b+$/" ]
   end
 
   private
-
-  def silence_stderr
-    original_stderr = $stderr
-    $stderr = File.open(File::NULL, "w")  # Redirect STDERR to null
-    yield
-  ensure
-    $stderr = original_stderr  # Restore STDERR after execution
-  end
 
   def string_list(values)
     PrefabProto::ConfigValue.new(string_list: PrefabProto::StringList.new(values: values))

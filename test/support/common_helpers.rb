@@ -174,18 +174,17 @@ module CommonHelpers
   end
 
   def assert_stderr(expected)
-    assert ($stderr.string.split("\n").uniq & expected).size > 0
+    $stderr.string.split("\n").uniq.each do |line|
+      matched = false
 
-    # Ruby 2.X has a lot of warnings about instance variables not being
-    # initialized so we don't try to assert on stderr for those versions.
-    # Instead we just stop after asserting that our expected errors are
-    # included in the output.
-    if RUBY_VERSION.start_with?('2.')
-      puts $stderr.string
-      return
+      expected.reject! do |expectation|
+        matched = true if line.include?(expectation)
+      end
+
+      assert(matched, "expectation: #{expected}, got: #{line}")
     end
 
-    assert_equal expected.uniq, $stderr.string.split("\n").uniq
+    assert expected.empty?, "Expected stderr to include: #{expected}, but it did not"
 
     # restore since we've handled it
     $stderr = $oldstderr
