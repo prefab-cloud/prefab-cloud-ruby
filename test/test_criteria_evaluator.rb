@@ -943,7 +943,8 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
-    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "9.2"})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
   end
 
@@ -956,7 +957,7 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
-    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "9"})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
   end
 
@@ -971,7 +972,7 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: 9.5})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 12})).unwrapped_value
-    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
   end
 
@@ -986,7 +987,7 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 10.1})).unwrapped_value
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: 12})).unwrapped_value
 
-    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "19"})).unwrapped_value
     assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user: {age: "not a number"})).unwrapped_value
   end
 
