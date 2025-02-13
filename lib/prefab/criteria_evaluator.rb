@@ -129,11 +129,32 @@ module Prefab
       evaluate_number_comparison(criterion, properties) { |cmp| cmp >= 0 }.matched
     end
 
+    def PROP_BEFORE(criterion, properties)
+      evaluate_date_comparison(criterion, properties, :<).matched
+    end
+
+    def PROP_AFTER(criterion, properties)
+      evaluate_date_comparison(criterion, properties, :>).matched
+    end
+
+
     def value_from_properties(criterion, properties)
       criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
 
     private
+
+    def evaluate_date_comparison(criterion, properties, operator)
+      context_millis = as_millis(value_from_properties(criterion, properties))
+      config_millis = as_millis(Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config,
+                                                                           properties, @resolver).unwrap)
+
+      unless config_millis && context_millis
+        return MatchResult.error
+      end
+
+      MatchResult.new(matched: context_millis.send(operator, config_millis))
+    end
 
     def evaluate_number_comparison(criterion, properties, &predicate)
       context_value = value_from_properties(criterion, properties)
@@ -176,6 +197,16 @@ module Prefab
       end
     end
 
+    def as_millis(obj)
+      if obj.is_a?(Numeric)
+        return obj.to_int if obj.respond_to?(:to_int)
+      end
+      if obj.is_a?(String)
+        Time.iso8601(obj).utc.to_i * 1000 rescue nil
+      end
+    end
+
+
     def evaluate_for_env(env_id, properties)
       @config.rows.each_with_index do |row, index|
         next unless row.project_env_id == env_id
@@ -206,7 +237,7 @@ module Prefab
     end
 
     def matches?(criterion, value, properties)
-      criterion_value_or_values = Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config.key,
+      criterion_value_or_values = Prefab::ConfigValueUnwrapper.deepest_value(criterion.value_to_match, @config,
                                                                              properties, @resolver).unwrap
 
       case criterion_value_or_values
