@@ -1034,6 +1034,39 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator_with_string_config.evaluate(context(user: {joinDate: "2024-12-02T00:00:00Z"})).unwrapped_value
   end
 
+  def test_semver_less_than
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_SEMVER_LESS_THAN, property_name: 'user.version', value_to_match: "2.0.0")
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "nonsense"})).unwrapped_value
+
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user:{version: "1.0.0"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "2.0.0"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "3.0.0"})).unwrapped_value
+  end
+
+  def test_semver_equal_to
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_SEMVER_EQUAL, property_name: 'user.version', value_to_match: "2.0.0")
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "nonsense"})).unwrapped_value
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "1.0.0"})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user:{version: "2.0.0"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "3.0.0"})).unwrapped_value
+  end
+
+  def test_semver_greater_than
+    config = create_prefab_config(operator: PrefabProto::Criterion::CriterionOperator::PROP_SEMVER_GREATER_THAN, property_name: 'user.version', value_to_match: "2.0.0")
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context({})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "nonsense"})).unwrapped_value
+
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "1.0.0"})).unwrapped_value
+    assert_equal DEFAULT_VALUE, evaluator.evaluate(context(user:{version: "2.0.0"})).unwrapped_value
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context(user:{version: "3.0.0"})).unwrapped_value
+  end
+
   private
 
   def string_list(values)

@@ -137,12 +137,41 @@ module Prefab
       evaluate_date_comparison(criterion, properties, :>).matched
     end
 
+    def PROP_SEMVER_LESS_THAN(criterion, properties)
+      evaluate_semver_comparison(criterion, properties, COMPARE_TO_OPERATORS[:less_than]).matched
+    end
+
+    def PROP_SEMVER_EQUAL(criterion, properties)
+      evaluate_semver_comparison(criterion, properties, COMPARE_TO_OPERATORS[:equal_to]).matched
+    end
+
+    def PROP_SEMVER_GREATER_THAN(criterion, properties)
+      evaluate_semver_comparison(criterion, properties, COMPARE_TO_OPERATORS[:greater_than]).matched
+    end
 
     def value_from_properties(criterion, properties)
       criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
     end
 
+    COMPARE_TO_OPERATORS = {
+      less_than_or_equal: -> cmp {  cmp <= 0 },
+      less_than: -> cmp {  cmp < 0 },
+      equal_to: -> cmp {  cmp == 0 },
+      greater_than: -> cmp {  cmp > 0 },
+      greater_than_or_equal: -> cmp {  cmp >= 0 },
+    }
+
     private
+
+    def evaluate_semver_comparison(criterion, properties, predicate)
+      context_version = value_from_properties(criterion, properties)&.then { |v| SemanticVersion.parse_quietly(v) }
+      config_version = criterion.value_to_match&.string&.then {|v| SemanticVersion.parse_quietly(criterion.value_to_match.string) }
+
+      unless context_version && config_version
+        return MatchResult.error
+      end
+      predicate.call(context_version <=> config_version) ? MatchResult.matched : MatchResult.not_matched
+    end
 
     def evaluate_date_comparison(criterion, properties, operator)
       context_millis = as_millis(value_from_properties(criterion, properties))
