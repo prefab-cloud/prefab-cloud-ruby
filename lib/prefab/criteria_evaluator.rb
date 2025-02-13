@@ -190,16 +190,6 @@ module Prefab
       value_to_match = extract_numeric_value(criterion.value_to_match)
 
       return MatchResult.error if value_to_match.nil?
-
-      # Ensure context_value is a number or can be converted to one
-      if context_value.is_a?(String)
-        begin
-          context_value = Float(context_value)
-        rescue ArgumentError
-          return MatchResult.error
-        end
-      end
-
       return MatchResult.error unless context_value.is_a?(Numeric)
 
       # Compare the values and apply the predicate method
@@ -215,14 +205,6 @@ module Prefab
         config_value.int
       when :double
         config_value.double
-      when :string
-        begin
-          Float(config_value.string) if config_value.string =~ /\A[-+]?\d*\.?\d+\z/
-        rescue ArgumentError
-          nil
-        end
-      else
-        nil
       end
     end
 
