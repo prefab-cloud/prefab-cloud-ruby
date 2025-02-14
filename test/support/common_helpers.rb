@@ -26,14 +26,19 @@ module CommonHelpers
       end
     end
 
-    if $stderr != $oldstderr && !$stderr.string.empty?
+    #note this skips the output check in environments like rubymine that hijack the output. Alternative is a method missing error on string
+
+    if $stderr != $oldstderr && $stderr.respond_to?(:string) && !$stderr.string.empty?
       # we ignore 2.X because of the number of `instance variable @xyz not initialized` warnings
       if !RUBY_VERSION.start_with?('2.')
         raise "Unexpected stderr. Handle stderr with assert_stderr\n\n#{$stderr.string}"
       end
     end
 
-    $stderr = $oldstderr
+    # Only restore stderr if we have a valid oldstderr
+    if $oldstderr
+      $stderr = $oldstderr
+    end
 
     Timecop.return
   end
@@ -174,6 +179,7 @@ module CommonHelpers
   end
 
   def assert_stderr(expected)
+    skip "Cannot verify stderr in current environment" unless $stderr.respond_to?(:string)
     $stderr.string.split("\n").uniq.each do |line|
       matched = false
 
@@ -185,8 +191,5 @@ module CommonHelpers
     end
 
     assert expected.empty?, "Expected stderr to include: #{expected}, but it did not"
-
-    # restore since we've handled it
-    $stderr = $oldstderr
   end
 end
