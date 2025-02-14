@@ -9,13 +9,17 @@ module Prefab
       'X-PrefabCloud-Client-Version' => "prefab-cloud-ruby-#{Prefab::VERSION}"
     }.freeze
 
-    def initialize(api_root, api_key)
-      @api_root = api_root
+    def initialize(uri, api_key)
+      @uri = uri
       @api_key = api_key
     end
 
-    def get(path)
-      connection(PROTO_HEADERS).get(path)
+    def uri
+      @uri
+    end
+
+    def get(path, headers = {})
+      connection(PROTO_HEADERS.merge(headers)).get(path)
     end
 
     def post(path, body)
@@ -24,13 +28,13 @@ module Prefab
 
     def connection(headers = {})
       if Faraday::VERSION[0].to_i >= 2
-        Faraday.new(@api_root) do |conn|
+        Faraday.new(@uri) do |conn|
           conn.request :authorization, :basic, AUTH_USER, @api_key
 
           conn.headers.merge!(headers)
         end
       else
-        Faraday.new(@api_root) do |conn|
+        Faraday.new(@uri) do |conn|
           conn.request :basic_auth, AUTH_USER, @api_key
 
           conn.headers.merge!(headers)
