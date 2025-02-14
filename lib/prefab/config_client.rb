@@ -118,7 +118,7 @@ module Prefab
     end
 
     def load_checkpoint
-      success = load_source_checkpoint
+      success = load_source_checkpoint(:start_at_id => @config_loader.highwater_mark)
       return if success
 
       success = load_cache
@@ -127,11 +127,10 @@ module Prefab
       LOG.warn 'No success loading checkpoints'
     end
 
-    def load_source_checkpoint
+    def load_source_checkpoint(start_at_id: 0)
       @options.config_sources.each do |source|
-        conn = Prefab::HttpConnection.new("#{source}/api/v1/configs/0", @base_client.api_key)
+        conn = Prefab::HttpConnection.new("#{source}/api/v1/configs/#{start_at_id}", @base_client.api_key)
         result = load_url(conn, :remote_api)
-
         return true if result
       end
 
@@ -146,7 +145,7 @@ module Prefab
         cache_configs(configs)
         true
       else
-        LOG.info "Checkpoint #{source} failed to load. Response #{resp.status}"
+        LOG.info "Checkpoint #{source} [#{conn.get_uri}] failed to load. Response #{resp.status}"
         false
       end
     rescue Faraday::ConnectionFailed => e
