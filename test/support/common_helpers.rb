@@ -191,5 +191,8 @@ module CommonHelpers
     end
 
     assert expected.empty?, "Expected stderr to include: #{expected}, but it did not"
+
+    # restore since we've handled it
+    $stderr = $oldstderr
   end
 end
