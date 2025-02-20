@@ -1,5 +1,15 @@
 # Changelog
 
+
+## 1.8.8 - 2025-02-28
+
+- Add conditional fetch support for configurations (#226)
+- Operator support for string starts with, contains (#212)
+- Operator support for regex, semver (protobuf update) (#215)
+- Operator support for date comparison (before/after) (#221)
+- Operator support for numeric comparisons (#220)
+
+
 ## 1.8.7 - 2024-10-25
 
 - Add option symbolize_json_names (#211)
