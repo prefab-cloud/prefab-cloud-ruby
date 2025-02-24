@@ -2,14 +2,16 @@
 
 set -e
 
+PROTO_ROOT="${PROTO_ROOT:-..}"
+
 gem install grpc-tools
 
 (
-  cd ../prefab-cloud
+  cd "$PROTO_ROOT/prefab-cloud"
   git pull --rebase
 )
 
-grpc_tools_ruby_protoc -I ../prefab-cloud/ --ruby_out=lib --grpc_out=lib prefab.proto
+grpc_tools_ruby_protoc -I "$PROTO_ROOT/prefab-cloud/" --ruby_out=lib --grpc_out=lib prefab.proto
 
 gsed -i 's/^module Prefab$/module PrefabProto/g' lib/prefab_pb.rb
 
