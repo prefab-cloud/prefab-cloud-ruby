@@ -86,12 +86,7 @@ module Prefab
     end
 
     def IN_INT_RANGE(criterion, properties)
-      value = if criterion.property_name == 'prefab.current-time'
-                Time.now.utc.to_i * 1000
-              else
-                value_from_properties(criterion, properties)
-              end
-
+      value = value_from_properties(criterion, properties)
       value && value >= criterion.value_to_match.int_range.start && value < criterion.value_to_match.int_range.end
     end
 
@@ -150,7 +145,14 @@ module Prefab
     end
 
     def value_from_properties(criterion, properties)
-      criterion.property_name == NAMESPACE_KEY ? @namespace : properties.get(criterion.property_name)
+      case criterion.property_name
+      when NAMESPACE_KEY
+        @namespace
+      when 'prefab.current-time'
+        Time.now.utc.to_i * 1000
+      else
+        properties.get(criterion.property_name)
+      end
     end
 
     COMPARE_TO_OPERATORS = {

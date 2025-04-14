@@ -1068,6 +1068,28 @@ class TestCriteriaEvaluator < Minitest::Test
     assert_equal DESIRED_VALUE, evaluator.evaluate(context(user:{version: "3.0.0"})).unwrapped_value
   end
 
+  def test_date_before_with_current_time
+    future_time = Time.now.utc + 3600 # 1 hour in the future
+    config = create_prefab_config(
+      operator: PrefabProto::Criterion::CriterionOperator::PROP_BEFORE,
+      property_name: 'prefab.current-time',
+      value_to_match: future_time.iso8601
+    )
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
+  end
+
+  def test_date_after_with_current_time
+    past_time = Time.now.utc - 3600 # 1 hour in the past
+    config = create_prefab_config(
+      operator: PrefabProto::Criterion::CriterionOperator::PROP_AFTER,
+      property_name: 'prefab.current-time',
+      value_to_match: past_time.iso8601
+    )
+    evaluator = Prefab::CriteriaEvaluator.new(config, project_env_id: PROJECT_ENV_ID, resolver: nil, base_client: @base_client, namespace: nil)
+    assert_equal DESIRED_VALUE, evaluator.evaluate(context({})).unwrapped_value
+  end
+
   private
 
   def string_list(values)
