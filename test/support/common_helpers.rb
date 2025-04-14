@@ -11,7 +11,6 @@ module CommonHelpers
     Prefab::Context.default_context.clear
     SemanticLogger.add_appender(io: $logs, filter: Prefab.log_filter)
     SemanticLogger.sync!
-    Timecop.freeze('2023-08-09 15:18:12 -0400')
   end
 
   def teardown

@@ -200,12 +200,6 @@ module Prefab
     end
 
     def to_proto(namespace)
-      prefab_context = {
-        'current-time' => ConfigValueWrapper.wrap(Prefab::TimeHelpers.now_in_ms)
-      }
-
-      prefab_context['namespace'] = ConfigValueWrapper.wrap(namespace) if namespace&.length&.positive?
-
       reportable_contexts = {}
 
       reportable_tree.each do |ctx|
@@ -217,8 +211,7 @@ module Prefab
       PrefabProto::ContextSet.new(
         contexts: reportable_contexts.map do |name, context|
           context.to_proto
-        end.concat([PrefabProto::Context.new(type: 'prefab',
-                                             values: prefab_context)])
+        end
       )
     end
 
