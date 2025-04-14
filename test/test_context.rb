@@ -141,14 +141,6 @@ class TestContext < Minitest::Test
             "id" => PrefabProto::ConfigValue.new(int: 2),
             "name" => PrefabProto::ConfigValue.new(string: "team-name")
           }
-        ),
-
-        PrefabProto::Context.new(
-          type: "prefab",
-          values: {
-            'current-time' => PrefabProto::ConfigValue.new(int: Prefab::TimeHelpers.now_in_ms),
-            'namespace' => PrefabProto::ConfigValue.new(string: namespace)
-          }
         )
       ]
     ), contexts.to_proto(namespace)
@@ -226,13 +218,6 @@ class TestContext < Minitest::Test
             "name" => PrefabProto::ConfigValue.new(string: "team-name")
           }
         ),
-        # via to_proto
-        PrefabProto::Context.new(
-          type: "prefab",
-          values: {
-            'current-time' => PrefabProto::ConfigValue.new(int: Prefab::TimeHelpers.now_in_ms),
-          }
-        )
       ]
     )
 
