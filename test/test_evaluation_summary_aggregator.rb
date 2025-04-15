@@ -59,86 +59,86 @@ class TestEvaluationSummaryAggregator < Minitest::Test
   end
 
   def test_sync
-    awhile_ago = Time.now - 60
-    now = Time.now
+    Timecop.freeze('2023-08-09 15:18:12 -0400') do
+      awhile_ago = Time.now - 60
+      now = Time.now
 
-    client = MockBaseClient.new
+      client = MockBaseClient.new
 
-    aggregator = nil
+      aggregator = nil
 
-    Timecop.freeze(awhile_ago) do
-      # start the aggregator in the past
-      aggregator = Prefab::EvaluationSummaryAggregator.new(client: client, max_keys: 10,
+      Timecop.freeze(awhile_ago) do
+        # start the aggregator in the past
+        aggregator = Prefab::EvaluationSummaryAggregator.new(client: client, max_keys: 10,
                                                            sync_interval: EFFECTIVELY_NEVER)
-    end
+      end
 
-    add_example_data(aggregator)
+      add_example_data(aggregator)
 
-    expected_post = PrefabProto::TelemetryEvents.new(
-      instance_hash: client.instance_hash,
-      events: [
-        PrefabProto::TelemetryEvent.new(
-          summaries:
-
-      PrefabProto::ConfigEvaluationSummaries.new(
-        start: awhile_ago.to_i * 1000,
-        end: now.to_i * 1000,
-        summaries: [
-          PrefabProto::ConfigEvaluationSummary.new(
-            key: 'config-1',
-            type: :CONFIG,
-            counters: [
-              PrefabProto::ConfigEvaluationCounter.new(
-                config_id: 1,
-                selected_index: 2,
-                config_row_index: 3,
-                conditional_value_index: 4,
-                weighted_value_index: 5,
-                selected_value: EXAMPLE_VALUE_1,
-                count: 3
-              ),
-              PrefabProto::ConfigEvaluationCounter.new(
-                config_id: 1,
-                selected_index: 3,
-                config_row_index: 7,
-                conditional_value_index: 8,
-                weighted_value_index: 10,
-                selected_value: EXAMPLE_VALUE_2,
-                count: 1
-              )
-            ]
-          ),
-          PrefabProto::ConfigEvaluationSummary.new(
-            key: 'config-2',
-            type: :FEATURE_FLAG,
-            counters: [
-              PrefabProto::ConfigEvaluationCounter.new(
-                config_id: 2,
-                selected_index: 3,
-                config_row_index: 5,
-                conditional_value_index: 7,
-                weighted_value_index: 6,
-                selected_value: EXAMPLE_VALUE_1,
-                count: 9
-              )
-            ]
+      expected_post = PrefabProto::TelemetryEvents.new(
+        instance_hash: client.instance_hash,
+        events: [
+          PrefabProto::TelemetryEvent.new(
+            summaries: PrefabProto::ConfigEvaluationSummaries.new(
+              start: awhile_ago.to_i * 1000,
+              end: now.to_i * 1000,
+              summaries: [
+                PrefabProto::ConfigEvaluationSummary.new(
+                  key: 'config-1',
+                  type: :CONFIG,
+                  counters: [
+                    PrefabProto::ConfigEvaluationCounter.new(
+                      config_id: 1,
+                      selected_index: 2,
+                      config_row_index: 3,
+                      conditional_value_index: 4,
+                      weighted_value_index: 5,
+                      selected_value: EXAMPLE_VALUE_1,
+                      count: 3
+                    ),
+                    PrefabProto::ConfigEvaluationCounter.new(
+                      config_id: 1,
+                      selected_index: 3,
+                      config_row_index: 7,
+                      conditional_value_index: 8,
+                      weighted_value_index: 10,
+                      selected_value: EXAMPLE_VALUE_2,
+                      count: 1
+                    )
+                  ]
+                ),
+                PrefabProto::ConfigEvaluationSummary.new(
+                  key: 'config-2',
+                  type: :FEATURE_FLAG,
+                  counters: [
+                    PrefabProto::ConfigEvaluationCounter.new(
+                      config_id: 2,
+                      selected_index: 3,
+                      config_row_index: 5,
+                      conditional_value_index: 7,
+                      weighted_value_index: 6,
+                      selected_value: EXAMPLE_VALUE_1,
+                      count: 9
+                    )
+                  ]
+                )
+              ]
+            )
           )
         ]
       )
-        )
-      ]
-    )
 
-    requests = wait_for_post_requests(client) do
-      Timecop.freeze(now) do
-        aggregator.sync
+      requests = wait_for_post_requests(client) do
+        Timecop.freeze(now) do
+          aggregator.sync
+        end
       end
-    end
 
-    assert_equal [[
-      '/api/v1/telemetry',
-      expected_post
-    ]], requests
+      assert_equal [[
+        '/api/v1/telemetry',
+        expected_post
+      ]], requests
+    end
   end
 
   private
